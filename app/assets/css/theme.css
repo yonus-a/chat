@@ -118,7 +118,8 @@
     var(--color-gray-25) 100%
   );
 
---background-image-diamond-primary: radial-gradient(
+  /* Diamond (Radial) Gradients */
+ --background-image-diamond-primary: radial-gradient(
     circle at 70% 0%,
     var(--color-primary-600),
     var(--color-primary-200)

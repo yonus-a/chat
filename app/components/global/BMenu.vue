@@ -9,14 +9,18 @@
             :class="[isOpen ? ' bg-on-background/20 backdrop-blur-sm pointer-events-auto' : ' backdrop-blur-none bg-on-background/0 pointer-events-none']">
         </div>
         <div ref="panelRef"
-            class="absolute z-100 min-w-40 rounded-xl border border-outline-container bg-background transition-all duration-200 ease-in-out overflow-hidden"
+            class="absolute z-100 min-w-40 rounded-xl bg-surface border border-outline max-h-64 overflow-y-auto transition-all duration-200 ease-in-out overflow-hidden"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)] ' : 'shadow-none']">
             <div v-if="options.length > 0" class="flex flex-col">
                 <template v-for="(opt, idx) in options" :key="opt.key">
                     <div @click="handleSelect(opt.key)"
                         class="flex items-center gap-x-2 p-2.5 hover:bg-surface-container transition-colors cursor-pointer group">
-                        <DIcon v-if="opt.icon" :icon="opt.icon" :class="[getColorClass(opt.color), 'w-5 h-5']" />
+                        <BIcon v-if="opt.icon" :icon="opt.icon" :class="[getColorClass(opt.color), 'w-5 h-5']" />
+                        <div v-if="opt.imageUrl" class=" w-5 h-5 rounded-full overflow-hidden">
+                            <BImage :src="opt.imageUrl"
+                                class=" max-w-full max-h-full h-full w-full min-w-full min-h-full" />
+                        </div>
                         <span :class="[getColorClass(opt.color), 'text-xs font-medium select-none']">{{ opt.title
                         }}</span>
                     </div>
@@ -43,6 +47,7 @@ interface MenuOption {
     key: string;
     color?: 'success' | 'error' | 'primary' | 'warning' | 'neutral';
     icon?: string;
+    imageUrl?: string;
 }
 
 export default defineComponent({
@@ -121,10 +126,11 @@ export default defineComponent({
             const isVisible = isOpen.value;
             return {
                 opacity: isVisible ? '1' : '0',
-                transform: isVisible ? 'translateY(4px)' : 'translateY(0)',
-                pointerEvents: isVisible ? 'auto' : 'none' as any,
+                transform: isVisible ? 'translateY(12px)' : 'translateY(0px)',
+                pointerEvents: isVisible ? 'auto' : ('none' as any),
                 height: isVisible ? 'auto' : '0',
-                [horizontalAlign.value]: '0',
+                left: horizontalAlign.value === 'right' ? '0' : 'auto',
+                right: horizontalAlign.value === 'left' ? '0' : 'auto',
                 whiteSpace: 'nowrap'
             };
         });

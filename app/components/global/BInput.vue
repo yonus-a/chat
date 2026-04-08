@@ -1,331 +1,569 @@
 <template>
-    <div class="w-full max-w-90">
-        <span class="text-greyscale-900 select-none text-xs font-medium mb-1" v-if="title.trim().length > 0">
-            {{ title }} <span class=" text-error select-none" v-if="required">*</span>
+    <div class="b-input-wrapper">
+        <span v-if="title.trim().length > 0" class="b-input-title select-none">
+            {{ title }} <span v-if="required" class="b-input-required">*</span>
         </span>
-        <div class="w-full relative">
-            <input v-if="!textarea" :readonly="readonly" :maxlength="maxlength" ref="inputField" :type="finalInputType"
-                v-model="inputValue" :class="[borderColor]" :style="dynamicInputStyle" :tabindex="tabindex"
-                :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint" @keydown.enter="handleSubmit"
-                @paste="handlePaste" :inputmode="type === 'number' ? 'numeric' : undefined" @focus="handleFocus"
-                @blur="handleBlur" :placeholder="placeholder"
-                class="text-sm rounded-[10px] h-12 border-2 bg-background text-greyscale-900 py-2.5 font-medium transition-all duration-200 ease-in-out w-full outline-none">
-            <textarea v-else :readonly="readonly" :maxlength="maxlength" ref="inputField" :type="finalInputType"
-                v-model="inputValue" :class="[borderColor]" :style="dynamicInputStyle" :tabindex="tabindex"
-                :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint" @keydown.enter="handleSubmit"
-                @paste="handlePaste" :inputmode="type === 'number' ? 'numeric' : undefined" @focus="handleFocus"
-                @blur="handleBlur" :placeholder="placeholder"
-                class="text-sm rounded-[10px] h-25 border-2 text-greyscale-900 py-2.5 font-medium transition-all duration-200 ease-in-out w-full outline-none"></textarea>
 
-            <div :class="[type !== 'phone' && prefix.trim().length === 0 ? 'px-3' : (prefix.trim().length === 0 ? 'px-1.5' : 'px-2')]"
-                class="flex justify-between items-center absolute inset-0 pointer-events-none overflow-hidden max-h-10">
+        <div :style="inputStyle" class="w-full relative">
 
-                <div ref="startSlotRef" class="pointer-events-auto translate-y-1 flex items-center">
-                    <span v-if="prefix.trim().length > 0"
-                        class="text-xs font-medium py-1 px-2 rounded-md bg-greyscale-50 min-h-8 flex items-center justify-center text-greyscale-900">
-                        <div>{{ prefix }}</div>
+            <div class="b-input-focus-border" :class="{ 'is-active': isFocus || isMenuOpen }"></div>
+
+            <input v-if="!textarea" ref="inputField" :readonly="readonly || type === 'select'" :maxlength="maxlength"
+                :type="finalInputType" v-model="displayValue" class="b-input" :class="{
+                    'is-focused': isFocus || isMenuOpen,
+                    'is-readonly': readonly && type !== 'select',
+                    'is-disabled': disabled,
+                    'cursor-pointer': type === 'select'
+                }" :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
+                :inputmode="type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
+                @click="handleInputClick" @keydown.down.prevent="handleArrowNav(1)"
+                @keydown.up.prevent="handleArrowNav(-1)" @keydown.enter="handleSubmit" @paste="handlePaste"
+                @focus="handleFocus" @blur="handleBlur" :disabled="disabled" />
+
+            <textarea v-else ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
+                v-model="inputValue" class="b-input b-input--textarea"
+                :class="{ 'is-focused': isFocus, 'is-readonly': readonly, 'is-disabled': disabled }"
+                :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
+                :inputmode="type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
+                @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus" @blur="handleBlur"
+                :disabled="disabled"></textarea>
+
+            <div class="b-input-slots-wrapper hide-scrollbar absolute inset-0 pointer-events-none flex justify-between items-center"
+                :style="{ paddingInline: inputStyle['--i-pad-internal'] }">
+                <div ref="startSlotRef" class="pointer-events-auto flex items-center shrink-0">
+
+                    <span v-if="prefix.trim().length > 0" class="b-input-prefix select-none">
+                        {{ prefix }}
                     </span>
-                    <BIcon @click="iconClicked" v-else-if="icon.trim().length > 0 && type !== 'phone'" :icon="icon"
-                        class="w-5 cursor-pointer h-5 fill-greyscale-900" />
-                    <div v-else-if="type === 'phone'"
-                        class="rounded-md w-18 bg-greyscale-50 h-9 px-3 flex items-center gap-x-2">
-                        <div class="w-4 h-4 rounded-full overflow-hidden shrink-0">
-                            <DImage :src="flagUrl"
-                                class="scale-150 w-full relative max-w-full min-w-full h-full max-h-full min-h-full" />
-                        </div>
-                        <div class="text-sm text-greyscale-900">{{ selectedCountry?.dial_code }}</div>
-                    </div>
+
+                    <BIcon v-else-if="icon.trim().length > 0 && type !== 'phone'" :icon="icon"
+                        class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
+
+                    <BMenu v-else-if="type === 'phone'" :options="countryOptions" @select="handleCountrySelect"
+                        @open="isPhoneMenuOpen = true" @close="isPhoneMenuOpen = false">
+                        <template #trigger>
+                            <div
+                                class="b-input-phone-prefix max-h-64 overflow-visible ltr:pr-2 rtl:pl-2 ltr:border-r rtl:border-l border-outline cursor-pointer select-none group">
+                                <div class="w-4 h-4 rounded-full overflow-hidden shrink-0">
+                                    <img :src="flagUrl" class="scale-150 w-full h-full object-cover" />
+                                </div>
+                                <span>{{ selectedCountry?.dial_code }}</span>
+                                <BIcon icon="PhCaretDown" class="w-4 h-4 transition-transform duration-200"
+                                    :class="isPhoneMenuOpen ? 'rotate-180' : ''" />
+                            </div>
+                        </template>
+                    </BMenu>
                 </div>
 
-                <div ref="endSlotRef" class="pointer-events-auto translate-y-1 flex items-center">
-                    <BIcon @click="iconClicked" v-if="prefix.trim().length > 0 && icon.trim().length > 0 && type !== 'password'" :icon="icon"
-                        class="w-5 h-5 cursor-pointer fill-greyscale-900" />
-                    <BIcon  v-if="type === 'password'" :icon="passworBIcon" @click="togglePassword"
-                        class="w-5 h-5 cursor-pointer fill-greyscale-900" />
+                <div ref="endSlotRef" class="pointer-events-auto flex items-center shrink-0">
+
+                    <span v-if="passfix.trim().length > 0" class="b-input-passfix select-none">
+                        {{ passfix }}
+                    </span>
+
+                    <BIcon v-if="type === 'select'" icon="PhCaretDown"
+                        class="b-input-icon transition-transform duration-200 shrink-0 cursor-pointer"
+                        :class="isMenuOpen ? 'rotate-180' : ''" @click="handleInputClick" />
+
+                    <BIcon v-else-if="prefix.trim().length > 0 && icon.trim().length > 0 && type !== 'password'"
+                        :icon="icon" class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
+
+                    <BIcon v-if="type === 'password'" :icon="passworBIcon" @click="togglePassword"
+                        class="b-input-icon cursor-pointer shrink-0" />
                 </div>
             </div>
+
+            <BMenu ref="selectMenuRef" v-if="type === 'select'" class="absolute bottom-0 inset-x-0 pointer-events-none"
+                :options="options" @select="handleMenuSelect" @open="isMenuOpen = true" @close="isMenuOpen = false">
+                <template #trigger>
+                    <div class="w-full h-0 opacity-0"></div>
+                </template>
+            </BMenu>
+
         </div>
-        <div class=" pt-1.5 w-full h-6.5 select-none text-greyscale-500 text-xs" v-if="caption.trim().length > 0">{{
-            caption }}</div>
-        <div class="w-full h-5 overflow-hidden pt-1.5">
-            <div class="transition-all duration-200 ease-in-out flex w-full items-center gap-x-1.5"
-                :class="[showMessage ? ' -translate-y-2 opacity-100' : '-translate-y-4 opacity-0', messageColor]">
-                <div>
-                    <BIcon :icon="messageIcon" class=" w-4 h-4" />
-                </div>
-                <div class="select-none text-xs">{{ displayedMessage }}</div>
+
+        <div v-if="caption.trim().length > 0" class="b-input-caption select-none">
+            {{ caption }}
+        </div>
+
+        <div class="b-input-message-wrapper overflow-hidden pt-1.5 h-7">
+            <div class="flex items-center gap-x-1.5 transition-all duration-200 ease-in-out"
+                :class="[showMessage ? '-translate-y-1 opacity-100' : '-translate-y-4 opacity-0']"
+                :style="{ color: messageColor }">
+                <BIcon :icon="messageIcon" class="b-input-message-icon shrink-0" />
+                <span class="text-xs select-none">{{ displayedMessage }}</span>
             </div>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmounted } from 'vue';
-import {
-    inputTypes,
-    inputColors,
-    enterKeyHints,
-    type InputType,
-    type InputColor,
-    type EnterKeyHint,
-    autocompleteValues,
-    type Autocomplete,
-    type Input
-} from '~/types/components/input';
-import countries from '~/assets/data/countries.json'
+<script setup lang="ts">
+import { useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmounted } from 'vue';
+import defaultCountries from '~/assets/data/countries.json';
+import BMenu from './BMenu.vue';
 
-export default defineComponent({
-    name: 'TheInput',
-    props: {
-        placeholder: { type: String, default: '' },
-        title: { type: String, default: '' },
-        modelValue: { type: String, default: '' },
-        type: {
-            type: String as PropType<InputType | 'slug'>,
-            default: 'text',
-        },
-        message: { type: String, default: '' },
-        color: {
-            type: String as PropType<InputColor>,
-            default: 'primary',
-            validator: (val: InputColor) => inputColors.includes(val)
-        },
-        icon: { type: String, default: '' },
-        tabindex: { type: [Number, String], default: 0 },
-        autocomplete: {
-            type: String as PropType<Autocomplete>,
-            default: 'on',
-            validator: (val: string) => autocompleteValues.includes(val as any) || val.length > 0
-        },
-        enterkeyhint: {
-            type: String as PropType<EnterKeyHint>,
-            default: 'enter',
-            validator: (val: EnterKeyHint) => enterKeyHints.includes(val)
-        },
-        maxlength: {
-            type: Number,
-            default: 100,
-        },
-        required: {
-            type: Boolean,
-            default: false,
-        },
-        prefix: {
-            type: String,
-            default: ''
-        },
-        readonly: {
-            type: Boolean,
-            default: false,
-        },
-        textarea: {
-            type: Boolean,
-            default: false,
-        },
-        caption: {
-            type: String,
-            default: ''
-        }
+interface MenuOption {
+    title: string;
+    key: string;
+    color?: 'success' | 'error' | 'primary' | 'warning' | 'neutral';
+    icon?: string;
+}
+
+/* =========================================================================
+   INPUT CONFIGURATION OBJECT (THE SINGLE SOURCE OF TRUTH)
+   ========================================================================= */
+const INPUT_CONFIG = {
+    sizing: {
+        height: '44px',
+        textareaHeight: '100px',
+        radius: '10px',
+        borderWidth: '1px',
+        paddingInternal: '12px',
+        gap: '8px',
+        fontSize: 'var(--text-body-md)',
+        fontFamily: 'inherit',
+        titleSize: 'var(--text-label-sm)',
+        captionSize: '12px',
+        iconSize: '20px',
+        messageIconSize: '24px'
     },
-    emits: ['update:modelValue', 'focus', 'blur', 'submit', 'paste','action'],
-    setup(props, { emit, expose }) {
-        const showPassword = ref(false)
-        const inputValue = ref(props.modelValue)
-        const isFocus = ref(false)
-        const inputField = useTemplateRef<HTMLInputElement>('inputField')
-        const selectedCountryCode = ref('IR')
 
-        // --- DYNAMIC PADDING LOGIC ---
-        const startSlotRef = ref<HTMLElement | null>(null);
-        const endSlotRef = ref<HTMLElement | null>(null);
-        const startSlotWidth = ref(0);
-        const endSlotWidth = ref(0);
-        let resizeObserver: ResizeObserver | null = null;
+    colors: {
+        bgDisabled: 'var(--color-surface-variant)',
+        text: 'var(--color-on-background)',
+        placeholder: 'var(--color-outline)',
+        icon: 'var(--color-on-background)',
+        title: 'var(--color-on-background)',
+        caption: 'var(--color-outline)'
+    },
 
-        onMounted(() => {
-            if (process.client) {
-                resizeObserver = new ResizeObserver((entries) => {
-                    for (const entry of entries) {
-                        if (entry.target === startSlotRef.value) startSlotWidth.value = entry.contentRect.width;
-                        if (entry.target === endSlotRef.value) endSlotWidth.value = entry.contentRect.width;
-                    }
-                });
-                if (startSlotRef.value) resizeObserver.observe(startSlotRef.value);
-                if (endSlotRef.value) resizeObserver.observe(endSlotRef.value);
-            }
-        });
+    focus: {
+        borderGradient: 'var(--background-image-diamond-primary-secondary)'
+    },
 
-        onUnmounted(() => {
-            if (resizeObserver) resizeObserver.disconnect();
-        });
-
-        const dynamicInputStyle = computed(() => {
-            const basePadding = props.type === 'phone' ? 6 : 12; // Matches px-1.5 vs px-3
-            const startPad = startSlotWidth.value > 0 ? startSlotWidth.value + basePadding + 8 : 12;
-            const endPad = endSlotWidth.value > 0 ? endSlotWidth.value + basePadding + 8 : 12;
-
-            return {
-                paddingInlineStart: `${startPad}px`, // Natively handles LTR/RTL swapping!
-                paddingInlineEnd: `${endPad}px`
-            };
-        });
-
-        // --- COUNTRIES ---
-        const selectedCountry = computed(() => {
-            return countries.find(c => c.code.toUpperCase() === selectedCountryCode.value.toUpperCase()) ||
-                countries.find(c => c.code === 'IR');
-        });
-
-        const flagUrl = computed(() => {
-            if (!selectedCountry.value) return '';
-            return `/flags/${selectedCountry.value.code.toLowerCase()}.svg`;
-        });
-
-        // --- VALUE WATCHERS & FORMATTING ---
-        watch(() => props.modelValue, (newVal) => {
-            inputValue.value = newVal
-        })
-
-        watch(() => inputValue.value, (newVal) => {
-            if (!newVal) {
-                emit('update:modelValue', '');
-                return;
-            }
-
-            if (props.type === 'number' || props.type === 'phone') {
-                const filtered = newVal.replace(/[^0-9]/g, '');
-                if (filtered !== newVal) {
-                    inputValue.value = filtered;
-                    return;
-                }
-            } else if (props.type === 'slug') {
-                // Lowercase -> Replace spaces with dash -> Remove non-english/numbers -> Remove duplicate dashes
-                let filtered = newVal.toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^a-z0-9-]/g, '')
-                    .replace(/-+/g, '-');
-
-                if (filtered !== newVal) {
-                    inputValue.value = filtered;
-                    return;
-                }
-            }
-            emit('update:modelValue', inputValue.value)
-        })
-
-        // --- PASTE HANDLER ---
-        const handlePaste = (e: ClipboardEvent) => {
-            emit('paste', e);
-
-            if (props.type === 'slug') {
-                const pasteData = e.clipboardData?.getData('text') || '';
-
-                // Allow ONLY english letters, numbers, spaces, and dashes
-                const isValidEnglish = /^[a-zA-Z0-9\s-]*$/.test(pasteData);
-
-                if (!isValidEnglish) {
-                    e.preventDefault(); // Deny paste if it contains Persian or special characters
-                    return;
-                }
-                // If it IS valid english, let it paste. The watch function above will instantly
-                // catch it, lowercase it, and format it into a perfect slug!
+    variants: (c: string) => {
+        const map: Record<string, { bg: string, border: string, message: string }> = {
+            error: {
+                bg: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+                border: 'var(--color-error)',
+                message: 'var(--color-error)'
+            },
+            warning: {
+                bg: 'color-mix(in srgb, var(--color-warning) 10%, transparent)',
+                border: 'var(--color-warning)',
+                message: 'var(--color-warning)'
+            },
+            success: {
+                bg: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)',
+                border: 'var(--color-secondary)',
+                message: 'var(--color-secondary)'
+            },
+            secondary: {
+                bg: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)',
+                border: 'var(--color-secondary)',
+                message: 'var(--color-secondary)'
+            },
+            primary: {
+                bg: 'var(--color-surface)',
+                border: 'var(--color-outline)',
+                message: 'var(--color-primary)'
             }
         };
+        return map[c] || map.primary;
+    },
 
-        const handleFocus = () => {
-            emit('focus')
-            isFocus.value = true
-        }
+    addon: {
+        bg: 'transparent',
+        text: 'var(--color-on-surface)',
+        radius: '6px',
+        height: '32px'
+    }
+};
 
-        const handleBlur = () => {
-            emit('blur')
-            isFocus.value = false
-        }
+/* --- PROPS --- */
+const props = defineProps({
+    placeholder: { type: String, default: '' },
+    title: { type: String, default: '' },
+    modelValue: { type: String, default: '' },
+    type: { type: String as PropType<'text' | 'password' | 'phone' | 'number' | 'slug' | 'select'>, default: 'text' },
+    options: { type: Array as PropType<MenuOption[]>, default: () => [] },
+    message: { type: String, default: '' },
+    color: { type: String, default: 'primary' },
+    icon: { type: String, default: '' },
+    tabindex: { type: [Number, String], default: 0 },
+    autocomplete: { type: String, default: 'on' },
+    enterkeyhint: { type: String as PropType<"enter" | "search" | "done" | "go" | "next" | "previous" | "send" | undefined>, default: 'enter' },
+    maxlength: { type: Number, default: 100 },
+    required: { type: Boolean, default: false },
+    prefix: { type: String, default: '' },
+    passfix: { type: String, default: '' },
+    readonly: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+    textarea: { type: Boolean, default: false },
+    caption: { type: String, default: '' }
+});
 
-        const togglePassword = () => {
-            showPassword.value = !showPassword.value
-        }
+const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste', 'action']);
 
-        const finalInputType = computed(() => {
-            if (props.type === 'password') return showPassword.value ? 'text' : 'password';
-            if (props.type === 'phone' || props.type === 'number' || props.type === 'slug') return 'text';
-            return props.type;
-        })
+/* --- STATE --- */
+const showPassword = ref(false);
+const inputValue = ref(props.modelValue);
+const isFocus = ref(false);
+const isMenuOpen = ref(false);
+const isPhoneMenuOpen = ref(false);
+const inputField = useTemplateRef<HTMLInputElement>('inputField');
+const selectMenuRef = useTemplateRef<any>('selectMenuRef');
+const selectedCountryCode = ref('IR');
 
-        const passworBIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye')
+if (props.type === 'select' && !props.options?.length) {
+    console.warn('BInput: type="select" requires the "options" prop to be provided.');
+}
 
-        const borderColor = computed(() => {
-            if (isFocus.value && props.color === 'primary') return 'border-greyscale-900';
-            if (props.color === 'primary') return 'border-greyscale-100';
-            return `border-${props.color}`;
-        })
+/* --- DYNAMIC PADDING LOGIC (RTL/LTR Safe) --- */
+const startSlotRef = ref<HTMLElement | null>(null);
+const endSlotRef = ref<HTMLElement | null>(null);
+const startSlotWidth = ref(0);
+const endSlotWidth = ref(0);
+let resizeObserver: ResizeObserver | null = null;
 
-        const messageColor = computed(() => `text-${props.color}`)
-
-        const showMessage = ref(props.message.trim().length > 0)
-        const displayedMessage = ref(props.message)
-
-        watch(() => props.message, (newMsg) => {
-            if (newMsg.trim().length > 0) {
-                displayedMessage.value = newMsg;
-                showMessage.value = true;
-            } else {
-                showMessage.value = false;
+onMounted(() => {
+    if (process.client) {
+        resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.target === startSlotRef.value) startSlotWidth.value = entry.contentRect.width;
+                if (entry.target === endSlotRef.value) endSlotWidth.value = entry.contentRect.width;
             }
-        })
-
-        const messageIcon = computed(() => {
-            switch (props.color) {
-                case 'success': return 'PhCheckCircle';
-                case 'error':
-                case 'warning': return 'PhWarning';
-                default: return 'PhWarningCircle';
-            }
-        })
-
-        const finalAutocomplete = computed(() => {
-            return props.autocomplete === 'off' ? 'new-password' : props.autocomplete;
         });
+        if (startSlotRef.value) resizeObserver.observe(startSlotRef.value);
+        if (endSlotRef.value) resizeObserver.observe(endSlotRef.value);
+    }
+});
 
-        const handleSubmit = () => emit('submit', inputValue.value);
+onUnmounted(() => {
+    if (resizeObserver) resizeObserver.disconnect();
+});
 
-        const focus = () => inputField.value?.focus();
-        const blur = () => inputField.value?.blur();
+/* --- CSS VARIABLES INJECTOR --- */
+const inputStyle = computed(() => {
+    const padInt = parseInt(INPUT_CONFIG.sizing.paddingInternal);
+    const gap = parseInt(INPUT_CONFIG.sizing.gap);
 
-        expose({ focus, blur } as Input);
+    const startPad = startSlotWidth.value > 0 ? startSlotWidth.value + padInt + gap : padInt;
+    const endPad = endSlotWidth.value > 0 ? endSlotWidth.value + padInt + gap : padInt;
 
-        const iconClicked = ()=>{
-            emit('action')
+    const variantMap = INPUT_CONFIG.variants(props.color);
+
+    return {
+        '--i-pad-start': `${startPad}px`,
+        '--i-pad-end': `${endPad}px`,
+        '--i-pad-internal': INPUT_CONFIG.sizing.paddingInternal,
+
+        '--i-height': INPUT_CONFIG.sizing.height,
+        '--i-textarea-height': INPUT_CONFIG.sizing.textareaHeight,
+        '--i-radius': INPUT_CONFIG.sizing.radius,
+        '--i-border-width': INPUT_CONFIG.sizing.borderWidth,
+        '--i-font-size': INPUT_CONFIG.sizing.fontSize,
+
+        '--i-bg': variantMap.bg,
+        '--i-bg-disabled': INPUT_CONFIG.colors.bgDisabled,
+        '--i-text': INPUT_CONFIG.colors.text,
+        '--i-placeholder': INPUT_CONFIG.colors.placeholder,
+        '--i-border': variantMap.border,
+        '--i-border-focus-gradient': INPUT_CONFIG.focus.borderGradient,
+
+        '--i-addon-bg': INPUT_CONFIG.addon.bg,
+        '--i-addon-text': INPUT_CONFIG.addon.text,
+        '--i-addon-radius': INPUT_CONFIG.addon.radius,
+        '--i-addon-height': INPUT_CONFIG.addon.height,
+
+        '--i-title-color': INPUT_CONFIG.colors.title,
+        '--i-title-size': INPUT_CONFIG.sizing.titleSize,
+        '--i-caption-color': INPUT_CONFIG.colors.caption,
+        '--i-caption-size': INPUT_CONFIG.sizing.captionSize,
+        '--i-icon-color': INPUT_CONFIG.colors.icon,
+        '--i-icon-size': INPUT_CONFIG.sizing.iconSize,
+        '--i-msg-icon-size': INPUT_CONFIG.sizing.messageIconSize,
+    };
+});
+
+/* --- SELECT MENU LOGIC --- */
+const displayValue = computed({
+    get() {
+        if (props.type === 'select') {
+            const selectedOpt = props.options.find(opt => opt.key === inputValue.value);
+            return selectedOpt ? selectedOpt.title : '';
         }
-
-        return {
-            messageIcon,
-            togglePassword,
-            handleBlur,
-            handleSubmit,
-            handlePaste,
-            finalInputType,
-            flagUrl,
-            selectedCountry,
-            finalAutocomplete,
-            handleFocus,
-            displayedMessage,
-            messageColor,
-            showMessage,
-            iconClicked,
-            inputValue,
-            passworBIcon,
-            inputField,
-            borderColor,
-            dynamicInputStyle,
-            startSlotRef,
-            endSlotRef
+        return inputValue.value;
+    },
+    set(val) {
+        if (props.type !== 'select') {
+            inputValue.value = val;
         }
     }
-})
+});
+
+const handleInputClick = () => {
+    if (props.type === 'select' && selectMenuRef.value) {
+        isMenuOpen.value ? selectMenuRef.value.close() : selectMenuRef.value.open();
+    }
+};
+
+const handleMenuSelect = (key: string) => {
+    inputValue.value = key;
+    isMenuOpen.value = false;
+};
+
+// Keyboard Nav for Select
+const handleArrowNav = (direction: number) => {
+    if (props.type !== 'select' || props.options.length === 0) return;
+    const currentIndex = props.options.findIndex(opt => opt.key === inputValue.value);
+    let nextIndex = currentIndex + direction;
+
+    if (nextIndex < 0) nextIndex = props.options.length - 1;
+    if (nextIndex >= props.options.length) nextIndex = 0;
+
+    inputValue.value = props.options[nextIndex].key;
+};
+
+/* --- PHONE / COUNTRIES LOGIC --- */
+const countryOptions = computed<MenuOption[]>(() => {
+    return defaultCountries.map(c => ({
+        title: `${c.name} (${c.dial_code})`,
+        key: c.code,
+        imageUrl: c.flag
+    }));
+});
+
+const selectedCountry = computed(() => {
+    return defaultCountries.find(c => c.code.toUpperCase() === selectedCountryCode.value.toUpperCase()) || defaultCountries;
+});
+
+const flagUrl = computed(() => {
+    if (!selectedCountry.value) return '';
+    return `/flags/${selectedCountry.value.code.toLowerCase()}.svg`;
+});
+
+const handleCountrySelect = (code: string) => {
+    selectedCountryCode.value = code;
+    isPhoneMenuOpen.value = false;
+};
+
+/* --- VALUE WATCHERS & FORMATTING --- */
+watch(() => props.modelValue, (newVal) => { inputValue.value = newVal; });
+
+watch(() => inputValue.value, (newVal) => {
+    if (!newVal) return emit('update:modelValue', '');
+
+    if (props.type === 'number' || props.type === 'phone') {
+        const filtered = newVal.replace(/[^0-9]/g, '');
+        if (filtered !== newVal) { inputValue.value = filtered; return; }
+    } else if (props.type === 'slug') {
+        let filtered = newVal.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+        if (filtered !== newVal) { inputValue.value = filtered; return; }
+    }
+    emit('update:modelValue', inputValue.value);
+});
+
+const handlePaste = (e: ClipboardEvent) => {
+    emit('paste', e);
+    if (props.type === 'slug') {
+        const pasteData = e.clipboardData?.getData('text') || '';
+        if (!/^[a-zA-Z0-9\s-]*$/.test(pasteData)) e.preventDefault();
+    }
+};
+
+/* --- EVENTS --- */
+const handleFocus = () => { isFocus.value = true; emit('focus'); };
+const handleBlur = () => { isFocus.value = false; emit('blur'); };
+const togglePassword = () => { showPassword.value = !showPassword.value; };
+const handleSubmit = () => emit('submit', inputValue.value);
+const iconClicked = () => emit('action');
+
+/* --- COMPUTEDS --- */
+const finalInputType = computed(() => {
+    if (props.type === 'password') return showPassword.value ? 'text' : 'password';
+    if (['phone', 'number', 'slug', 'select'].includes(props.type)) return 'text';
+    return props.type;
+});
+
+const passworBIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye');
+const finalAutocomplete = computed(() => props.autocomplete === 'off' ? 'new-password' : props.autocomplete);
+
+const showMessage = ref(props.message.trim().length > 0);
+const displayedMessage = ref(props.message);
+const messageColor = computed(() => INPUT_CONFIG.variants(props.color).message);
+
+watch(() => props.message, (newMsg) => {
+    if (newMsg.trim().length > 0) {
+        displayedMessage.value = newMsg;
+        showMessage.value = true;
+    } else {
+        showMessage.value = false;
+    }
+});
+
+const messageIcon = computed(() => {
+    switch (props.color) {
+        case 'success': return 'PhCheckCircle';
+        case 'error':
+        case 'warning': return 'PhWarning';
+        default: return 'PhWarningCircle';
+    }
+});
+
+defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.value?.blur() });
 </script>
+
 <style scoped>
-textarea {
+.b-input-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.b-input-title {
+    color: var(--i-title-color);
+    font-size: var(--i-title-size);
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.b-input-required {
+    color: var(--color-error, red);
+}
+
+.b-input {
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+
+    height: var(--i-height);
+    border-radius: var(--i-radius);
+    font-size: var(--i-font-size);
+    font-family: var(--i-font-family);
+    font-weight: 500;
+
+    background-color: var(--i-bg);
+    color: var(--i-text);
+
+    /* Fallback solid border */
+    border: var(--i-border-width) solid var(--i-border);
+
+    /* Dynamic RTL/LTR Padding */
+    padding-inline-start: var(--i-pad-start);
+    padding-inline-end: var(--i-pad-end);
+}
+
+/* =========================================================
+   FOCUS & GRADIENT MASK MAGIC
+   Makes the background transparent and fades in the border
+   ========================================================= */
+.b-input-focus-border {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--i-radius);
+    padding: var(--i-border-width);
+    background: var(--i-border-focus-gradient);
+
+    /* Creates a perfectly hollow center */
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* When Input is Focused */
+.b-input-focus-border.is-active {
+    opacity: 1;
+}
+
+.b-input.is-focused {
+    /* Hide the solid properties to reveal the mask/surface below */
+    background-color: transparent;
+    border-color: var(--color-primary);
+}
+
+.b-input--textarea {
+    height: var(--i-textarea-height);
     resize: none;
+    padding-top: var(--i-pad-internal);
+}
+
+.b-input::placeholder {
+    color: var(--i-placeholder);
+    opacity: 1;
+}
+
+/* Disabled/Readonly States */
+.b-input.is-readonly:not(.cursor-pointer) {
+    opacity: 0.7;
+}
+
+.b-input.is-disabled {
+    background-color: var(--i-bg-disabled);
+    border-color: var(--color-outline);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Slots & Addons */
+.b-input-slots-wrapper {
+    padding-inline: var(--i-pad-internal);
+    /* Now correctly pulls from the parent */
+    overflow: visible;
+    /* Prevents the horizontal scrollbar glitch */
+}
+
+.b-input-prefix,
+.b-input-passfix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--i-font-size);
+    font-weight: 500;
+    color: var(--i-addon-text);
+}
+
+.b-input-passfix {
+    opacity: 0.5;
+}
+
+.b-input-phone-prefix {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--i-addon-text);
+    font-size: var(--i-font-size);
+    opacity: 0.8;
+}
+
+.b-input-phone-prefix:hover {
+    opacity: 1;
+}
+
+.b-input-icon {
+    width: var(--i-icon-size);
+    height: var(--i-icon-size);
+    fill: var(--i-icon-color);
+    color: var(--i-icon-color);
+}
+
+.b-input-message-icon {
+    width: var(--i-msg-icon-size);
+    height: var(--i-msg-icon-size);
+    fill: currentColor;
+}
+
+.b-input-caption {
+    padding-top: 6px;
+    width: 100%;
+    color: var(--i-caption-color);
+    font-size: var(--i-caption-size);
 }
 </style>

@@ -9,3 +9,38 @@
   transform: translateZ(0); /* Forces the GPU to take over */
   will-change: backdrop-filter; /* Tells the browser to prepare the GPU */
 }
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--background-image-gradient-primary-secondary);
+  border-radius: 10px;
+}
+
+/* Firefox fallback (Gradients are not supported for scrollbars in Firefox, so we use a solid color) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-500) transparent;
+}
+
+/* Maintain the utility to hide scrollbars when needed */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
