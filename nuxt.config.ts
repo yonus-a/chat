@@ -25,13 +25,16 @@ export default defineNuxtConfig({
     },
     plugins: [tailwindcss()],
   },
-  modules: ["@nuxt/image", "@nuxtjs/i18n", "@pinia/nuxt"],
+  modules: ["@nuxt/image", "@nuxtjs/i18n", "@pinia/nuxt","@nuxtjs/color-mode"],
   components: [
     {
       path: "~/components/global",
       global: true,
     },
   ],
+  colorMode: {
+    classSuffix: ''
+  },
   i18n: {
     lazy: true,
     langDir: "locales",
