@@ -6,27 +6,25 @@
 
         <div :style="inputStyle" class="w-full relative">
 
-            <div class="b-input-focus-border" :class="{ 'is-active': isFocus || isMenuOpen }"></div>
+            <div class="b-input-focus-border" :class="{ 'is-active': isFocus }"></div>
 
-            <input v-if="!textarea" ref="inputField" :readonly="readonly || type === 'select'" :maxlength="maxlength"
-                :type="finalInputType" v-model="displayValue" class="b-input" :class="{
-                    'is-focused': isFocus || isMenuOpen,
-                    'is-readonly': readonly && type !== 'select',
-                    'is-disabled': disabled,
-                    'cursor-pointer': type === 'select'
+            <input v-if="!textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
+                v-model="inputValue" class="b-input" :class="{
+                    'is-focused': isFocus,
+                    'is-readonly': readonly,
+                    'is-disabled': disabled
                 }" :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
-                :inputmode="type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
-                @click="handleInputClick" @keydown.down.prevent="handleArrowNav(1)"
-                @keydown.up.prevent="handleArrowNav(-1)" @keydown.enter="handleSubmit" @paste="handlePaste"
-                @focus="handleFocus" @blur="handleBlur" :disabled="disabled" />
+                :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
+                @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
+                @blur="handleBlur" :disabled="disabled" />
 
             <textarea v-else ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
                 v-model="inputValue" class="b-input b-input--textarea"
                 :class="{ 'is-focused': isFocus, 'is-readonly': readonly, 'is-disabled': disabled }"
                 :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
-                :inputmode="type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
-                @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus" @blur="handleBlur"
-                :disabled="disabled"></textarea>
+                :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
+                @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
+                @blur="handleBlur" :disabled="disabled"></textarea>
 
             <div class="b-input-slots-wrapper hide-scrollbar absolute inset-0 pointer-events-none flex justify-between items-center"
                 :style="{ paddingInline: inputStyle['--i-pad-internal'] }">
@@ -39,20 +37,13 @@
                     <BIcon v-else-if="icon.trim().length > 0 && type !== 'phone'" :icon="icon"
                         class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
 
-                    <BMenu v-else-if="type === 'phone'" :options="countryOptions" @select="handleCountrySelect"
-                        @open="isPhoneMenuOpen = true" @close="isPhoneMenuOpen = false">
-                        <template #trigger>
-                            <div
-                                class="b-input-phone-prefix max-h-64 overflow-visible ltr:pr-2 rtl:pl-2 ltr:border-r rtl:border-l border-outline cursor-pointer select-none group">
-                                <div class="w-4 h-4 rounded-full overflow-hidden shrink-0">
-                                    <img :src="flagUrl" class="scale-150 w-full h-full object-cover" />
-                                </div>
-                                <span>{{ selectedCountry?.dial_code }}</span>
-                                <BIcon icon="PhCaretDown" class="w-4 h-4 transition-transform duration-200"
-                                    :class="isPhoneMenuOpen ? 'rotate-180' : ''" />
-                            </div>
-                        </template>
-                    </BMenu>
+                    <div v-else-if="type==='phone'"
+                        class="b-input-phone-prefix max-h-64 overflow-visible ltr:pr-2 rtl:pl-2 ltr:border-r rtl:border-l border-outline select-none group">
+                        <div class="w-4 h-4 rounded-full overflow-hidden shrink-0">
+                            <img :src="flagUrl" class="scale-150 w-full h-full object-cover" />
+                        </div>
+                        <span>{{ selectedCountry?.dial_code }}</span>
+                    </div>
                 </div>
 
                 <div ref="endSlotRef" class="pointer-events-auto flex items-center shrink-0">
@@ -61,25 +52,13 @@
                         {{ passfix }}
                     </span>
 
-                    <BIcon v-if="type === 'select'" icon="PhCaretDown"
-                        class="b-input-icon transition-transform duration-200 shrink-0 cursor-pointer"
-                        :class="isMenuOpen ? 'rotate-180' : ''" @click="handleInputClick" />
+                    <BIcon v-if="prefix.trim().length > 0 && icon.trim().length > 0 && type !== 'password'" :icon="icon"
+                        class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
 
-                    <BIcon v-else-if="prefix.trim().length > 0 && icon.trim().length > 0 && type !== 'password'"
-                        :icon="icon" class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
-
-                    <BIcon v-if="type === 'password'" :icon="passworBIcon" @click="togglePassword"
+                    <BIcon v-if="type === 'password'" :icon="passwordIcon" @click="togglePassword"
                         class="b-input-icon cursor-pointer shrink-0" />
                 </div>
             </div>
-
-            <BMenu ref="selectMenuRef" v-if="type === 'select'" class="absolute bottom-0 inset-x-0 pointer-events-none"
-                :options="options" @select="handleMenuSelect" @open="isMenuOpen = true" @close="isMenuOpen = false">
-                <template #trigger>
-                    <div class="w-full h-0 opacity-0"></div>
-                </template>
-            </BMenu>
-
         </div>
 
         <div v-if="caption.trim().length > 0" class="b-input-caption select-none">
@@ -107,6 +86,7 @@ interface MenuOption {
     key: string;
     color?: 'success' | 'error' | 'primary' | 'warning' | 'neutral';
     icon?: string;
+    imageUrl?: string;
 }
 
 /* =========================================================================
@@ -180,26 +160,25 @@ const INPUT_CONFIG = {
     }
 };
 
-/* --- PROPS --- */
+/* --- NATIVE HTML-LIKE PROPS --- */
 const props = defineProps({
-    placeholder: { type: String, default: '' },
-    title: { type: String, default: '' },
     modelValue: { type: String, default: '' },
-    type: { type: String as PropType<'text' | 'password' | 'phone' | 'number' | 'slug' | 'select'>, default: 'text' },
-    options: { type: Array as PropType<MenuOption[]>, default: () => [] },
+    type: { type: String as PropType<'text' | 'password' | 'phone' | 'number' | 'slug'>, default: 'text' },
+    title: { type: String, default: '' },
+    placeholder: { type: String, default: '' },
     message: { type: String, default: '' },
     color: { type: String, default: 'primary' },
     icon: { type: String, default: '' },
     tabindex: { type: [Number, String], default: 0 },
     autocomplete: { type: String, default: 'on' },
     enterkeyhint: { type: String as PropType<"enter" | "search" | "done" | "go" | "next" | "previous" | "send" | undefined>, default: 'enter' },
-    maxlength: { type: Number, default: 100 },
+    maxlength: { type: [Number, String], default: undefined },
     required: { type: Boolean, default: false },
-    prefix: { type: String, default: '' },
-    passfix: { type: String, default: '' },
     readonly: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     textarea: { type: Boolean, default: false },
+    prefix: { type: String, default: '' },
+    passfix: { type: String, default: '' },
     caption: { type: String, default: '' }
 });
 
@@ -209,15 +188,9 @@ const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste
 const showPassword = ref(false);
 const inputValue = ref(props.modelValue);
 const isFocus = ref(false);
-const isMenuOpen = ref(false);
 const isPhoneMenuOpen = ref(false);
-const inputField = useTemplateRef<HTMLInputElement>('inputField');
-const selectMenuRef = useTemplateRef<any>('selectMenuRef');
+const inputField = useTemplateRef<HTMLInputElement | HTMLTextAreaElement>('inputField');
 const selectedCountryCode = ref('IR');
-
-if (props.type === 'select' && !props.options?.length) {
-    console.warn('BInput: type="select" requires the "options" prop to be provided.');
-}
 
 /* --- DYNAMIC PADDING LOGIC (RTL/LTR Safe) --- */
 const startSlotRef = ref<HTMLElement | null>(null);
@@ -286,51 +259,13 @@ const inputStyle = computed(() => {
     };
 });
 
-/* --- SELECT MENU LOGIC --- */
-const displayValue = computed({
-    get() {
-        if (props.type === 'select') {
-            const selectedOpt = props.options.find(opt => opt.key === inputValue.value);
-            return selectedOpt ? selectedOpt.title : '';
-        }
-        return inputValue.value;
-    },
-    set(val) {
-        if (props.type !== 'select') {
-            inputValue.value = val;
-        }
-    }
-});
-
-const handleInputClick = () => {
-    if (props.type === 'select' && selectMenuRef.value) {
-        isMenuOpen.value ? selectMenuRef.value.close() : selectMenuRef.value.open();
-    }
-};
-
-const handleMenuSelect = (key: string) => {
-    inputValue.value = key;
-    isMenuOpen.value = false;
-};
-
-// Keyboard Nav for Select
-const handleArrowNav = (direction: number) => {
-    if (props.type !== 'select' || props.options.length === 0) return;
-    const currentIndex = props.options.findIndex(opt => opt.key === inputValue.value);
-    let nextIndex = currentIndex + direction;
-
-    if (nextIndex < 0) nextIndex = props.options.length - 1;
-    if (nextIndex >= props.options.length) nextIndex = 0;
-
-    inputValue.value = props.options[nextIndex].key;
-};
-
 /* --- PHONE / COUNTRIES LOGIC --- */
 const countryOptions = computed<MenuOption[]>(() => {
     return defaultCountries.map(c => ({
         title: `${c.name} (${c.dial_code})`,
         key: c.code,
-        imageUrl: c.flag
+        // Using correct path instead of raw emoji to prevent 404 IPX error
+        imageUrl: `/flags/${c.code.toLowerCase()}.svg`
     }));
 });
 
@@ -364,11 +299,20 @@ watch(() => inputValue.value, (newVal) => {
     emit('update:modelValue', inputValue.value);
 });
 
+/* Strict keypress logic for numbers */
+const handleKeypress = (e: KeyboardEvent) => {
+    if ((props.type === 'phone' || props.type === 'number') && !/[0-9]/.test(e.key)) {
+        e.preventDefault();
+    }
+};
+
 const handlePaste = (e: ClipboardEvent) => {
     emit('paste', e);
-    if (props.type === 'slug') {
-        const pasteData = e.clipboardData?.getData('text') || '';
-        if (!/^[a-zA-Z0-9\s-]*$/.test(pasteData)) e.preventDefault();
+    const pasteData = e.clipboardData?.getData('text') || '';
+    if ((props.type === 'phone' || props.type === 'number') && !/^[0-9]+$/.test(pasteData)) {
+        e.preventDefault();
+    } else if (props.type === 'slug' && !/^[a-zA-Z0-9\s-]*$/.test(pasteData)) {
+        e.preventDefault();
     }
 };
 
@@ -382,11 +326,11 @@ const iconClicked = () => emit('action');
 /* --- COMPUTEDS --- */
 const finalInputType = computed(() => {
     if (props.type === 'password') return showPassword.value ? 'text' : 'password';
-    if (['phone', 'number', 'slug', 'select'].includes(props.type)) return 'text';
+    if (['phone', 'number', 'slug'].includes(props.type)) return 'text';
     return props.type;
 });
 
-const passworBIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye');
+const passwordIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye');
 const finalAutocomplete = computed(() => props.autocomplete === 'off' ? 'new-password' : props.autocomplete);
 
 const showMessage = ref(props.message.trim().length > 0);
@@ -448,18 +392,11 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     background-color: var(--i-bg);
     color: var(--i-text);
 
-    /* Fallback solid border */
     border: var(--i-border-width) solid var(--i-border);
-
-    /* Dynamic RTL/LTR Padding */
     padding-inline-start: var(--i-pad-start);
     padding-inline-end: var(--i-pad-end);
 }
 
-/* =========================================================
-   FOCUS & GRADIENT MASK MAGIC
-   Makes the background transparent and fades in the border
-   ========================================================= */
 .b-input-focus-border {
     position: absolute;
     inset: 0;
@@ -467,7 +404,6 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     padding: var(--i-border-width);
     background: var(--i-border-focus-gradient);
 
-    /* Creates a perfectly hollow center */
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -478,13 +414,11 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     z-index: 1;
 }
 
-/* When Input is Focused */
 .b-input-focus-border.is-active {
     opacity: 1;
 }
 
 .b-input.is-focused {
-    /* Hide the solid properties to reveal the mask/surface below */
     background-color: transparent;
     border-color: var(--color-primary);
 }
@@ -500,8 +434,7 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     opacity: 1;
 }
 
-/* Disabled/Readonly States */
-.b-input.is-readonly:not(.cursor-pointer) {
+.b-input.is-readonly {
     opacity: 0.7;
 }
 
@@ -512,12 +445,9 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     opacity: 0.6;
 }
 
-/* Slots & Addons */
 .b-input-slots-wrapper {
     padding-inline: var(--i-pad-internal);
-    /* Now correctly pulls from the parent */
     overflow: visible;
-    /* Prevents the horizontal scrollbar glitch */
 }
 
 .b-input-prefix,
@@ -540,12 +470,10 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     gap: 8px;
     color: var(--i-addon-text);
     font-size: var(--i-font-size);
-    opacity: 0.8;
-}
-
-.b-input-phone-prefix:hover {
     opacity: 1;
 }
+
+
 
 .b-input-icon {
     width: var(--i-icon-size);

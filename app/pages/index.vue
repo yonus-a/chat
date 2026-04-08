@@ -8,7 +8,7 @@ const toggleColorMode = () => {
 
 // Global Toggles
 const isLoading = ref(false)
-const isDisabled = ref(false)
+const isDisabled = ref(true)
 const isReadonly = ref(false)
 
 const textValue = ref('')
@@ -25,18 +25,23 @@ const selectOptions = [
 </script>
 
 <template>
-  <div class="min-h-screen transition-colors duration-300 bg-surface text-on-surface flex flex-col items-center py-12 gap-12">
-    
-    <div class="p-6 rounded-2xl border border-outline bg-surface-variant shadow-lg flex flex-col items-center gap-6 w-full max-w-4xl">
+  <div
+    class="min-h-screen transition-colors duration-300 bg-surface text-on-surface flex flex-col items-center py-12 gap-12">
+
+    <div
+      class="p-6 rounded-2xl border border-outline bg-surface-variant shadow-lg flex flex-col items-center gap-6 w-full max-w-4xl">
       <h1 class="text-3xl font-bold text-primary">Design System Playground</h1>
-      
+
       <div class="flex gap-6 items-center flex-wrap justify-center">
-        <button 
-          @click="toggleColorMode"
-          class="px-4 py-2 rounded-lg bg-surface text-on-surface border border-outline hover:bg-surface-variant-2 font-medium"
-        >
+        <button @click="toggleColorMode"
+          class="px-4 py-2 rounded-lg bg-surface text-on-surface border border-outline hover:bg-surface-variant-2 font-medium">
           Theme: <span class="font-bold uppercase text-primary">{{ colorMode.value }}</span>
         </button>
+
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" v-model="isLoading" class="w-5 h-5 accent-primary" />
+          <span class="font-medium">Global Loading</span>
+        </label>
 
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" v-model="isLoading" class="w-5 h-5 accent-primary" />
@@ -56,58 +61,24 @@ const selectOptions = [
     </div>
 
     <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12 px-6">
-      
+
       <div class="flex flex-col gap-8">
         <h2 class="text-2xl font-bold text-secondary border-b border-outline pb-2">BInput Components</h2>
-        
-        <BInput 
-          v-model="textValue" 
-          title="Standard Input" 
-          placeholder="Type something..." 
-          icon="PhUser"
-          :disabled="isDisabled"
-          :readonly="isReadonly"
-          caption="This is a standard text input with an icon."
-        />
 
-        <BInput 
-          v-model="selectValue" 
-          title="Select Dropdown" 
-          type="select"
-          :options="selectOptions"
-          :disabled="isDisabled"
-          message="Use Arrow Up/Down to navigate options!"
-          color="success"
-          required
-        />
+        <BInput  v-model="textValue" title="Standard Input" placeholder="Type something..." icon="PhUser"
+          :disabled="isDisabled" :readonly="isReadonly" caption="This is a standard text input with an icon." />
 
-        <BInput 
-          title="Payment Amount" 
-          placeholder="0.00" 
-          type="number"
-          prefix="$"
-          passfix="USD"
-          :disabled="isDisabled"
-          :readonly="isReadonly"
-        />
+        <BInput v-model="selectValue" title="Select Dropdown" type="select" :options="selectOptions"
+          :disabled="isDisabled" message="Use Arrow Up/Down to navigate options!" color="success" required />
 
-        <BInput 
-          v-model="phoneValue"
-          title="Phone Number" 
-          type="phone"
-          placeholder="912 345 6789"
-          :disabled="isDisabled"
-          :readonly="isReadonly"
-        />
+        <BInput title="Payment Amount" placeholder="0.00" type="number" prefix="$" passfix="USD" :disabled="isDisabled"
+          :readonly="isReadonly" />
 
-        <BInput 
-          v-model="passValue"
-          title="Password" 
-          type="password"
-          placeholder="Enter secret..."
-          :disabled="isDisabled"
-          :readonly="isReadonly"
-        />
+        <BInput v-model="phoneValue" title="Phone Number" type="phone" placeholder="912 345 6789" :disabled="isDisabled"
+          :readonly="isReadonly" />
+
+        <BInput v-model="passValue" title="Password" type="password" placeholder="Enter secret..."
+          :disabled="isDisabled" :readonly="isReadonly" />
 
         <div class="flex flex-col gap-4 mt-4">
           <BInput title="Error State" placeholder="Invalid data" color="error" message="This field is required!" />
@@ -145,7 +116,8 @@ const selectOptions = [
             <BButton text="Small" size="sm" :loading="isLoading" :disabled="isDisabled" />
             <BButton text="Medium" left-icon="PhUser" :loading="isLoading" :disabled="isDisabled" />
             <BButton text="Large" right-icon="PhArrowRight" size="lg" :loading="isLoading" :disabled="isDisabled" />
-            <BButton icon="PhHeart" color="secondary" type="fill" size="md" :loading="isLoading" :disabled="isDisabled" />
+            <BButton icon="PhHeart" color="secondary" type="fill" size="md" :loading="isLoading"
+              :disabled="isDisabled" />
           </div>
         </section>
 
