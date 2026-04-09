@@ -1,6 +1,7 @@
 <template>
     <div class="b-input-wrapper">
 
+        <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
 
 
