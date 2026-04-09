@@ -1,12 +1,9 @@
 <template>
     <div class="b-input-wrapper">
-        <span v-if="title.trim().length > 0" class="b-input-title select-none">
-            {{ title }} <span v-if="required" class="b-input-required">*</span>
-        </span>
 
         <div :style="inputStyle" class="w-full relative">
 
-            <div class="b-input-focus-border" :class="{ 'is-active': isFocus }"></div>
+
 
             <input v-if="!textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
                 v-model="inputValue" class="b-input" :class="{
@@ -26,7 +23,7 @@
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled"></textarea>
 
-            <div class="b-input-slots-wrapper hide-scrollbar absolute inset-0 pointer-events-none flex justify-between items-center"
+            <div class="b-input-slots-wrapper max-h-full hide-scrollbar absolute inset-0 pointer-events-none flex justify-between items-center"
                 :style="{ paddingInline: inputStyle['--i-pad-internal'] }">
                 <div ref="startSlotRef" class="pointer-events-auto flex items-center shrink-0">
 
@@ -37,8 +34,8 @@
                     <BIcon v-else-if="icon.trim().length > 0 && type !== 'phone'" :icon="icon"
                         class="b-input-icon cursor-pointer shrink-0" @click="iconClicked" />
 
-                    <div v-else-if="type==='phone'"
-                        class="b-input-phone-prefix max-h-64 overflow-visible ltr:pr-2 rtl:pl-2 ltr:border-r rtl:border-l border-outline select-none group">
+                    <div v-else-if="type === 'phone'"
+                        class="b-input-phone-prefix text-on-surface/50 max-h-64 overflow-visible ltr:pr-2 rtl:pl-2 ltr:border-r rtl:border-l border-outline select-none group">
                         <div class="w-4 h-4 rounded-full overflow-hidden shrink-0">
                             <img :src="flagUrl" class="scale-150 w-full h-full object-cover" />
                         </div>
@@ -95,7 +92,7 @@ interface MenuOption {
 const INPUT_CONFIG = {
     sizing: {
         height: '44px',
-        textareaHeight: '100px',
+        textareaHeight: '160px',
         radius: '10px',
         borderWidth: '1px',
         paddingInternal: '12px',
@@ -110,10 +107,10 @@ const INPUT_CONFIG = {
 
     colors: {
         bgDisabled: 'var(--color-surface-variant)',
-        text: 'var(--color-on-background)',
+        text: 'var(--color-on-surface)',
         placeholder: 'var(--color-outline)',
-        icon: 'var(--color-on-background)',
-        title: 'var(--color-on-background)',
+        icon: 'var(--color-on-surface)',
+        title: 'var(--color-on-surface)',
         caption: 'var(--color-outline)'
     },
 
@@ -331,7 +328,7 @@ const finalInputType = computed(() => {
 });
 
 const passwordIcon = computed(() => showPassword.value ? 'PhEyeSlash' : 'PhEye');
-const finalAutocomplete = computed(() => props.autocomplete === 'off' ? 'new-password' : props.autocomplete);
+const finalAutocomplete = computed(() => props.autocomplete === 'off' ? 'new-password' : (props.type === 'password' && props.autocomplete === '' ? 'password' : props.autocomplete));
 
 const showMessage = ref(props.message.trim().length > 0);
 const displayedMessage = ref(props.message);
@@ -361,6 +358,7 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 <style scoped>
 .b-input-wrapper {
     width: 100%;
+    max-width: 320px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -430,8 +428,8 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 }
 
 .b-input::placeholder {
-    color: var(--i-placeholder);
-    opacity: 1;
+    color: var(--color-on-surface);
+    opacity: 0.5;
 }
 
 .b-input.is-readonly {
@@ -457,7 +455,8 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     justify-content: center;
     font-size: var(--i-font-size);
     font-weight: 500;
-    color: var(--i-addon-text);
+    color: var(--color-on-surface);
+    opacity: 0.5;
 }
 
 .b-input-passfix {
@@ -468,7 +467,6 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--i-addon-text);
     font-size: var(--i-font-size);
     opacity: 1;
 }
@@ -478,8 +476,9 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 .b-input-icon {
     width: var(--i-icon-size);
     height: var(--i-icon-size);
-    fill: var(--i-icon-color);
+    fill: var(--color-on-surface);
     color: var(--i-icon-color);
+    opacity: 0.5;
 }
 
 .b-input-message-icon {
@@ -491,7 +490,7 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 .b-input-caption {
     padding-top: 6px;
     width: 100%;
-    color: var(--i-caption-color);
+    color: var(--color-on-surface);
     font-size: var(--i-caption-size);
 }
 </style>
