@@ -2,7 +2,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import fs from "node:fs";
 import path from "node:path";
-
 const loadLocaleFiles = (lang: string) => {
   const dir = path.resolve(process.cwd(), "i18n", "locales", lang);
   if (!fs.existsSync(dir)) {
@@ -18,22 +17,39 @@ const loadLocaleFiles = (lang: string) => {
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  css: ["~/assets/css/main.css"],
+  css: ["~/assets/css/main.css", "~/assets/css/components.css"],
   vite: {
     optimizeDeps: {
       include: ["@vue/devtools-core", "@vue/devtools-kit"],
     },
     plugins: [tailwindcss()],
   },
-  modules: ["@nuxt/image", "@nuxtjs/i18n", "@pinia/nuxt","@nuxtjs/color-mode"],
+  modules: [
+    "@nuxt/image",
+    "@nuxtjs/i18n",
+    "@pinia/nuxt",
+    "@nuxtjs/color-mode",
+    "@primevue/nuxt-module",
+  ],
   components: [
     {
       path: "~/components/global",
       global: true,
     },
   ],
+  primevue: {
+    options: {
+      unstyled: true,
+      importPT: {
+        from: "~/mycustompt.ts",
+      },
+      components: {
+        include: ["Button", "InputText", "Select", "MultiSelect"],
+      },
+    },
+  },
   colorMode: {
-    classSuffix: ''
+    classSuffix: "",
   },
   i18n: {
     lazy: true,

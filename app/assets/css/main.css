@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import "./theme.css";
+@import "./components.css";
 
-[class *="backdrop-blur"] {
+[class*="backdrop-blur"] {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-perspective: 1000;
@@ -32,7 +33,7 @@
 /* Firefox fallback (Gradients are not supported for scrollbars in Firefox, so we use a solid color) */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-primary-500) transparent;  
+  scrollbar-color: var(--color-primary-500) transparent;
 }
 
 /* Maintain the utility to hide scrollbars when needed */
