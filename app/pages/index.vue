@@ -8,7 +8,7 @@
       <div class="flex flex-wrap gap-4 items-center">
         <Button label="Primary Fill" severity="primary" />
         <Button label="Secondary Fill" severity="secondary" />
-        <Button label="Danger Fill" severity="danger" />
+        <Button label="Danger Fill" severity="error" />
         <Button label="Warning Fill" severity="warning" />
         <Button label="Loading State" loading />
         <Button label="Disabled" disabled />

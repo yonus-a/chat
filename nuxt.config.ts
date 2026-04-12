@@ -37,17 +37,6 @@ export default defineNuxtConfig({
       global: true,
     },
   ],
-  primevue: {
-    options: {
-      unstyled: true,
-      importPT: {
-        from: "~/mycustompt.ts",
-      },
-      components: {
-        include: ["Button", "InputText", "Select", "MultiSelect"],
-      },
-    },
-  },
   colorMode: {
     classSuffix: "",
   },
