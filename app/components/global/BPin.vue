@@ -89,7 +89,7 @@ export default defineComponent({
             const isActive = isFilled || isCursor;
 
             // Using greyscale-900 for focus/active state to match DopeInput
-            if (isActive) return 'bg-greyscale-0/0 border-primary';
+            if (isActive || (isFocused.value && index === 0)) return 'bg-greyscale-0/0 border-primary';
             return 'bg-transparent border-outline';
         }
 
