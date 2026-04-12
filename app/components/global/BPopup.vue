@@ -1,0 +1,179 @@
+<template>
+    <ClientOnly>
+        <Teleport to="body">
+            <div id="popup-el" @click.self="close" :class="['fixed flex w-dvw h-dvh z-9999 transition-all duration-300 ease-in-out',
+                isMobile ? 'items-end' : 'items-center justify-center',
+                isOpen
+                    ? 'backdrop-blur-sm bg-[#0A0A0A]/20 dark:bg-white/20 pointer-events-auto visible'
+                    : 'pointer-events-none bg-[#0A0A0A]/0 dark:bg-white/0 backdrop-blur-none invisible']">
+
+                <div ref="tabContent" :style="isMobile ? { transform: `translateY(${translateY}px)` } : {}" :class="[
+                    'relative bg-greyscale-0 overflow-hidden rounded-t-xl md:rounded-xl',
+                    isMobile ? 'w-full' : 'max-w-[90vw] lg:max-w-max',
+                    isDragging ? 'transition-none' : 'transition-all duration-300 ease-in-out',
+
+                    // FIX 2: Grouped visibility and opacity logic
+                    isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none',
+
+                    // FIX 3: Removed p-0 toggle to prevent layout jumping during close animation
+                    !noPadding ? 'p-3' : 'p-0',
+
+                    // Desktop Animation
+                    !isMobile && isOpen ? 'scale-100' : (!isMobile ? 'scale-95' : ''),
+                    // Mobile Animation
+                    isMobile && isOpen ? 'translate-y-0' : (isMobile ? 'translate-y-full' : '')
+                ]">
+                    <div v-if="isMobile" @mousedown="startDrag" @touchstart="startDrag"
+                        class="w-full flex justify-center pb-4 pt-2 cursor-grab active:cursor-grabbing">
+                        <div class="h-1.5 w-12 bg-greyscale-200 dark:bg-neutral-700 rounded-full"></div>
+                    </div>
+                    <div class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
+                        <div v-if="hasClose" @click="close"
+                            class="w-8 h-8 flex items-center justify-center  bg-surface-container rounded-full cursor-pointer hover:bg-greyscale-200 transition-colors">
+                            <DIcon icon="PhX" class="w-4 h-4 fill-text-light-high dark:fill-text-dark-high" />
+                        </div>
+                        <div v-if="title.trim().length > 0"
+                            class="text-sm font-medium text-text-light-high dark:text-text-dark-high select-none">
+                            {{ title }}
+                        </div>
+                    </div>
+
+                    <div class="whitespace-nowrap text-wrap">
+                        <slot></slot>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+    </ClientOnly>
+</template>
+
+<script lang="ts">
+import { ref, defineComponent, watch, computed, onUnmounted } from 'vue';
+import type { Popup } from '~/types/components/popup';
+import { useWindowWidth } from '~/composables/useWindowWidth'
+export default defineComponent({
+    name: 'ThePopup',
+    emits: ['closed', 'close'],
+    props: {
+        noPadding: {
+            type: Boolean,
+            default: false,
+        },
+        hasClose: {
+            type: Boolean,
+            default: false,
+        },
+        title: {
+            type: String,
+            default: ''
+        }
+    },
+    setup(_, { emit, expose }) {
+        const isOpen = ref(false);
+        const { width } = useWindowWidth();
+        const isMobile = computed(() => width.value < 768);
+
+        const isDragging = ref(false);
+        const startY = ref(0);
+        const translateY = ref(0);
+        const tabContent = ref<HTMLElement | null>(null);
+
+        const open = () => {
+            translateY.value = 0;
+            isOpen.value = true;
+        }
+
+        const close = () => {
+            isOpen.value = false;
+            emit('close')
+            // The 300ms timeout matches our CSS transition duration
+            setTimeout(() => {
+                if (!isOpen.value) { // Safety check to ensure it wasn't re-opened
+                    emit('closed');
+                    translateY.value = 0;
+                }
+            }, 300)
+        }
+
+        const startDrag = (event: MouseEvent | TouchEvent) => {
+            if (!isMobile.value) return;
+            isDragging.value = true;
+            startY.value = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+
+            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchmove', onDrag);
+            window.addEventListener('touchend', endDrag);
+        };
+
+        const onDrag = (event: MouseEvent | TouchEvent) => {
+            if (!isDragging.value) return;
+            const currentY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+            const deltaY = currentY - startY.value;
+            // Only allow dragging down
+            translateY.value = deltaY > 0 ? deltaY : 0;
+        };
+
+        const endDrag = () => {
+            if (!isDragging.value) return;
+            isDragging.value = false;
+
+            // If dragged down enough, close it
+            if (translateY.value > 100) {
+                close();
+            } else {
+                translateY.value = 0;
+            }
+
+            window.removeEventListener('mousemove', onDrag);
+            window.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('touchmove', onDrag);
+            window.removeEventListener('touchend', endDrag);
+        };
+
+        watch(isOpen, (val) => {
+            if (process.server) return;
+            const html = document.documentElement;
+            if (val) {
+                html.style.overflow = 'hidden';
+            } else {
+                html.style.overflow = '';
+            }
+        });
+
+        // Cleanup global listeners if component is destroyed while dragging
+        onUnmounted(() => {
+            window.removeEventListener('mousemove', onDrag);
+            window.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('touchmove', onDrag);
+            window.removeEventListener('touchend', endDrag);
+        });
+
+        expose({ open, close } as Popup);
+
+        return {
+            isOpen, isMobile, isDragging, translateY, tabContent,
+            open, close, startDrag
+        }
+    }
+})
+</script>
+
+<style scoped>
+#popup-el {
+    position: fixed !important;
+    top: 0px !important;
+    left: 0px !important;
+}
+
+/* Visibility is the key. 
+   Transitions work on visibility: it stays 'visible' until the timer hits 0.
+*/
+.visible {
+    visibility: visible !important;
+}
+
+.invisible {
+    visibility: hidden !important;
+}
+</style>

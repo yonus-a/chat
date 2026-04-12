@@ -23,13 +23,14 @@
                     class="w-5 h-5 fill-on-surface animate-spin absolute z-10 opacity-50" />
             </div>
         </div>
+        <div class=" w-full flex flex-col gap-y-3">
+            <BButton @click="validateAndSend" class="w-full" :text="buttonTitle" :loading="isVerifying"
+                :disabled="isSubmitDisabled" />
 
-        <BButton @click="validateAndSend" class="w-full" :text="buttonTitle" :loading="isVerifying"
-            :disabled="isSubmitDisabled" />
-
-        <RouterLink to="/auth" class="w-full">
-            <BButton class="min-w-full" type="ghost" :text="t('auth.password.changeNumber')" />
-        </RouterLink>
+            <RouterLink to="/auth" class="w-full">
+                <BButton class="min-w-full" type="ghost" :text="t('auth.password.changeNumber')" />
+            </RouterLink>
+        </div>
     </div>
 </template>
 

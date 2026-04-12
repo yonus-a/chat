@@ -3,9 +3,6 @@
 
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
-
-
-
             <input v-if="!textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
                 v-model="inputValue" class="b-input" :class="{
                     'is-focused': isFocus,
@@ -16,8 +13,9 @@
                 @keypress="handleKeypress" @keydown.enter="handleSubmit" @paste="handlePaste" @focus="handleFocus"
                 @blur="handleBlur" :disabled="disabled" />
 
-            <textarea v-else ref="inputField" :readonly="readonly" :maxlength="maxlength" :type="finalInputType"
-                v-model="inputValue" class="b-input b-input--textarea"
+
+            <textarea v-if="textarea" ref="inputField" :readonly="readonly" :maxlength="maxlength"
+                :type="finalInputType" v-model="inputValue" class="b-input b-input--textarea"
                 :class="{ 'is-focused': isFocus, 'is-readonly': readonly, 'is-disabled': disabled }"
                 :tabindex="tabindex" :autocomplete="finalAutocomplete" :enterkeyhint="enterkeyhint"
                 :inputmode="type === 'phone' || type === 'number' ? 'numeric' : undefined" :placeholder="placeholder"
@@ -58,14 +56,15 @@
                 </div>
             </div>
         </div>
-
+        <PasswordQuality v-if="newPassword && type === 'password' && autocomplete === 'new-password'"
+            :new-password="modelValue" />
         <div v-if="caption.trim().length > 0" class="b-input-caption select-none">
             {{ caption }}
         </div>
 
-        <div class="b-input-message-wrapper overflow-hidden pt-1.5 h-7">
+        <div class="b-input-message-wrapper overflow-hidden h-6">
             <div class="flex items-center gap-x-1.5 transition-all duration-200 ease-in-out"
-                :class="[showMessage ? '-translate-y-1 opacity-100' : '-translate-y-4 opacity-0']"
+                :class="[showMessage ? `${!newPassword ?'translate-y-0' : 'translate-y-1'} opacity-100` : '-translate-y-4 opacity-0']"
                 :style="{ color: messageColor }">
                 <BIcon :icon="messageIcon" class="b-input-message-icon shrink-0" />
                 <span class="text-xs select-none">{{ displayedMessage }}</span>
@@ -78,7 +77,7 @@
 import { useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmounted } from 'vue';
 import defaultCountries from '~/assets/data/countries.json';
 import BMenu from './BMenu.vue';
-
+import PasswordQuality from '../auth/PasswordQuality.vue';
 interface MenuOption {
     title: string;
     key: string;
@@ -161,6 +160,10 @@ const INPUT_CONFIG = {
 /* --- NATIVE HTML-LIKE PROPS --- */
 const props = defineProps({
     modelValue: { type: String, default: '' },
+    newPassword: {
+        type: Boolean,
+        default: false,
+    },
     type: { type: String as PropType<'text' | 'password' | 'phone' | 'number' | 'slug'>, default: 'text' },
     title: { type: String, default: '' },
     placeholder: { type: String, default: '' },
