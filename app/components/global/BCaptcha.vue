@@ -39,10 +39,12 @@
             </div>
 
             <div class="">
-                <div class="select-none text-body-sm text-on-surface">{{ loading ? t('auth.login.capchaLoading') :
+                <div class="select-none text-body-sm text-on-surface">{{ loading ?
+                    t('auth.login.capchaLoading') :
                     t('auth.login.notRobot') }}</div>
                 <div class=" transition-all text-body-sm text-error select-none overflow-hidden duration-200 ease-in-out"
-                    :class="[error ? ' opacity-100 h-auto' : 'h-0 opacity-0']">{{ t('auth.login.problemOccured') }}
+                    :class="[error ? ' opacity-100 h-auto' : 'h-0 opacity-0']">{{ errorText === '' ?
+                        t('auth.login.problemOccured') : t('validation.captcha_required') }}
                 </div>
             </div>
         </div>
@@ -65,9 +67,11 @@ const altcha = ref<any>(null);
 const loading = ref(false);
 const verified = ref(false);
 const error = ref(false);
+const errorText = ref('');
 const timeoutRef = ref<ReturnType<typeof setTimeout> | null>(null);
 const handleTrigger = () => {
     if (verified.value || loading.value) return;
+    errorText.value = ''
 
     error.value = false;
     loading.value = true;
@@ -80,7 +84,7 @@ const handleTrigger = () => {
             loading.value = false;
             error.value = true;
         }
-    }, 10000); 
+    }, 10000);
 
     // 3. Trigger the widget
     if (altcha.value) {
@@ -110,6 +114,16 @@ const onStateChange = (ev: any) => {
         emit('error');
     }
 };
+
+const setError = (state: boolean = true, text: string) => {
+    error.value = state;
+    errorText.value = text;
+};
+
+defineExpose({
+    setError
+});
+
 </script>
 <style scoped>
 @keyframes captcha-ripple {
