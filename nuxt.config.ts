@@ -26,13 +26,13 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBaseUrl: "http://localhost:6050/",
-      platformApiBaseUrl: "http://localhost:3010/",
+      apiBaseUrl: "https://api.behayand.ir",
+      platformApiBaseUrl: "https://api.behayand.ir",
       domainName: "behayand.ir",
       vapidPublicKey:
         "BJl8mccIGmLam84dZoOSuXGAq884ip2hOjdF5OnyVE-P0Yu5NJZnHbbhHyG2NUSL5vJ7ju3oiCl359hIkNKZOp0",
-      altchaChallengeUrl: "http://localhost:6050/challenge",
-      mqttWsUrl: "ws://localhost:8083/mqtt",
+      altchaChallengeUrl: "https://api.behayand.ir/challenge",
+      mqttWsUrl: "wss://emqx.wenex.tech/mqtt",
       sentryDsn: "",
       sentryTracesSampleRate: 0.8,
 

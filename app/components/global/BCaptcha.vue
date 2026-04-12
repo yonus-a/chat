@@ -20,8 +20,8 @@
 
                 <div class=" w-9 h-9 relative">
                     <div @click="handleTrigger"
-                        class="cursor-pointer relative z-30 w-9 h-9 border-2 flex justify-center items-center rounded-full overflow-hidden transition-all duration-300 ease-in-out"
-                        :class="[verified ? 'border-transparent' : 'border-outline bg-surface', loading ? 'opacity-0 pointer-events-none' : 'pointer-events-auto opacity-100']">
+                        class="relative z-30 w-9 h-9 border-2 flex justify-center items-center rounded-full overflow-hidden transition-all duration-300 ease-in-out"
+                        :class="[verified ? 'border-transparent' : 'border-outline bg-surface', !verified && !loading ? 'cursor-pointer ' : 'cursor-default', loading ? 'opacity-0 pointer-events-none' : 'pointer-events-auto opacity-100']">
 
                         <div class="absolute inset-0 bg-gradient-primary-secondary transition-transform duration-500 ease-out origin-center rounded-full"
                             :class="verified ? 'scale-100' : 'scale-0'"></div>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="opacity-0 pointer-events-none h-0 overflow-hidden">
-            <altcha-widget ref="altcha" :challengeurl="challengeUrl" floating hidefooter hidelogo
+            <altcha-widget ref="altcha" auto="off" :challenge="challengeUrl" floating hidefooter hidelogo
                 @statechange="onStateChange"></altcha-widget>
         </div>
     </div>
@@ -65,30 +65,45 @@ const altcha = ref<any>(null);
 const loading = ref(false);
 const verified = ref(false);
 const error = ref(false);
-
+const timeoutRef = ref<ReturnType<typeof setTimeout> | null>(null);
 const handleTrigger = () => {
     if (verified.value || loading.value) return;
 
     error.value = false;
     loading.value = true;
 
+    if (timeoutRef.value) clearTimeout(timeoutRef.value);
+
+    timeoutRef.value = setTimeout(() => {
+        if (loading.value && !verified.value) {
+            console.error('[Captcha] Manual timeout reached. Forcing error state.');
+            loading.value = false;
+            error.value = true;
+        }
+    }, 10000); 
+
+    // 3. Trigger the widget
     if (altcha.value) {
-        altcha.value.state = 'verifying';
-    }
-    setTimeout(() => {
+        altcha.value.verify();
+    } else {
+        clearTimeout(timeoutRef.value);
         loading.value = false;
         error.value = true;
-    }, 1500)
+    }
 };
 
 const onStateChange = (ev: any) => {
     const { state, payload } = ev.detail;
 
     if (state === 'verified') {
+        // SUCCESS: Kill the timeout and proceed
+        if (timeoutRef.value) clearTimeout(timeoutRef.value);
         loading.value = false;
         verified.value = true;
         emit('verified', payload);
     } else if (state === 'error' || state === 'expired') {
+        // ERROR: Kill the timeout and show error
+        if (timeoutRef.value) clearTimeout(timeoutRef.value);
         loading.value = false;
         verified.value = false;
         error.value = true;
