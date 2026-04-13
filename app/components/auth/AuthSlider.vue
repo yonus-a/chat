@@ -4,7 +4,7 @@
             <div :class="['w-full flex flex-row-reverse max-h-full h-full', sliderClass]">
 
                 <div class="h-full flex items-center justify-center min-w-full relative pointer-events-none">
-                    <BImage  class=" max-w-160 w-full aspect-square max-h-160 h-auto" no-loading :src="firstImage">
+                    <BImage class=" max-w-160 w-full aspect-square max-h-160" auto-size no-loading :src="firstImage">
                         <div class="w-full justify-end flex items-end h-full relative pointer-events-auto">
                             <div
                                 class="max-w-70 w-full px-6 py-4 flex flex-col gap-y-2 absolute rounded-3xl bg-white/20 glass-effect bottom-0 rtl:left-0 ltr:right-0">
@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="h-full flex items-center justify-center min-w-full relative pointer-events-none">
-                    <BImage  class=" max-w-160 w-full aspect-square max-h-160 h-auto" no-loading :src="secondImage">
+                    <BImage class=" max-w-160 w-full aspect-square max-h-160" auto-size no-loading :src="secondImage">
                         <div class="w-full justify-end flex items-end h-full relative pointer-events-auto">
                             <div
                                 class="max-w-70 w-full px-6 py-4 flex flex-col gap-y-2 absolute rounded-3xl bg-white/20  glass-effect bottom-0 rtl:left-0 ltr:right-0">
@@ -29,43 +29,6 @@
                             </div>
                         </div>
                     </BImage>
-                </div>
-            </div>
-        </div>
-
-        <div class="absolute top-4 left-4 z-50 bg-white p-4 rounded-xl shadow-xl flex flex-col gap-3">
-            <p class="text-xs font-bold text-gray-700">Auth Flow Tester</p>
-
-            <div class="flex flex-col gap-1">
-                <span class="text-[10px] font-bold text-blue-600">Old User (3 Steps):</span>
-                <div class="flex gap-1">
-                    <button @click="testNavigation(false, '/auth')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">1.
-                        Login</button>
-                    <button @click="testNavigation(false, '/auth/password')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">2.
-                        Password</button>
-                    <button @click="testNavigation(false, '/auth/verify')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">3.
-                        Verify</button>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-1">
-                <span class="text-[10px] font-bold text-green-600">New User (4 Steps):</span>
-                <div class="flex gap-1">
-                    <button @click="testNavigation(true, '/auth')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">1.
-                        Login</button>
-                    <button @click="testNavigation(true, '/auth/verify')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">2.
-                        Verify</button>
-                    <button @click="testNavigation(true, '/auth/register')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">3.
-                        Register</button>
-                    <button @click="testNavigation(true, '/auth/profile')"
-                        class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] rounded transition-all">4.
-                        Profile</button>
                 </div>
             </div>
         </div>
