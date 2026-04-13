@@ -1,11 +1,6 @@
 <template>
-    <div class=" w-full md:pt-0 pt-12 md:h-auto h-dvh flex flex-col gap-y-4">
-        <div class=" pb-8 md:hidden flex justify-between items-center w-full">
-            <div></div>
-            <div class=" text-label-sm select-none text-on-surface">{{ t('auth.profile.finishProfile') }}</div>
-            <BIcon class="rtl:rotate-0 ltr:rotate-180 fill-on-surface cursor-pointer" @click="goBack"
-                icon="PhArrowLeft" />
-        </div>
+    <div class=" w-full md:pt-0 pt-6 md:h-auto h-dvh flex flex-col gap-y-4">
+        <MobileNavigation class=" md:hidden" :title="t('auth.profile.finishProfile')" />
         <div class=" w-full flex flex-col gap-y-3">
             <div class=" select-none md:block hidden text-label-sm text-on-surface">{{ t('auth.profile.profileImage') }}
             </div>
@@ -59,6 +54,8 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import ImageUpload from '~/components/general/ImageUpload.vue';
 import { useI18n, useValidation, useProfileStore, useDate } from '#imports';
+import MobileNavigation from '~/components/auth/MobileNavigation.vue';
+
 const { t, locale } = useI18n();
 const { validateName, validateBirthDate, toEnglishNumbers } = useValidation();
 const { g2j, j2g } = useDate();

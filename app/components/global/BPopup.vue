@@ -25,9 +25,10 @@
                 ]">
                     <div v-if="isMobile" @mousedown="startDrag" @touchstart="startDrag"
                         class="w-full flex justify-center pb-4 pt-2 cursor-grab active:cursor-grabbing">
-                        <div class="h-1.5 w-12 bg-greyscale-200 dark:bg-neutral-700 rounded-full"></div>
+                        <div class="h-1.5 w-12 bg-outline rounded-full"></div>
                     </div>
-                    <div class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
+                    <div v-if="hasClose || title.trim().length > 0"
+                        class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
                         <div v-if="hasClose" @click="close"
                             class="w-7 h-7 flex items-center justify-center cursor-pointer transition-colors">
                             <BIcon icon="PhX" class="w-4 h-4 fill-text-light-high dark:fill-text-dark-high" />

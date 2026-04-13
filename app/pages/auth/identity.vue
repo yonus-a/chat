@@ -1,14 +1,6 @@
 <template>
-    <div class="w-full flex flex-col h-dvh md:h-auto">
-        <div class="pb-8 pt-12 md:hidden flex justify-between items-center w-full">
-            <div></div>
-            <div class="text-label-sm select-none text-on-surface">
-                {{ t('auth.identity.title') }}
-            </div>
-            <BIcon class="rtl:rotate-0 ltr:rotate-180 fill-on-surface cursor-pointer" @click="goBack"
-                icon="PhArrowLeft" />
-        </div>
-
+    <div class="w-full flex md:pt-0 pt-6 flex-col h-dvh md:h-auto">
+        <MobileNavigation :title="t('auth.identity.title')" class=" md:hidden" />
         <div class="md:block hidden mb-3 select-none text-on-surface text-label-sm">
             {{ t('auth.identity.title') }}
         </div>
@@ -42,7 +34,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useI18n, useValidation, useRouter } from '#imports';
-
+import MobileNavigation from '~/components/auth/MobileNavigation.vue';
 // Composables
 const router = useRouter();
 const { t } = useI18n();
