@@ -271,7 +271,5 @@ const submitFields = async () => {
     }
 };
 
-const goBack = () => {
-    router.go(-1)
-}
+
 </script>

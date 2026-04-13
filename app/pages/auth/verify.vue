@@ -75,7 +75,8 @@ const validateAndSend = async () => {
     try {
         console.log("Verifying OTP for:", currentPhone.value);
         // API verification logic here
-        // router.push('/dashboard');
+
+        // if successful proceed to this block
         if (authStore.isRegistering) {
             router.push('/auth/register')
         } else {

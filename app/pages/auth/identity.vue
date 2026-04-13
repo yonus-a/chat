@@ -116,10 +116,6 @@ const submitFields = async () => {
     }
 };
 
-const goBack = () => {
-    router.go(-1);
-};
-
 // Watchers for input correction
 watch(() => nationality.value.value, () => resetField(nationality.value));
 watch(() => nationalId.value.value, () => resetField(nationalId.value));
