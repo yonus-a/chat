@@ -44,7 +44,7 @@ const route = useRoute();
 const routeDetails = computed(() => ({
     routesWithHeader: ['/auth', '/auth/password', '/auth/verify', '/auth/register'],
     title: route.path === '/auth/verify' && !authStore.isRegistering ? t('auth.login.title') : t('auth.register.title'),
-    description: route.path === '/auth' ? t('auth.login.enterDetails') : (authStore.loginType === 'national_id' ? authStore.loginIdentifier : formatPhoneNumber(authStore.loginIdentifier, dir.value))
+    description: route.path === '/auth' ? t('auth.login.enterDetails') : (formatPhoneNumber(authStore.loginIdentifier ? authStore.loginIdentifier : ''))
 }));
 
 const cardRef = ref<HTMLElement | null>(null);

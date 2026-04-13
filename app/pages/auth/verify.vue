@@ -41,7 +41,7 @@ import { formatCountdown } from '~/utils/format';
 const { t } = useI18n();
 const authStore = useAuthStore();
 const hasErrors = ref(false);
-
+const router = useRouter()
 const isVerifying = ref(false);
 const remainingSeconds = ref(0);
 let timerInterval: any = null;
@@ -76,6 +76,11 @@ const validateAndSend = async () => {
         console.log("Verifying OTP for:", currentPhone.value);
         // API verification logic here
         // router.push('/dashboard');
+        if (authStore.isRegistering) {
+            router.push('/auth/register')
+        } else {
+            router.push('/dashboard')
+        }
     } finally {
         isVerifying.value = false;
     }

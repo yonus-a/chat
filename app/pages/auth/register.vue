@@ -1,33 +1,15 @@
 <template>
   <div class="w-full">
-    <BInput 
-      v-model="email.value" 
-      :color="email.color" 
-      :message="email.message" 
-      :title="t('auth.register.email')"
-      :placeholder="t('auth.register.emailPlaceholder')" 
-    />
+    <BInput v-model="email.value" :color="email.color" :message="email.message" :title="t('auth.register.email')"
+      :placeholder="t('auth.register.emailPlaceholder')" />
 
-    <BInput 
-      type="password" 
-      autocomplete="new-password" 
-      :title="t('auth.password.title')" 
-      newPassword
-      :placeholder="t('auth.password.passwordPlaceholder')" 
-      v-model="password.value" 
-      :color="password.color"
-      :message="password.message" 
-    />
+    <BInput type="password" autocomplete="new-password" :title="t('auth.password.title')" newPassword
+      :placeholder="t('auth.password.passwordPlaceholder')" v-model="password.value" :color="password.color"
+      :message="password.message" />
 
-    <BInput 
-      type="password" 
-      autocomplete="new-password" 
-      :title="t('auth.password.repeatPassword')"
-      :placeholder="t('auth.password.repeatPasswordPlaceholder')" 
-      v-model="passwordRepeat.value"
-      :color="passwordRepeat.color" 
-      :message="passwordRepeat.message" 
-    />
+    <BInput type="password" autocomplete="new-password" :title="t('auth.password.repeatPassword')"
+      :placeholder="t('auth.password.repeatPasswordPlaceholder')" v-model="passwordRepeat.value"
+      :color="passwordRepeat.color" :message="passwordRepeat.message" />
 
     <BCheckBox v-model="agreeToTerms">
       <i18n-t keypath="auth.register.termsOfService" tag="span" class="text-body-md text-on-surface">
@@ -42,13 +24,8 @@
     </BCheckBox>
 
     <div class="w-full flex flex-col gap-y-3">
-      <BButton 
-        @click="validateFields" 
-        class="mt-4 min-w-full" 
-        :text="t('auth.register.continue')" 
-        :loading="isSending"
-        :disabled="hasErrors"
-      />
+      <BButton @click="validateFields" class="mt-4 min-w-full" :text="t('auth.register.continue')" :loading="isSending"
+        :disabled="hasErrors" />
       <RouterLink to="/auth" class="w-full">
         <BButton class="min-w-full" type="ghost" :text="t('auth.register.back')" />
       </RouterLink>
@@ -59,7 +36,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useI18n, useValidation } from '#imports';
-
+const router = useRouter()
 // State
 const { t } = useI18n();
 const { validatePassword, validateEmail } = useValidation();
@@ -131,11 +108,14 @@ const validateFields = () => {
 
 const sendUserDetails = async () => {
   if (isSending.value || hasErrors.value) return;
-  
+
   isSending.value = true;
   try {
     console.log("[Auth] Sending registration details for:", email.value.value);
     // Add your API call here
+
+    // if successful call the line below :
+    router.push('/auth/identity')
   } catch (error) {
     console.error(error);
   } finally {

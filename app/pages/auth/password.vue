@@ -1,42 +1,18 @@
 <template>
   <div class="w-full">
-    <BInput 
-      type="password" 
-      :title="t('auth.password.title')" 
-      :placeholder="t('auth.password.passwordPlaceholder')"
-      v-model="password.value" 
-      :color="password.color" 
-      :message="password.message" 
-    />
+    <BInput @submit="validateFields" type="password" :title="t('auth.password.title')" :placeholder="t('auth.password.passwordPlaceholder')"
+      v-model="password.value" :color="password.color" :message="password.message" />
 
-    <BCheckBox 
-      v-model="rememberMe" 
-      :label="t('auth.password.rememberMe')" 
-    />
+    <BCheckBox v-model="rememberMe" :label="t('auth.password.rememberMe')" />
 
     <div class="w-full flex mt-4 flex-col gap-y-3">
-      <BButton 
-        @click="validateFields" 
-        class="w-full" 
-        :text="t('auth.login.title')" 
-        :loading="isSending"
-        :disabled="hasErrors" 
-      />
+      <BButton @click="validateFields" class="w-full" :text="t('auth.login.title')" :loading="isSending"
+        :disabled="hasErrors" />
 
-      <RouterLink to="/auth/verify" class="w-full">
-        <BButton 
-          color="secondary" 
-          class="min-w-full" 
-          :text="t('auth.password.loginViaCode')" 
-        />
-      </RouterLink>
+      <BButton color="secondary" class="min-w-full" :text="t('auth.password.loginViaCode')" @click="loginByOtp" />
 
       <RouterLink to="/auth" class="w-full">
-        <BButton 
-          type="ghost" 
-          class="min-w-full" 
-          :text="t('auth.password.changeNumber')" 
-        />
+        <BButton type="ghost" class="min-w-full" :text="t('auth.password.changeNumber')" />
       </RouterLink>
     </div>
   </div>
@@ -47,6 +23,7 @@ import { ref, watch } from 'vue';
 import { useI18n, useValidation, useAuthStore } from '#imports';
 
 // Composables
+const router = useRouter()
 const { t } = useI18n();
 const { validatePassword } = useValidation();
 const authStore = useAuthStore();
@@ -92,15 +69,15 @@ const validateFields = () => {
  */
 const submitPassword = async () => {
   if (isSending.value || hasErrors.value) return;
-  
+
   isSending.value = true;
   try {
     // Logic to verify password using the identifier stored in authStore
     console.log(`Attempting login for: ${authStore.loginIdentifier}`);
-    
+
     // Example: const success = await authStore.loginWithPassword(password.value.value);
     // if (success) router.push('/dashboard');
-    
+
   } catch (error) {
     password.value.message = t('auth.password.incorrect');
     password.value.color = 'error';
@@ -108,6 +85,12 @@ const submitPassword = async () => {
     isSending.value = false;
   }
 };
+
+const loginByOtp = async () => {
+  if (authStore.isRequesting) return
+  authStore.requestOtp()
+  router.push('/auth/verify')
+}
 
 // Clear error state when the user starts typing again
 watch(() => password.value.value, () => {

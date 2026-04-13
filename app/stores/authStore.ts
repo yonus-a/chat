@@ -16,7 +16,7 @@ export const useAuthStore = defineStore("auth", () => {
   const isRequesting = ref(false);
   const timers = ref<Record<string, number>>({});
 
-  const STORAGE_KEY = 'auth_otp_timers';
+  const STORAGE_KEY = "auth_otp_timers";
 
   const saveTimersToStorage = () => {
     if (process.client) {
@@ -85,6 +85,11 @@ export const useAuthStore = defineStore("auth", () => {
     router.push("/auth");
   };
 
+  const resetLoginData = () => {
+    loginIdentifier.value = null;
+    isRegistering.value = false;
+  };
+
   if (process.client) {
     loadTimersFromStorage();
   }
@@ -92,6 +97,7 @@ export const useAuthStore = defineStore("auth", () => {
   return {
     loginIdentifier,
     token,
+    resetLoginData,
     isRequesting,
     isLoggedIn,
     isRegistering,

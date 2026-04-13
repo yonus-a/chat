@@ -7,7 +7,7 @@
         </div>
         <div class="select-none text-on-surface h-full flex flex-col justify-between">
             <div class="text-head-sm">{{ title }}</div>
-            <div class="text-body-md">{{ description }}</div>
+            <div class="text-body-md" dir="ltr">{{ description }}</div>
         </div>
     </div>
 </template>
