@@ -4,6 +4,7 @@
             <div class=" flex pt-6 shrink-0 items-center gap-x-3">
                 <ThemeSwitch />
                 <LocaleSwitch />
+
             </div>
             <div class="w-full flex-1 flex justify-center items-center">
                 <div ref="cardRef"
@@ -40,8 +41,6 @@ const authStore = useAuthStore()
 const { dir } = useLocale()
 const { t } = useI18n();
 const route = useRoute();
-const selectedUsername = ref('');
-
 const routeDetails = computed(() => ({
     routesWithHeader: ['/auth', '/auth/password', '/auth/verify', '/auth/register'],
     title: route.path === '/auth/verify' && !authStore.isRegistering ? t('auth.login.title') : t('auth.register.title'),

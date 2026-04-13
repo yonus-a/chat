@@ -1,18 +1,25 @@
 <template>
-    <div id="image" class="overflow-hidden h-full relative w-full transition-all duration-500 ease-in-out">
-
+    <div id="image" :class="[
+        'overflow-hidden relative transition-all duration-500 ease-in-out',
+        autoSize ? 'w-auto h-auto' : 'w-full h-full'
+    ]">
         <div :style="fitToContent ? { height: elementHeight + 'px' } : {}" :class="[
-            'absolute inset-0 w-full h-full flex justify-center items-center transition-all duration-500 ease-in-out',
+            'w-full transition-all duration-500 ease-in-out flex justify-center items-center',
+            autoSize ? 'relative' : 'absolute inset-0 h-full',
             showImage ? 'bg-transparent animate-none' : !noLoading ? 'bg-black/20 animate-pulse' : '',
         ]">
             <NuxtImg :alt="alt" @load="loadImage" :src="displayedImage" :class="[
-                'w-full h-full select-none transition-all duration-500 ease-in-out',
+                'select-none transition-all duration-500 ease-in-out',
+                autoSize ? 'w-full h-auto block' : 'w-full h-full',
                 imageFitContentStyle,
                 showImage ? ' opacity-100' : ' opacity-0',
             ]" />
         </div>
 
-        <div :title="title" class="absolute inset-0 flex z-10 justify-center items-center pointer-events-none">
+        <div :title="title" :class="[
+            'absolute inset-0 flex z-10 justify-center items-center pointer-events-none',
+            autoSize ? 'h-full' : ''
+        ]">
             <div class="relative w-full h-full pointer-events-auto">
                 <div ref="content" :class="['content', fitToContent ? '' : 'w-full h-full']">
                     <slot></slot>
@@ -53,6 +60,10 @@ export default defineComponent({
             default: false,
         },
         noLoading: {
+            type: Boolean,
+            default: false
+        },
+        autoSize: {
             type: Boolean,
             default: false
         }

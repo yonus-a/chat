@@ -105,7 +105,7 @@ export const useValidation = () => {
         return errors;
       }
 
-      console.log(year)
+      console.log(year);
       if (month === 12) {
         // FIXED: Explicitly defined the array to prevent type errors
         const leapRemainders = [1, 5, 9, 13, 17, 22, 26, 30];
@@ -250,9 +250,32 @@ export const useValidation = () => {
       : t("business.fields.errors.onlyLatinNumbers");
   };
 
+  const checkRules = (password: string) => {
+    const val = password;
+    return [
+      { label: t("login.passwordRules.eightCharacters"), met: val.length >= 8 },
+      { label: t("login.passwordRules.oneLowercase"), met: /[a-z]/.test(val) },
+      { label: t("login.passwordRules.oneUppercase"), met: /[A-Z]/.test(val) },
+      { label: t("login.passwordRules.oneNumber"), met: /\d/.test(val) },
+      {
+        label: t("login.passwordRules.specialCharacter"),
+        met: /[!@#$%^&*(),.?":{}|<>]/.test(val),
+      },
+      {
+        label: t("login.passwordRules.noWhiteSpace"),
+        met: val.length > 0 && !/\s/.test(val),
+      },
+    ];
+  };
+
+  const passwordSecurityRate = (pass: string) => {
+    return checkRules(pass).filter((r) => r.met).length;
+  };
+
   return {
     validateName,
     validateSlug,
+    passwordSecurityRate,
     checkIsNationalCode,
     validatePassword,
     validateAuthIdentifier,
