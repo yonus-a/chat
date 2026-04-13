@@ -1,14 +1,14 @@
 <template>
-    <div class=" w-dvw bg-surface h-dvh flex">
-        <div class="flex flex-col items-center gap-y-16 basis-1/2">
-            <div class=" flex pt-6 shrink-0 items-center gap-x-3">
+    <div class=" w-dvw md:flex-row flex-col-reverse bg-surface h-dvh flex">
+        <div class="flex flex-col items-center gap-y-16 shrink-0 md:basis-1/2">
+            <div class=" hidden md:flex pt-6 shrink-0 items-center gap-x-3">
                 <ThemeSwitch />
                 <LocaleSwitch />
 
             </div>
             <div class="w-full flex-1 flex justify-center items-center">
                 <div ref="cardRef"
-                    class="shadow-floating bg-surface rounded-3xl w-99 overflow-hidden transition-[height] duration-300 ease-in-out"
+                    class="lg:shadow-floating bg-surface rounded-3xl w-99 overflow-hidden transition-[height] duration-300 ease-in-out"
                     :style="{ height: cardHeight }">
                     <div ref="contentRef" class="p-6 ">
                         <AuthHeader v-if="routeDetails.routesWithHeader.includes(route.path)"
@@ -18,7 +18,7 @@
                 </div>
             </div>
         </div>
-        <div class=" basis-1/2">
+        <div class=" md:flex-auto flex-1 md:basis-1/2">
             <BImage :src="backgroundImage" fit="cover"
                 class=" min-w-full min-h-full max-w-full max-h-full h-full w-full">
                 <div class=" w-full h-full flex justify-center items-center">

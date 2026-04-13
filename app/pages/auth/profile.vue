@@ -1,10 +1,17 @@
 <template>
-    <div class=" w-full flex flex-col gap-y-4">
+    <div class=" w-full md:pt-0 pt-12 md:h-auto h-dvh flex flex-col gap-y-4">
+        <div class=" pb-8 flex justify-between items-center w-full">
+            <div></div>
+            <div class=" text-label-sm select-none text-on-surface">{{ t('auth.profile.finishProfile') }}</div>
+            <BIcon class="rtl:rotate-0 ltr:rotate-180 fill-on-surface cursor-pointer" @click="goBack"
+                icon="PhArrowLeft" />
+        </div>
         <div class=" w-full flex flex-col gap-y-3">
-            <div class=" select-none text-label-sm text-on-surface">{{ t('auth.profile.profileImage') }}</div>
+            <div class=" select-none md:block hidden text-label-sm text-on-surface">{{ t('auth.profile.profileImage') }}
+            </div>
             <ImageUpload v-model="avatar" />
         </div>
-        <div class=" w-full">
+        <div class=" md:flex-auto flex flex-col flex-1 w-full">
             <div class=" mb-3 select-none text-label-sm text-on-surface">{{ t('auth.profile.personalDetails.title') }}
             </div>
             <div class=" w-full flex items-center gap-x-2">
@@ -46,8 +53,10 @@
                 :placeholder="t('auth.profile.select')" :options="genders" v-model="gender.value" :color="gender.color"
                 :message="gender.message" />
 
-            <BButton :loading="isLoading || isSending" class=" min-w-full" :text="t('auth.profile.submit')"
-                @click="validateFields" :disabled="hasErrors" />
+            <div class=" flex md:items-start items-end md:flex-auto flex-1 w-full">
+                <BButton :loading="isLoading || isSending" class=" min-w-full" :text="t('auth.profile.submit')"
+                    @click="validateFields" :disabled="hasErrors" />
+            </div>
         </div>
     </div>
 </template>
@@ -63,6 +72,7 @@ const profileStore = useProfileStore();
 const avatar = ref<File | null>(null);
 const isSending = ref(false);
 const hasErrors = ref(false);
+const router = useRouter()
 
 // --- Local Form State ---
 const name = ref({ value: '', color: 'primary', message: '' });
@@ -292,4 +302,8 @@ const submitFields = async () => {
         isSending.value = false;
     }
 };
+
+const goBack = () => {
+    router.go(-1)
+}
 </script>
