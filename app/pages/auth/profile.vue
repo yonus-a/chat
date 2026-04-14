@@ -65,6 +65,12 @@ const isSending = ref(false);
 const hasErrors = ref(false);
 const router = useRouter()
 
+useSeoMeta({
+  title: () => t('seo.auth.profile.title'),
+  description: () => t('seo.auth.profile.description'),
+  ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.profile.title')}`,
+});
+
 // --- Local Form State ---
 const name = ref({ value: '', color: 'primary', message: '' });
 const lastName = ref({ value: '', color: 'primary', message: '' });

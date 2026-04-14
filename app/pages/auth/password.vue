@@ -29,6 +29,14 @@ const { t } = useI18n();
 const { validatePassword } = useValidation();
 const authStore = useAuthStore();
 const localePath = useLocalePath()
+
+useSeoMeta({
+  title: () => t('seo.auth.password.title'),
+  description: () => t('seo.auth.password.description'),
+  ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.password.title')}`,
+});
+
+
 // State
 const isSending = ref(false);
 const hasErrors = ref(false);

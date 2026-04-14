@@ -41,6 +41,12 @@ const { t } = useI18n();
 const localePath = useLocalePath()
 const { checkIsNationalCode, validateForeignCode } = useValidation();
 
+useSeoMeta({
+    title: () => t('seo.auth.identity.title'),
+    description: () => t('seo.auth.identity.description'),
+    ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.identity.title')}`,
+});
+
 // State
 const nationality = ref({ value: 'iranian', color: 'primary', message: '' });
 const nationalId = ref({ value: '', color: 'primary', message: '' });

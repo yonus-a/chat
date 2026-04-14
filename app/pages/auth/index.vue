@@ -30,12 +30,20 @@
 import googleLogo from '/images/auth/google.svg';
 import dolateManLogo from '/images/auth/dolate-man.svg';
 import OAuthButton from '@/components/auth/OAuthButton.vue';
-
+const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
-const { t } = useI18n();
 const { validatePhoneNumber } = useValidation();
 const localePath = useLocalePath()
+
+useSeoMeta({
+    title: () => t('seo.auth.index.title'),
+    description: () => t('seo.auth.index.description'),
+    ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.index.title')}`,
+});
+
+
+
 const hasErrors = ref(false);
 const isSending = ref(false);
 const isVerified = ref(false);

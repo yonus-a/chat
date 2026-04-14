@@ -43,6 +43,14 @@ const { t } = useI18n();
 const localePath = useLocalePath()
 const { validatePassword, validateEmail } = useValidation();
 const { openToast } = useAppToast();
+useSeoMeta({
+  title: () => t('seo.auth.register.title'),
+  description: () => t('seo.auth.register.description'),
+  ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.register.title')}`,
+});
+
+
+
 const isSending = ref(false);
 const hasErrors = ref(false);
 const agreeToTerms = ref({

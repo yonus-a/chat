@@ -40,6 +40,14 @@ import { formatCountdown } from '~/utils/format';
 const localePath = useLocalePath()
 const { t } = useI18n();
 const authStore = useAuthStore();
+useSeoMeta({
+  title: () => t('seo.auth.verify.title'),
+  description: () => t('seo.auth.verify.description'),
+  ogTitle: () => `${t('seo.siteName')} - ${t('seo.auth.verify.title')}`,
+});
+
+
+
 const hasErrors = ref(false);
 const router = useRouter()
 const isVerifying = ref(false);
