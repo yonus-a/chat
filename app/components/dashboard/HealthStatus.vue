@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <div class="flex items-end justify-between px-4 mt-2">
+        <div v-if="!noData" class="flex items-end justify-between px-4 mt-2">
             <div class="flex flex-col gap-y-1">
                 <div v-loading="isLoading" class="text-head-sm font-bold" :class="`text-${activeColor}`">
                     {{ t(`dashboard.cards.status.${healthState}`) }}
@@ -40,12 +40,18 @@
             </div>
         </div>
 
-        <div class="w-full px-4 mt-1">
+        <div v-if="!noData" class="w-full px-4 mt-1">
             <div v-loading="isLoading" class="flex gap-x-2 w-full h-2">
                 <div v-for="i in 5" :key="i" class="flex-1 rounded-full transition-all duration-500"
                     :class="[i <= scoreLevel ? '' : 'bg-surface-variant-3']"
                     :style="i <= scoreLevel ? { background: activeGradient } : {}"></div>
             </div>
+        </div>
+        <div v-if="noData" class=" px-3 w-full flex justify-between items-end">
+            <div class=" h-35.5 w-35.5">
+                <BImage :src="noDataImage" class=" w-full min-w-full min-h-full max-w-full max-h-full h-full" />
+            </div>
+            <BButton icon="PhPlus" />
         </div>
     </div>
 </template>
@@ -55,7 +61,7 @@ import { ref, computed, watch, onMounted, onUnmounted, markRaw, nextTick } from 
 import { useI18n } from '#imports';
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js';
 import { useHealthStore, type HealthCategory } from '~/stores/healthStore';
-
+import noDataImage from '/images/dashboard/no-data.webp'
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler);
 
 const props = defineProps<{
@@ -67,6 +73,7 @@ const healthStore = useHealthStore();
 
 // --- Data & State ---
 const category = computed(() => healthStore.categories[props.type]);
+const noData = computed(() => category.value.chartData.length == 0)
 const chartData = computed(() => category.value?.chartData || []);
 const min = computed(() => category.value?.min || 0);
 const max = computed(() => category.value?.max || 100);
@@ -102,7 +109,7 @@ const healthState = computed(() => {
 });
 
 const percentageChange = computed(() => {
-   return healthStore.getTrend(props.type)
+    return healthStore.getTrend(props.type)
 });
 const activeColor = computed(() => {
     const map = { bad: 'error', medium: 'warning', good: 'primary', great: 'secondary' };
@@ -213,6 +220,8 @@ watch(isLoaded, (val) => {
 onUnmounted(() => {
     if (chartInstance) chartInstance.destroy();
 });
+
+const hasData = computed(() => healthStore.categories.all)
 
 // --- State Configurations ---
 const socialCardStates = computed(() => [
