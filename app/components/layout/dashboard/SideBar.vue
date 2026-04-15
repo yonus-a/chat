@@ -1,6 +1,7 @@
 <template>
     <div class=" h-full shrink-0 flex ">
-        <div class=" h-full shadow-floating w-18 flex flex-col">
+        <div class=" h-full transition-all duration-200 ease-in-out w-18 flex flex-col"
+            :class="[isOpen ? 'shadow-none' : 'shadow-floating']">
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
                 <div class=" w-10 h-10">
                     <NuxtLinkLocale class="cursor-pointer w-full h-full" to="/">
