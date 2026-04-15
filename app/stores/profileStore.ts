@@ -35,6 +35,7 @@ export const useProfileStore = defineStore("profile", () => {
     imageUrl: "",
     gender: "",
     birthDate: null as Date | null,
+    balance: 1000000,
   });
 
   // --- Static Metadata ---
@@ -101,8 +102,9 @@ export const useProfileStore = defineStore("profile", () => {
         nationality: "iranian",
         nationalId: "1234567890",
         gender: "male",
-        imageUrl:'imageUrl',
+        imageUrl: "imageUrl",
         birthDate: new Date("1999-11-25T00:00:00Z"),
+        balance: 1000000,
       };
 
       // Assume backend returns these roles

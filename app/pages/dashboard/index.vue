@@ -5,10 +5,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full gap-4">
             <HealthStatus v-for="healthState in healthCardProps" :key="healthState" :type="healthState" />
         </div>
-        <div class=" w-full flex gap-x-4 ">
+        <div class=" w-full items-stretch flex gap-x-4 ">
+            <div class=" basis-1/2">
+                <WalletDisplay />
+            </div>
             <div class=" basis-1/2">
                 <HealthScore />
             </div>
+
         </div>
     </div>
 </template>
@@ -17,6 +21,7 @@ import { useI18n } from '#imports';
 const { t } = useI18n();
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import HealthScore from '~/components/dashboard/HealthScore.vue';
+import WalletDisplay from '~/components/dashboard/WalletDisplay.vue';
 import HealthStatus from '~/components/dashboard/HealthStatus.vue';
 const healthCardProps = ['all', 'social', 'physical', 'mental']
 

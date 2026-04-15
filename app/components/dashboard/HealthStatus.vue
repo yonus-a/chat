@@ -7,7 +7,8 @@
         <div :class="[type === 'all' ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto']"
             class="w-full px-4">
             <div class="flex items-center gap-x-2 w-full">
-                <BLabel v-loading="isLoading" size="sm" class="translate-y-0.5 cursor-pointer shrink-0" icon="PhPlus" />
+                <BLabel @click="addForm" v-loading="isLoading" size="sm" class="translate-y-0.5 cursor-pointer shrink-0"
+                    icon="PhPlus" />
                 <div v-desktop-scroll
                     class="flex-1 min-w-0 flex items-center gap-x-2 overflow-x-auto hide-scrollbar whitespace-nowrap py-1">
                     <BLabel v-loading="isLoading" v-for="status in cardFinalProps" :key="status.key" color="neutral"
@@ -29,7 +30,7 @@
                         <BIcon v-loading="isLoading" :icon="percentageChange > 0 ? 'PhTrendUp' : 'PhTrendDown'"
                             class="w-4 h-4" />
                         <span v-loading="isLoading" class="text-label-sm select-none">{{ Math.abs(displayPercentage)
-                            }}%</span>
+                        }}%</span>
                     </span>
                 </div>
             </div>
@@ -51,7 +52,7 @@
             <div class=" h-35.5 w-35.5">
                 <BImage :src="noDataImage" class=" w-full min-w-full min-h-full max-w-full max-h-full h-full" />
             </div>
-            <BButton icon="PhPlus" />
+            <BButton @click="addForm" icon="PhPlus" />
         </div>
     </div>
 </template>
@@ -262,6 +263,10 @@ const cardTitle = computed(() => {
         case 'social': return t('dashboard.cards.states.social.title');
     }
 });
+
+const addForm = () => {
+    console.log('idk really !')
+}
 </script>
 
 <style scoped>
