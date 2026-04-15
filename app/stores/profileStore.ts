@@ -20,7 +20,7 @@ export const useProfileStore = defineStore("profile", () => {
   });
 
   // --- State ---
-  const isLoading = ref(false);
+  const isLoading = ref(true);
   const isLoaded = ref(false);
   const userRoles = ref<UserRoleKey[]>(["user"]);
 

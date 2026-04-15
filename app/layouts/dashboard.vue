@@ -7,8 +7,10 @@
             <div class=" w-full shrink-0">
                 <DashboardHeader />
             </div>
-            <div class=" flex-1 w-full overflow-y-auto">
-                <NuxtPage />
+            <div class="  flex-1 w-full overflow-y-auto">
+                <div class=" px-8 py-6 w-full">
+                    <NuxtPage />
+                </div>
             </div>
         </div>
     </div>
@@ -16,5 +18,10 @@
 <script lang="ts" setup>
 import SideBar from '~/components/layout/dashboard/SideBar.vue';
 import DashboardHeader from '~/components/layout/dashboard/DashboardHeader.vue';
+const profileStore = useProfileStore()
 
+
+onBeforeMount(() => {
+    profileStore.loadUserProfile()
+})
 </script>
