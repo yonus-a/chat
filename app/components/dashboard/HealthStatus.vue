@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full flex flex-col gap-y-4 bg-surface border border-surface-variant rounded-3xl py-4 overflow-hidden">
+    <div class="w-full flex flex-col gap-y-4 bg-surface border border-outline-variant rounded-3xl py-4 overflow-hidden">
         <div class="w-full px-4 flex justify-between items-center">
             <div v-loading="isLoading" class="text-title-sm select-none text-on-surface font-bold">{{ cardTitle }}</div>
         </div>
@@ -7,38 +7,42 @@
         <div :class="[type === 'all' ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto']"
             class="w-full px-4">
             <div class="flex items-center gap-x-2 w-full">
-                <BLabel v-loading="isLoading" @click="idk" size="sm" class="translate-y-0.5 cursor-pointer shrink-0" icon="PhPlus" />
+                <BLabel v-loading="isLoading" size="sm" class="translate-y-0.5 cursor-pointer shrink-0" icon="PhPlus" />
                 <div v-desktop-scroll
                     class="flex-1 min-w-0 flex items-center gap-x-2 overflow-x-auto hide-scrollbar whitespace-nowrap py-1">
-                    <BLabel v-loading="isLoading" v-for="status in cardFinalProps" :key="status.key" color="neutral" type="ghost" size="sm"
-                        class="shrink-0 pointer-events-none" :icon="status.icon" :text="status.label" />
+                    <BLabel v-loading="isLoading" v-for="status in cardFinalProps" :key="status.key" color="neutral"
+                        type="ghost" size="sm" class="shrink-0 pointer-events-none" :icon="status.icon"
+                        :text="status.label" />
                 </div>
             </div>
         </div>
 
         <div class="flex items-end justify-between px-4 mt-2">
             <div class="flex flex-col gap-y-1">
-                <div v-loading="isLoading" class="text-head-sm font-bold">
+                <div v-loading="isLoading" class="text-head-sm font-bold" :class="`text-${activeColor}`">
                     {{ t(`dashboard.cards.status.${healthState}`) }}
                 </div>
 
                 <div class="flex items-center gap-x-2 text-body-sm text-on-surface/50">
                     <span v-loading="isLoading" class="select-none">{{ t('dashboard.cards.total') }}</span>
                     <span class="flex items-center gap-x-1 font-bold" :class="`text-${activeColor}`" dir="ltr">
-                        <BIcon v-loading="isLoading" :icon="percentageChange >= 0 ? 'PhTrendUp' : 'PhTrendDown'" class="w-4 h-4" />
-                        <span v-loading="isLoading" class="text-label-sm select-none">{{ Math.abs(percentageChange) }}%</span>
+                        <BIcon v-loading="isLoading" :icon="percentageChange > 0 ? 'PhTrendUp' : 'PhTrendDown'"
+                            class="w-4 h-4" />
+                        <span v-loading="isLoading" class="text-label-sm select-none">{{ Math.abs(displayPercentage)
+                            }}%</span>
                     </span>
                 </div>
             </div>
 
-            <div v-loading="isLoading" class="w-32 h-16 relative mask-reveal" :class="{ 'mask-active': isChartReady }">
+            <div v-loading="isLoading" class="w-22.5 h-20 relative mask-reveal"
+                :class="{ 'mask-active': isChartReady }">
                 <canvas ref="canvasRef"></canvas>
             </div>
         </div>
 
         <div class="w-full px-4 mt-1">
-            <div  class="flex gap-x-2 w-full h-2">
-                <div v-loading="isLoading" v-for="i in 5" :key="i" class="flex-1 rounded-full transition-all duration-500"
+            <div v-loading="isLoading" class="flex gap-x-2 w-full h-2">
+                <div v-for="i in 5" :key="i" class="flex-1 rounded-full transition-all duration-500"
                     :class="[i <= scoreLevel ? '' : 'bg-surface-variant-3']"
                     :style="i <= scoreLevel ? { background: activeGradient } : {}"></div>
             </div>
@@ -47,9 +51,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, markRaw, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, markRaw, nextTick } from 'vue';
 import { useI18n } from '#imports';
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js';
+import { useHealthStore, type HealthCategory } from '~/stores/healthStore';
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler);
 
@@ -57,15 +62,36 @@ const props = defineProps<{
     type: 'mental' | 'physical' | 'social' | 'all'
 }>();
 
-const isLoading = ref(false)
 const { t } = useI18n();
+const healthStore = useHealthStore();
 
 // --- Data & State ---
-const chartData = [10, 20, 30, 20, 10, 5, 20];
-const isChartReady = ref(false); // Controls the CSS animation trigger
+const category = computed(() => healthStore.categories[props.type]);
+const chartData = computed(() => category.value?.chartData || []);
+const min = computed(() => category.value?.min || 0);
+const max = computed(() => category.value?.max || 100);
+const isLoading = computed(() => category.value?.loading || false);
+const isLoaded = computed(() => category.value?.isLoaded || false);
+
+const isChartReady = ref(false);
+const displayPercentage = ref(0);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chartInstance: Chart | null = null;
-const max = ref(30)
-const min = ref(10)
+
+// --- Logic ---
+const scoreLevel = computed(() => {
+    const data = chartData.value;
+    if (data.length === 0) return 0;
+
+    const range = max.value - min.value;
+    if (range === 0) return 0;
+
+    const current = data[data.length - 1];
+    const rawScore = ((current - min.value) / range) * 5;
+
+    // Clamp between 1 and 5
+    return Math.max(1, Math.min(5, Math.ceil(rawScore)));
+});
 
 const healthState = computed(() => {
     const level = scoreLevel.value;
@@ -75,26 +101,15 @@ const healthState = computed(() => {
     return 'great';
 });
 
-const scoreLevel = computed(() => {
-    const range = max.value - min.value;
-    const step = range / 5;
-    return Math.ceil((chartData[chartData.length - 1] - min.value) / step);
-});
-
 const percentageChange = computed(() => {
-    if (chartData.length < 2) return 0;
-    const start = chartData[0];
-    const end = chartData[chartData.length - 1];
-    return start === 0 ? 0 : Math.round(((end - start) / start) * 100);
+   return healthStore.getTrend(props.type)
 });
-
 const activeColor = computed(() => {
     const map = { bad: 'error', medium: 'warning', good: 'primary', great: 'secondary' };
     return map[healthState.value];
 });
 
 const activeGradient = computed(() => {
-    // Map health states to the diamond gradients in themes.css
     const map = {
         bad: 'var(--background-image-diamond-error)',
         medium: 'var(--background-image-diamond-warning)',
@@ -104,51 +119,43 @@ const activeGradient = computed(() => {
     return map[healthState.value];
 });
 
-// --- Chart Initialization ---
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-
-
-onMounted(() => {
-    renderChart()
-});
+// --- Actions ---
+const hexToRgba = (hex: string, alpha: number) => {
+    if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex)) return `rgba(0,0,0,${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 const renderChart = () => {
-    if (!canvasRef.value) return;
-
+    if (!canvasRef.value || chartData.value.length === 0) return;
     const ctx = canvasRef.value.getContext('2d')!;
-
-    // 1. Resolve the theme color based on the computed activeColor ('error' | 'warning' | 'primary' | 'secondary')
     const style = getComputedStyle(document.documentElement);
 
-    // Fetch the 500 shade of the active color from your themes.css variables
-    // Fallbacks provided for safety
-    const colorMap: Record<string, string> = {
-        error: style.getPropertyValue('--color-error-500').trim() || '#EF4444',
-        warning: style.getPropertyValue('--color-warning-500').trim() || '#F59E0B',
-        primary: style.getPropertyValue('--color-primary-500').trim() || '#2BB49A',
-        secondary: style.getPropertyValue('--color-secondary-500').trim() || '#8B5CF6'
-    };
+    // Fallback dictionary in case CSS variables are missing during render
+    const fallbacks: Record<string, string> = { error: '#EF4444', warning: '#F59E0B', primary: '#2BB49A', secondary: '#8B5CF6' };
+    const cssVar = style.getPropertyValue(`--color-${activeColor.value}-500`).trim();
+    const mainColorHex = cssVar || fallbacks[activeColor.value];
 
-    const mainColor = colorMap[activeColor.value] || colorMap.primary;
-
-    // 2. Dynamic Gradient setup using the resolved mainColor
-    // We convert the hex to RGBA for the gradient fill (25% opacity)
     const gradient = ctx.createLinearGradient(0, 0, 0, 64);
-    gradient.addColorStop(0, hexToRgba(mainColor, 0.25));
+    gradient.addColorStop(0, hexToRgba(mainColorHex, 0.25));
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    if (chartInstance) chartInstance.destroy();
 
     chartInstance = markRaw(new Chart(ctx, {
         type: 'line',
         data: {
-            labels: chartData.map((_, i) => i.toString()),
+            labels: chartData.value.map((_, i) => i.toString()),
             datasets: [{
-                data: chartData,
-                borderColor: mainColor,
+                data: chartData.value,
+                borderColor: mainColorHex,
                 backgroundColor: gradient,
                 borderWidth: 2,
                 pointRadius: 0,
                 fill: true,
-                tension: 0.4,
+                tension: 0.4
             }]
         },
         options: {
@@ -158,7 +165,7 @@ const renderChart = () => {
             plugins: { legend: { display: false }, tooltip: { enabled: false } },
             scales: {
                 x: { display: false },
-                y: { display: false, min: Math.min(...chartData) - 2, max: Math.max(...chartData) + 2 }
+                y: { display: false, min: Math.min(...chartData.value) - 2, max: Math.max(...chartData.value) + 2 }
             }
         },
         plugins: [{
@@ -166,8 +173,7 @@ const renderChart = () => {
             beforeDatasetDraw(chart) {
                 const { ctx } = chart;
                 ctx.save();
-                // Apply the shadow glow matching the state color (50% opacity)
-                ctx.shadowColor = hexToRgba(mainColor, 0.5);
+                ctx.shadowColor = hexToRgba(mainColorHex, 0.5);
                 ctx.shadowBlur = 10;
                 ctx.shadowOffsetY = 4;
             },
@@ -177,30 +183,36 @@ const renderChart = () => {
         }]
     }));
 
-    nextTick(() => {
-        setTimeout(() => {
-            isChartReady.value = true;
-        }, 50);
-    });
-}
-
-/**
- * Helper to handle hex to rgba conversion for canvas
- */
-const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    nextTick(() => setTimeout(() => { isChartReady.value = true; }, 50));
 };
 
-onUnmounted(() => {
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-});
+const animateNumber = (target: number) => {
+    const duration = 400;
+    const start = performance.now();
+    const step = (now: number) => {
+        const progress = Math.min((now - start) / duration, 1);
+        console.log(target)
+        displayPercentage.value = Math.round(progress * target);
+        if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+};
 
-const idk = () => console.log(`I don't really know!`);
+// --- Lifecycle ---
+onMounted(() => healthStore.fetchCategoryData(props.type));
+
+watch(isLoaded, (val) => {
+    if (val) {
+        nextTick(() => {
+            renderChart();
+            animateNumber(Math.abs(percentageChange.value));
+        });
+    }
+}, { immediate: true });
+
+onUnmounted(() => {
+    if (chartInstance) chartInstance.destroy();
+});
 
 // --- State Configurations ---
 const socialCardStates = computed(() => [
@@ -246,16 +258,12 @@ const cardTitle = computed(() => {
 <style scoped>
 /* GPU-Accelerated Mask Reveal */
 .mask-reveal {
-    /* Hardcoded to right so it always sweeps Left -> Right regardless of RTL/LTR */
     -webkit-mask-image: linear-gradient(to right, #000 40%, rgba(0, 0, 0, 0) 60%);
     mask-image: linear-gradient(to right, #000 40%, rgba(0, 0, 0, 0) 60%);
-
     -webkit-mask-size: 250% 100%;
     mask-size: 250% 100%;
-
     -webkit-mask-position: 100% 0;
     mask-position: 100% 0;
-
     transition: -webkit-mask-position 1.2s cubic-bezier(0.4, 0, 0.2, 1),
         mask-position 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
