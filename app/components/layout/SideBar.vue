@@ -1,0 +1,105 @@
+<template>
+    <div class=" h-full shrink-0 flex ">
+        <div class=" h-full w-18 flex flex-col">
+            <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
+                <div class=" w-10 h-10">
+                    <NuxtLinkLocale class="cursor-pointer w-full h-full" to="/">
+                        <BImage :src="logo" class=" min-w-full min-h-full h-full w-full max-w-full max-h-full " />
+                    </NuxtLinkLocale>
+                </div>
+            </div>
+            <div class=" flex-1 flex items-center  p-4 flex-col justify-between">
+                <div class=" flex flex-col gap-y-2 items-center">
+                    <CategoryItem :is-active="isRouteActive(category)" @click="setActiveCategory(category)"
+                        :route-item="category" v-for="category in getCategories" :key="category.key" />
+                </div>
+                <SidebarLocaleSwitch />
+            </div>
+        </div>
+        <div class=" transition-all duration-300 ease-in-out overflow-hidden text-wrap whitespace-nowrap"
+            :class="[showChildList ? ' w-auto' : 'w-0']">
+            <div class=" w-64 bg-surface-variant h-full">
+                <RouteList />
+            </div>
+        </div>
+    </div>
+</template>
+<script lang="ts">
+import { useI18n } from '#imports';
+import { ref, defineComponent, onMounted } from '#imports';
+import logo from '/images/logo/logo.svg'
+import { useNavigation } from '#imports';
+import CategoryItem from './sidebar/CategoryItem.vue';
+import RouteItem from './sidebar/RouteItem.vue';
+import { useRoute, useRouter } from 'vue-router';
+import SidebarLocaleSwitch from './sidebar/SidebarLocaleSwitch.vue';
+import type { NavItem } from '~/types/components/nav-item';
+import { V } from 'vue-router/dist/index-BzEKChPW.js';
+import RouteList from './sidebar/RouteList.vue';
+
+export default defineComponent({
+    name: 'Sidebar',
+    components: {
+        CategoryItem,
+        RouteItem,
+        SidebarLocaleSwitch,
+        RouteList,
+    },
+    setup() {
+        const route = useRoute()
+        const router = useRouter()
+        const isOpen = ref(false)
+        const { getCategories, getRoutesByCategory } = useNavigation()
+        const activeCategory = ref('')
+
+
+        onMounted(() => {
+            const currentPath = route.path;
+            const foundCategory = getCategories.value.find(cat => {
+                if (cat.to === currentPath) return true;
+
+                return cat.links?.some(link => {
+                    if (link.to === currentPath) return true;
+                    return link.children?.some(child => child.to === currentPath);
+                });
+            });
+
+            if (foundCategory) {
+                activeCategory.value = foundCategory.key;
+            }
+        });
+
+        const isRouteActive = (routeItem: NavItem) => {
+            if (routeItem.to) {
+                return route.path === routeItem.to && (activeCategory.value.trim().length === 0 || activeCategory.value === routeItem.key)
+            } else {
+                return routeItem.key === activeCategory.value
+            }
+        }
+
+        const setActiveCategory = (routeItem: NavItem) => {
+            if (routeItem.key === activeCategory.value) {
+                activeCategory.value = ''
+                return
+            } else {
+                activeCategory.value = routeItem.key;
+                if (routeItem.to) {
+                    router.push(routeItem.to)
+                }
+            }
+        }
+
+        const showChildList = computed(() => activeCategory.value.trim().length > 0 && getRoutesByCategory(activeCategory.value).length > 0)
+
+        return {
+            setActiveCategory,
+            showChildList,
+            isOpen,
+            logo,
+            isRouteActive,
+            activeCategory,
+            getCategories,
+        }
+    }
+})
+</script>

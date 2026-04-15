@@ -1,273 +1,237 @@
 import { computed } from "vue";
-import { useRoute } from "vue-router";
-import { useI18n } from "#imports";
-import { useNotificationStore } from "#imports";
-
+import { useI18n, useRoute, useProfileStore } from "#imports";
+import type { NavItem } from "~/types/components/nav-item";
+import type { NavSubItem } from "~/types/components/nav-sub-item";
 export const useNavigation = () => {
   const { t } = useI18n();
   const route = useRoute();
-  const notificationsStore = useNotificationStore();
+  const profileStore = useProfileStore();
 
-  // 1. The Source of Truth for all Dashboard Routes
-  const navigationGroups = computed(() => [
-    {
-      title: t("sidebar.sideBarRoutes.menu.title"),
-      children: [
-        {
-          path: "/dashboard",
-          title: t("sidebar.sideBarRoutes.menu.dashboard"),
-          icon: "PhChartPieSlice",
-        },
-        {
-          path: "/dashboard/notifications",
-          title: t("sidebar.sideBarRoutes.menu.notifications"),
-          icon: "PhBell",
-          count: notificationsStore.unreadCount,
-        },
-        {
-          path: "/dashboard/orders",
-          title: t("sidebar.sideBarRoutes.menu.orders"),
-          icon: "PhClipboardText",
-        },
-        {
-          path: "/dashboard/wallet",
-          title: t("sidebar.sideBarRoutes.menu.wallet"),
-          icon: "PhWallet",
-        },
-        {
-          path: "/dashboard/users",
-          title: t("sidebar.sideBarRoutes.menu.users"),
-          icon: "PhUsers",
-        },
-        {
-          path: "/dashboard/analytics",
-          title: t("sidebar.sideBarRoutes.menu.analytics"),
-          icon: "PhChartLine",
-          //  children: [
-          //    {
-          //      path: "/dashboard/analytics/realtime",
-          //      title: t("sidebar.sideBarRoutes.menu.overview"),
-          //      icon: "PhChartPieSlice",
-          //    },
-          //  ],
-        },
-      ],
-    },
-    {
-      title: t("sidebar.sideBarRoutes.inventory.title"),
-      children: [
-        {
-          path: "/dashboard/products",
-          title: t("sidebar.sideBarRoutes.inventory.products"),
-          icon: "PhStorefront",
-        },
-        {
-          path: "/dashboard/categories",
-          title: t("sidebar.sideBarRoutes.inventory.categories"),
-          icon: "PhSquaresFour",
-        },
-        {
-          path: "/dashboard/promo",
-          title: t("sidebar.sideBarRoutes.inventory.promo"),
-          icon: "PhSealPercent",
-        },
-      ],
-    },
-    {
-      title: t("sidebar.sideBarRoutes.other.title"),
-      children: [
-        {
-          path: "/dashboard/profile/create-profile",
-          title: t("sidebar.sideBarRoutes.other.profile"),
-          icon: "PhUser",
-        },
-        {
-          path: "/dashboard/settings",
-          title: t("sidebar.sideBarRoutes.other.settings"),
-          icon: "PhGear",
-        },
-        {
-          path: "logout",
-          title: t("sidebar.sideBarRoutes.other.logout"),
-          icon: "PhSignOut",
-        },
-      ],
-    },
-  ]);
-
-  const subRoutes = computed(() => [
-    {
-      path: "/dashboard/feedback",
-      title: t("sidebar.sideBarRoutes.feedback"),
-      icon: "PhChatText",
-    },
-    {
-      path: "/dashboard/help",
-      title: t("sidebar.sideBarRoutes.help"),
-      icon: "PhQuestion",
-    },
-  ]);
-
-  // 2. Optimized Active Route Lookup
-  const activeRoute = computed(() => {
-    // Flatten all nested children into a single searchable array
-    const allRoutes = [
-      ...navigationGroups.value.flatMap((group) => group.children),
-      ...subRoutes.value,
-    ];
-
-    // 1. Filter out items that aren't valid paths (like the 'logout' action)
-    // 2. Sort by path length (longest first) to ensure specific paths
-    //    match before more general parent paths (e.g., /dashboard)
-    const sortedRoutes = allRoutes
-      .filter((r) => r.path.startsWith("/"))
-      .sort((a, b) => b.path.length - a.path.length);
-
-    // 3. Find the first route that the current path starts with
-    const match = sortedRoutes.find((r) => route.path.startsWith(r.path));
-
-    return (
-      match || {
-        title: "Dashboard",
-        icon: "PhBrowser",
-      }
-    );
-  });
-
-  const getRouteTitles = (path: string): string[] => {
-    // 1. Normalize path (remove trailing slash)
-    const normalizedPath =
-      path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
-
-    // 2. Build a flattened list of all paths and their associated title hierarchy
-    const flattenedHierarchy: { path: string; titles: string[] }[] = [];
-
-    navigationGroups.value.forEach((group) => {
-      group.children.forEach((item) => {
-        // Add the direct child (e.g., /dashboard/orders -> [Menu, Orders])
-        flattenedHierarchy.push({
-          path: item.path,
-          titles: [group.title, item.title],
-        });
-
-        // Add deeply nested children if they exist
-        if (item.children && Array.isArray(item.children)) {
-          item.children.forEach((child) => {
-            flattenedHierarchy.push({
-              path: child.path,
-              titles: [group.title, item.title, child.title],
-            });
-          });
-        }
-      });
-    });
-
-    // Add standalone sub-routes (e.g., Help, Feedback)
-    subRoutes.value.forEach((route) => {
-      flattenedHierarchy.push({
-        path: route.path,
-        titles: [route.title],
-      });
-    });
-
-    // 3. Sort by path length (longest first) to ensure specificity
-    // We filter for paths starting with '/' to skip actions like 'logout'
-    const sortedHierarchy = flattenedHierarchy
-      .filter((entry) => entry.path.startsWith("/"))
-      .sort((a, b) => b.path.length - a.path.length);
-
-    // 4. Find the first match that the current path starts with
-    const match = sortedHierarchy.find((entry) =>
-      normalizedPath.startsWith(entry.path),
-    );
-
-    if (match) return match.titles;
-
-    // 5. Fallback for the base dashboard or unknown root segments
-    if (normalizedPath.startsWith("/dashboard")) {
-      return [
-        t("sidebar.sideBarRoutes.menu.title"),
-        t("sidebar.sideBarRoutes.menu.dashboard"),
-      ];
-    }
-
-    return [];
+  const prefix = (path: string) => {
+    if (path === "#" || path.startsWith("http")) return path;
+    return `/dashboard${path}`.replace(/\/+/g, "/");
   };
 
-  const mobileNavigationItems = computed(() => [
+  const rawMenu = computed((): NavItem[] => [
     {
-      path: "/dashboard",
-      title: t("sidebar.sideBarRoutes.menu.dashboard"),
-      icon: "PhChartPieSlice",
+      key: "home",
+      label: t("sidebar.dashboard"),
+      roles: ["user"],
+      icon: "PhHouseSimple",
+      to: prefix(""),
     },
     {
-      path: "/dashboard/orders",
-      title: t("sidebar.sideBarRoutes.menu.orders"),
-      icon: "PhClipboardText",
+      key: "services",
+      label: t("sidebar.services"),
+      roles: ["user"],
+      icon: "PhSquaresFour",
+      links: [
+        {
+          label: t("sidebar.collaborationRequest"),
+          icon: "PhStack",
+          to: prefix("/applications/collaboration"),
+        },
+        {
+          label: t("sidebar.serviceHistory"),
+          icon: "PhClockCounterClockwise",
+          to: prefix("/applications/services/reservations/list"),
+        },
+        { label: t("sidebar.healthReport"), to: "#", disabled: true },
+        {
+          label: t("sidebar.healthAssessment"),
+          to: "#",
+          icon: "PhHeartbeat",
+          children: [
+            {
+              label: t("sidebar.healthHistory"),
+              to: prefix(
+                "/applications/services/reservations/services?category=screening-and-risk&sub-category=screening-and-risk > health-history",
+              ),
+            },
+            {
+              label: t("sidebar.biometricAssessment"),
+              to: prefix(
+                "/applications/services/reservations/services?category=screening-and-risk&sub-category=screening-and-risk%20%3E%20vital-signs",
+              ),
+            },
+            {
+              label: t("sidebar.riskAssessment"),
+              to: prefix(
+                "/applications/services/reservations/services?category=screening-and-risk",
+              ),
+            },
+          ],
+        },
+        { label: t("sidebar.education"), to: "#", disabled: true },
+        {
+          label: t("sidebar.consultation"),
+          icon: "PhHandHeart",
+          to: prefix(
+            "/applications/services/reservations/services?category=consulting",
+          ),
+        },
+        { label: t("sidebar.appointment"), to: "#", disabled: true },
+        {
+          label: t("sidebar.store"),
+          icon: "PhStorefront",
+          to: "#",
+          children: [
+            { label: t("sidebar.medications"), to: "#", disabled: true },
+            { label: t("sidebar.medicalEquipment"), to: "#", disabled: true },
+          ],
+        },
+      ],
     },
     {
-      path: "/dashboard/wallet",
-      title: t("sidebar.sideBarRoutes.menu.wallet"),
+      key: "business",
+      label: t("sidebar.business"),
+      roles: ["business"],
+      icon: "PhBriefcase",
+      links: [
+        {
+          label: t("sidebar.dashboard"),
+          icon: "PhSquaresFour",
+          to: prefix("/business/dashboard"),
+        },
+        {
+          label: t("sidebar.serviceProviders"),
+          icon: "PhUsers",
+          to: prefix("/business/employee"),
+        },
+        {
+          label: t("sidebar.collaborationRequests"),
+          icon: "PhArrowsClockwise",
+          to: prefix("/business/collaborations"),
+        },
+        {
+          label: t("sidebar.serviceManagement"),
+          icon: "PhStack",
+          to: prefix("/business/services"),
+        },
+        {
+          label: t("sidebar.shiftManagement"),
+          icon: "PhClock",
+          to: prefix("/business/shifts"),
+        },
+      ],
+    },
+    {
+      key: "personnel",
+      label: t("sidebar.personnel"),
+      roles: ["employee"],
+      icon: "PhUserList",
+      links: [
+        {
+          label: t("sidebar.reservations"),
+          icon: "PhCalendarSearch",
+          to: prefix("/personnel/reservations"),
+        },
+        {
+          label: t("sidebar.patientInvoices"),
+          icon: "PhFileText",
+          to: prefix("/personnel/invoices"),
+        },
+      ],
+    },
+    {
+      key: "calendar",
+      label: t("sidebar.calendar"),
+      roles: ["user"],
+      icon: "PhCalendar",
+      to: prefix("/calendar"),
+    },
+    {
+      key: "financial",
+      label: t("sidebar.financial"),
+      roles: ["user"],
       icon: "PhWallet",
+      links: [
+        {
+          label: t("sidebar.wallet"),
+          icon: "PhWallet",
+          to: prefix("/financial/wallet"),
+        },
+        {
+          label: t("sidebar.invoices"),
+          icon: "PhFileText",
+          to: prefix("/financial/invoices"),
+        },
+        {
+          label: t("sidebar.transactions"),
+          icon: "PhCreditCard",
+          to: prefix("/financial/transactions"),
+        },
+      ],
     },
     {
-      path: "/dashboard/products",
-      title: t("sidebar.sideBarRoutes.inventory.products"),
-      icon: "PhStorefront",
-    },
-    {
-      path: "/dashboard/profile/create-profile",
-      title: t("sidebar.sideBarRoutes.other.profile"),
-      icon: "PhUser",
+      key: "chat",
+      label: t("sidebar.chat"),
+      roles: ["user"],
+      icon: "PhChatCircleDots",
+      links: [
+        {
+          label: t("sidebar.chat"),
+          icon: "PhChatCircleDots",
+          to: prefix("/chat"),
+        },
+        { label: t("sidebar.aiAssistant"), icon: "PhRobot", to: prefix("/ai") },
+      ],
     },
   ]);
 
-  const mobileSideBar = computed(() => [
-    {
-      title: t("sidebar.sideBarRoutes.menu.title"),
-      children: [
-        {
-          path: "/dashboard/users",
-          title: t("sidebar.sideBarRoutes.menu.users"),
-          icon: "PhUsers",
-        },
-        {
-          path: "/dashboard/analytics",
-          title: t("sidebar.sideBarRoutes.menu.analytics"),
-          icon: "PhChartLine",
-          //  children: [
-          //    {
-          //      path: "/dashboard/analytics/realtime",
-          //      title: t("sidebar.sideBarRoutes.menu.overview"),
-          //      icon: "PhChartPieSlice",
-          //    },
-          //  ],
-        },
-      ],
-    },
-    {
-      title: t("sidebar.sideBarRoutes.inventory.title"),
-      children: [
-        {
-          path: "/dashboard/categories",
-          title: t("sidebar.sideBarRoutes.inventory.categories"),
-          icon: "PhSquaresFour",
-        },
-        {
-          path: "/dashboard/promo",
-          title: t("sidebar.sideBarRoutes.inventory.promo"),
-          icon: "PhSealPercent",
-        },
-      ],
-    },
-  ]);
+  /**
+   * Filtered Menu Items based on role
+   */
+  const menuItems = computed(() => {
+    const currentRole = profileStore.chosenRole;
+    return rawMenu.value.filter((item) => {
+      if (currentRole === "user") return item.roles.includes("user");
+      return item.roles.includes("user") || item.roles.includes(currentRole);
+    });
+  });
+
+  /* =========================================================================
+     NEW METHODS
+     ========================================================================= */
+
+  /**
+   * 1. Returns the root level objects of the filtered menu.
+   * Useful for rendering the main sidebar icons/tabs.
+   */
+  const getCategories = computed(() => {
+    return menuItems.value;
+  });
+
+  /**
+   * 2. Returns the child routes (links) for a specific root category.
+   * @param categoryKey The unique key of the root item (e.g., 'services')
+   */
+  const getRoutesByCategory = (categoryKey: string): NavSubItem[] => {
+    const category = menuItems.value.find((item) => item.key === categoryKey);
+    return category?.links || [];
+  };
+
+  const isRouteActive = (path: string) => route.path === path;
+
+  const isParentActive = (item: NavItem) => {
+    if (item.to && isRouteActive(item.to)) return true;
+    if (item.links) {
+      return item.links.some((link) => {
+        if (isRouteActive(link.to)) return true;
+        if (link.children) {
+          return link.children.some((child) => isRouteActive(child.to));
+        }
+        return false;
+      });
+    }
+    return false;
+  };
 
   return {
-    navigationGroups,
-    mobileNavigationItems,
-    subRoutes,
-    activeRoute,
-    getRouteTitles,
-    mobileSideBar,
+    menuItems,
+    getCategories,
+    getRoutesByCategory,
+    isRouteActive,
+    isParentActive,
   };
 };
