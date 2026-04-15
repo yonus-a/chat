@@ -2,6 +2,7 @@ import { computed } from "vue";
 import { useI18n, useRoute, useProfileStore } from "#imports";
 import type { NavItem } from "~/types/components/nav-item";
 import type { NavSubItem } from "~/types/components/nav-sub-item";
+
 export const useNavigation = () => {
   const { t } = useI18n();
   const route = useRoute();
@@ -24,22 +25,30 @@ export const useNavigation = () => {
       key: "services",
       label: t("sidebar.services"),
       roles: ["user"],
-      icon: "PhSquaresFour",
+      icon: "PhSquaresFour", // Replaced PhWidget as requested
       links: [
         {
           label: t("sidebar.collaborationRequest"),
           icon: "PhStack",
+          roles: ["business"],
           to: prefix("/applications/collaboration"),
         },
         {
           label: t("sidebar.serviceHistory"),
           icon: "PhClockCounterClockwise",
+          roles: ["user"],
           to: prefix("/applications/services/reservations/list"),
         },
-        { label: t("sidebar.healthReport"), to: "#", disabled: true },
+        {
+          label: t("sidebar.healthReport"),
+          roles: ["user"],
+          to: "#",
+          disabled: true,
+        },
         {
           label: t("sidebar.healthAssessment"),
           to: "#",
+          roles: ["user"],
           icon: "PhHeartbeat",
           children: [
             {
@@ -62,18 +71,30 @@ export const useNavigation = () => {
             },
           ],
         },
-        { label: t("sidebar.education"), to: "#", disabled: true },
+        {
+          label: t("sidebar.education"),
+          roles: ["user"],
+          to: "#",
+          disabled: true,
+        },
         {
           label: t("sidebar.consultation"),
           icon: "PhHandHeart",
+          roles: ["user"],
           to: prefix(
             "/applications/services/reservations/services?category=consulting",
           ),
         },
-        { label: t("sidebar.appointment"), to: "#", disabled: true },
+        {
+          label: t("sidebar.appointment"),
+          roles: ["user"],
+          to: "#",
+          disabled: true,
+        },
         {
           label: t("sidebar.store"),
           icon: "PhStorefront",
+          roles: ["user"],
           to: "#",
           children: [
             { label: t("sidebar.medications"), to: "#", disabled: true },
@@ -91,26 +112,31 @@ export const useNavigation = () => {
         {
           label: t("sidebar.dashboard"),
           icon: "PhSquaresFour",
+          roles: ["business"],
           to: prefix("/business/dashboard"),
         },
         {
           label: t("sidebar.serviceProviders"),
           icon: "PhUsers",
+          roles: ["business"],
           to: prefix("/business/employee"),
         },
         {
           label: t("sidebar.collaborationRequests"),
           icon: "PhArrowsClockwise",
+          roles: ["business"],
           to: prefix("/business/collaborations"),
         },
         {
           label: t("sidebar.serviceManagement"),
           icon: "PhStack",
+          roles: ["business"],
           to: prefix("/business/services"),
         },
         {
           label: t("sidebar.shiftManagement"),
           icon: "PhClock",
+          roles: ["business"],
           to: prefix("/business/shifts"),
         },
       ],
@@ -118,17 +144,19 @@ export const useNavigation = () => {
     {
       key: "personnel",
       label: t("sidebar.personnel"),
-      roles: ["employee"],
+      roles: ["employee"], // Matches legacy role
       icon: "PhUserList",
       links: [
         {
           label: t("sidebar.reservations"),
           icon: "PhCalendarSearch",
+          roles: ["employee"],
           to: prefix("/personnel/reservations"),
         },
         {
           label: t("sidebar.patientInvoices"),
           icon: "PhFileText",
+          roles: ["employee"],
           to: prefix("/personnel/invoices"),
         },
       ],
@@ -137,8 +165,21 @@ export const useNavigation = () => {
       key: "calendar",
       label: t("sidebar.calendar"),
       roles: ["user"],
-      icon: "PhCalendar",
-      to: prefix("/calendar"),
+      icon: "PhCalendarDots",
+      links: [
+        {
+          label: t("sidebar.serviceCalendar"),
+          icon: "PhCalendarDots",
+          roles: ["user"],
+          to: prefix("/calendar/service"),
+        },
+        {
+          label: t("sidebar.reminderCalendar"),
+          icon: "PhCalendarPlus", // Distinct icon for reminders
+          roles: ["user"],
+          to: prefix("/calendar/reminder"),
+        },
+      ],
     },
     {
       key: "financial",
@@ -149,16 +190,19 @@ export const useNavigation = () => {
         {
           label: t("sidebar.wallet"),
           icon: "PhWallet",
+          roles: ["user"],
           to: prefix("/financial/wallet"),
         },
         {
           label: t("sidebar.invoices"),
           icon: "PhFileText",
+          roles: ["user"],
           to: prefix("/financial/invoices"),
         },
         {
           label: t("sidebar.transactions"),
           icon: "PhCreditCard",
+          roles: ["user"],
           to: prefix("/financial/transactions"),
         },
       ],
@@ -172,15 +216,21 @@ export const useNavigation = () => {
         {
           label: t("sidebar.chat"),
           icon: "PhChatCircleDots",
+          roles: ["user"],
           to: prefix("/chat"),
         },
-        { label: t("sidebar.aiAssistant"), icon: "PhRobot", to: prefix("/ai") },
+        {
+          label: t("sidebar.aiAssistant"),
+          icon: "PhRobot",
+          roles: ["user"],
+          to: prefix("/ai"),
+        },
       ],
     },
   ]);
 
   /**
-   * Filtered Menu Items based on role
+   * Filtered Menu Items (Root level)
    */
   const menuItems = computed(() => {
     const currentRole = profileStore.chosenRole;
@@ -190,27 +240,23 @@ export const useNavigation = () => {
     });
   });
 
-  /* =========================================================================
-     NEW METHODS
-     ========================================================================= */
-
   /**
-   * 1. Returns the root level objects of the filtered menu.
-   * Useful for rendering the main sidebar icons/tabs.
-   */
-  const getCategories = computed(() => {
-    return menuItems.value;
-  });
-
-  /**
-   * 2. Returns the child routes (links) for a specific root category.
-   * @param categoryKey The unique key of the root item (e.g., 'services')
+   * NEW: Filtered Sub-routes by Role
    */
   const getRoutesByCategory = (categoryKey: string): NavSubItem[] => {
     const category = menuItems.value.find((item) => item.key === categoryKey);
-    return category?.links || [];
+    if (!category || !category.links) return [];
+
+    const currentRole = profileStore.chosenRole;
+
+    return category.links.filter((link) => {
+      const linkRoles = link.roles || ["user"]; // Fallback to user
+      if (currentRole === "user") return linkRoles.includes("user");
+      return linkRoles.includes("user") || linkRoles.includes(currentRole);
+    });
   };
 
+  const getCategories = computed(() => menuItems.value);
   const isRouteActive = (path: string) => route.path === path;
 
   const isParentActive = (item: NavItem) => {
@@ -218,9 +264,8 @@ export const useNavigation = () => {
     if (item.links) {
       return item.links.some((link) => {
         if (isRouteActive(link.to)) return true;
-        if (link.children) {
+        if (link.children)
           return link.children.some((child) => isRouteActive(child.to));
-        }
         return false;
       });
     }

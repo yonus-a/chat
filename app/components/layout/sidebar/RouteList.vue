@@ -1,22 +1,26 @@
 <template>
-    <div class=" w-full h-full  flex flex-col">
-        <div class=" shrink-0 border-b border-b-surface-variant-2 w-full px-2.5 py-3">
+    <div class="w-full h-full flex flex-col">
+        <div class="shrink-0 border-b border-surface-variant-2 w-full px-2.5 py-3">
             <RoleSwitcher />
         </div>
-        <div class=" w-full"></div>
+
+        <div class="flex-1 overflow-y-auto hide-scrollbar py-4 px-2.5 flex flex-col gap-y-1.5">
+            <RouteItem v-for="(item, index) in routes" :key="item.label + index" :item="item" />
+        </div>
     </div>
 </template>
+
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue';
 import type { NavSubItem } from '~/types/components/nav-sub-item';
-import { useProfileStore } from '#imports';
-import { useRoute, useRouter } from 'vue-router';
 import RoleSwitcher from './RoleSwitcher.vue';
+import RouteItem from './RouteItem.vue';
 
 export default defineComponent({
     name: 'RouteList',
     components: {
         RoleSwitcher,
+        RouteItem
     },
     props: {
         routes: {
@@ -26,13 +30,17 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const profileStore = useProfileStore()
-        const route = useRoute()
-        const router = useRouter()
+        onMounted(() => {
+            console.log(props.routes)
+        })
+
+        watch(() => props.routes, () => {
+            console.log(props.routes)
+        }, { deep: true, immediate: true })
 
         return {
 
         }
     }
-})
+});
 </script>

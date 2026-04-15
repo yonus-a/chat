@@ -19,7 +19,7 @@
         <div class=" transition-all duration-300 ease-in-out overflow-hidden text-wrap whitespace-nowrap"
             :class="[showChildList ? ' w-auto' : 'w-0']">
             <div class=" w-64 bg-surface-variant h-full">
-                <RouteList />
+                <RouteList :routes="routeList" />
             </div>
         </div>
     </div>
@@ -90,6 +90,7 @@ export default defineComponent({
         }
 
         const showChildList = computed(() => activeCategory.value.trim().length > 0 && getRoutesByCategory(activeCategory.value).length > 0)
+        const routeList = computed(() => getRoutesByCategory(activeCategory.value))
 
         return {
             setActiveCategory,
@@ -98,6 +99,7 @@ export default defineComponent({
             logo,
             isRouteActive,
             activeCategory,
+            routeList,
             getCategories,
         }
     }

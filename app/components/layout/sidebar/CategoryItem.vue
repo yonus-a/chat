@@ -2,7 +2,7 @@
     <div class=" w-full flex flex-col gap-y-1">
         <div class=" w-10 h-10 aspect-square flex items-center justify-center transition-all duration-200 ease-in-out cursor-pointer rounded-xl"
             :class="[isActive ? 'bg-primary/20' : 'bg-primary/0']">
-            <BIcon :icon="routeItem.icon" class=" w-5 h-5 transition-all duration-200 ease-in-out"
+            <BIcon :icon="routeItem.icon" :weight="isActive ? 'fill' :'regular'" class=" w-5 h-5 transition-all duration-200 ease-in-out"
                 :class="[isActive ? 'fill-primary' : 'fill-on-surface/50']" />
         </div>
     </div>
