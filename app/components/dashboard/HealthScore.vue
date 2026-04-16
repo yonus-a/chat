@@ -1,11 +1,11 @@
 <template>
-    <div class=" pt-3 pb-5 px-4 bg-surface border border-outline-variant  rounded-3xl">
+    <div ref="scoreCardRef" class=" pt-3 pb-5 px-4 bg-surface border border-outline-variant  rounded-3xl">
         <div class=" w-full flex items-center justify-between">
             <div v-loading="isLoading" class=" text-title-sm select-none text-on-surface">{{ t('dashboard.score.title')
             }}</div>
             <BLabel v-loading="isLoading" size="lg" :text="t('dashboard.score.level', { level: 1 })" icon="PhMedal" />
         </div>
-        <div class=" flex w-full gap-x-4">
+        <div class=" flex w-full gap-x-0 md:flex-row flex-col-reverse md:gap-y-0 gap-y-4 md:gap-x-4">
             <div class=" basis-1/2 h-full">
                 <div class=" w-full flex flex-col gap-y-2 mt-12">
                     <div v-for="(field, index) in fields" :key="index" class=" w-full flex items-center gap-x-2">
@@ -58,7 +58,8 @@
                     </svg>
 
                     <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                        <div class=" text-head-md font-bold text-on-surface" v-loading="isLoading">{{ overallScore }}
+                        <div class=" text-head-md font-bold text-on-surface" v-loading="isLoading">{{
+                            animatedOverallScore }}
                         </div>
                         <div class="flex items-center gap-x-1 mt-1 text-body-sm text-on-surface/50 font-medium"
                             dir="rtl">
@@ -68,7 +69,7 @@
                                 v-loading="isLoading">
                                 <BIcon :icon="overallTrend > 0 ? 'PhTrendUp' : 'PhTrendDown'" class="w-4 h-4"
                                     v-loading="isLoading" />
-                                <span v-loading="isLoading">{{ Math.abs(overallTrend) }}%</span>
+                                <span v-loading="isLoading">{{ Math.abs(animatedOverallTrend) }}%</span>
                             </span>
                             <span v-loading="isLoading"> {{ t('dashboard.score.pastDays', { days: 7 }) }}</span>
                         </div>
@@ -85,6 +86,7 @@ import physicalHealthIcon from '/images/dashboard/physical-health.svg'
 import mentalHealthIcon from '/images/dashboard/mental-health.svg'
 import socialHealthIcon from '/images/dashboard/social-health.svg'
 import { useHealthStore } from '#imports';
+import { useNumberLerp } from '~/composables/useNumberLerp';
 export default defineComponent({
     name: 'HealthScore',
     setup() {
@@ -136,6 +138,13 @@ export default defineComponent({
             return circumference - (percentage * circumference);
         });
 
+        const isLoaded = computed(() => !isLoading.value);
+        const scoreCardRef = ref<HTMLElement | null>(null);
+
+        // Pass the shared scoreCardRef so both numbers trigger exactly at the same time
+        const { animatedValue: animatedOverallScore } = useNumberLerp(overallScore, isLoaded, scoreCardRef);
+        const { animatedValue: animatedOverallTrend } = useNumberLerp(computed(() => Math.abs(overallTrend.value)), isLoaded, scoreCardRef);
+
 
         return {
             t,
@@ -149,7 +158,10 @@ export default defineComponent({
             dashoffset,
             overallScore,
             maxScore,
-            overallTrend
+            overallTrend,
+            animatedOverallScore,
+            scoreCardRef,
+            animatedOverallTrend,
         }
     }
 })

@@ -1,11 +1,12 @@
 <template>
-    <div class="w-full flex flex-col gap-y-4 bg-surface border border-outline-variant rounded-3xl py-4 overflow-hidden">
+    <div ref="cardRef"
+        class="w-full flex shrink flex-col gap-y-4 bg-surface border border-outline-variant rounded-3xl py-2 md:py-4 overflow-hidden">
         <div class="w-full px-4 flex justify-between items-center">
             <div v-loading="isLoading" class="text-title-sm select-none text-on-surface font-bold">{{ cardTitle }}</div>
         </div>
 
         <div :class="[type === 'all' ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto']"
-            class="w-full px-4">
+            class="w-full md:block hidden px-4">
             <div class="flex items-center gap-x-2 w-full">
                 <BLabel @click="addForm" v-loading="isLoading" size="sm" class="translate-y-0.5 cursor-pointer shrink-0"
                     icon="PhPlus" />
@@ -18,7 +19,7 @@
             </div>
         </div>
 
-        <div v-if="!noData" class="flex items-end justify-between px-4 mt-2">
+        <div v-if="!noData" class="flex items-end justify-between px-2 md:px-4 mt-2">
             <div class="flex flex-col gap-y-1">
                 <div v-loading="isLoading" class="text-head-sm font-bold" :class="`text-${activeColor}`">
                     {{ t(`dashboard.cards.status.${healthState}`) }}
@@ -35,20 +36,20 @@
                 </div>
             </div>
 
-            <div v-loading="isLoading" class="w-22.5 h-20 relative mask-reveal"
+            <div v-loading="isLoading" class="w-22.5 h-20 md:block hidden relative mask-reveal"
                 :class="{ 'mask-active': isChartReady }">
                 <canvas ref="canvasRef"></canvas>
             </div>
         </div>
 
-        <div v-if="!noData" class="w-full px-4 mt-1">
-            <div v-loading="isLoading" class="flex gap-x-2 w-full h-2">
+        <div v-if="!noData" class="w-full px-2 md:px-4 mt-1">
+            <div v-loading="isLoading" class="flex gap-x-1 md:gap-x-2 w-full h-2">
                 <div v-for="i in 5" :key="i" class="flex-1 rounded-full transition-all duration-500"
                     :class="[i <= scoreLevel ? '' : 'bg-surface-variant-3']"
                     :style="i <= scoreLevel ? { background: activeGradient } : {}"></div>
             </div>
         </div>
-        <div v-if="noData" class=" px-3 w-full flex justify-between items-end">
+        <div v-if="noData" class=" px-2 md:px-3 w-full flex justify-between items-end">
             <div class=" h-35.5 w-35.5">
                 <BImage :src="noDataImage" class=" w-full min-w-full min-h-full max-w-full max-h-full h-full" />
             </div>
@@ -80,12 +81,17 @@ const min = computed(() => category.value?.min || 0);
 const max = computed(() => category.value?.max || 100);
 const isLoading = computed(() => category.value?.loading || false);
 const isLoaded = computed(() => category.value?.isLoaded || false);
-
-const isChartReady = ref(false);
-const displayPercentage = ref(0);
+import { useNumberLerp } from '~/composables/useNumberLerp';
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chartInstance: Chart | null = null;
-
+const percentageChange = computed(() => {
+    return healthStore.getTrend(props.type)
+});
+const {
+    animatedValue: displayPercentage,
+    elementRef: cardRef,
+    hasTriggered: isChartReady
+} = useNumberLerp(computed(() => Math.abs(percentageChange.value)), isLoaded);
 // --- Logic ---
 const scoreLevel = computed(() => {
     const data = chartData.value;
@@ -109,9 +115,7 @@ const healthState = computed(() => {
     return 'great';
 });
 
-const percentageChange = computed(() => {
-    return healthStore.getTrend(props.type)
-});
+
 const activeColor = computed(() => {
     const map = { bad: 'error', medium: 'warning', good: 'primary', great: 'secondary' };
     return map[healthState.value];
@@ -194,27 +198,14 @@ const renderChart = () => {
     nextTick(() => setTimeout(() => { isChartReady.value = true; }, 50));
 };
 
-const animateNumber = (target: number) => {
-    const duration = 400;
-    const start = performance.now();
-    const step = (now: number) => {
-        const progress = Math.min((now - start) / duration, 1);
-        console.log(target)
-        displayPercentage.value = Math.round(progress * target);
-        if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-};
+
 
 // --- Lifecycle ---
 onMounted(() => healthStore.fetchCategoryData(props.type));
 
 watch(isLoaded, (val) => {
     if (val) {
-        nextTick(() => {
-            renderChart();
-            animateNumber(Math.abs(percentageChange.value));
-        });
+        nextTick(() => renderChart());
     }
 }, { immediate: true });
 
