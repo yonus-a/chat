@@ -19,7 +19,7 @@ export const useHealthStore = defineStore("health", () => {
       min: 0,
       max: 100,
       currentValue: 0,
-      loading: false,
+      loading: true,
       isLoaded: false,
     },
     physical: {
@@ -27,7 +27,7 @@ export const useHealthStore = defineStore("health", () => {
       min: 0,
       max: 100,
       currentValue: 0,
-      loading: false,
+      loading: true,
       isLoaded: false,
     },
     social: {
@@ -35,7 +35,7 @@ export const useHealthStore = defineStore("health", () => {
       min: 0,
       max: 100,
       currentValue: 0,
-      loading: false,
+      loading: true,
       isLoaded: false,
     },
     all: {
@@ -43,7 +43,7 @@ export const useHealthStore = defineStore("health", () => {
       min: 0,
       max: 100,
       currentValue: 0,
-      loading: false,
+      loading: true,
       isLoaded: false,
     },
   });
@@ -52,7 +52,7 @@ export const useHealthStore = defineStore("health", () => {
 
   const fetchCategoryData = async (type: HealthCategory) => {
     const cat = categories.value[type];
-    if (cat.isLoaded || cat.loading) return;
+    if (cat.isLoaded ) return;
 
     cat.loading = true;
     try {
