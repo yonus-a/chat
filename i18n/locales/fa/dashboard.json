@@ -70,6 +70,12 @@
         "deposit":"افزایش موجودی",
         "availableBalance":"موجودی قابل استفاده",
         "currency":"تومان"
+    },
+    "services":{
+      "history":"خدمات دریافت شده",
+      "screening":"غربالگری و خطرسنجی",
+      "special":"ویژه شما",
+      "viewAll":"مشاهده {count} مورد دیگر"
     }
   }
 }

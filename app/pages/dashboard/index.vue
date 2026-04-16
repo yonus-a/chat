@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class=" grid grid-cols-3 gap-x-4">
-            
+            <DashboardServices v-for="(service, index) in serviceTabTypes" :key="index" :type="service" />
         </div>
     </div>
 </template>
@@ -25,7 +25,9 @@ import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import HealthScore from '~/components/dashboard/HealthScore.vue';
 import WalletDisplay from '~/components/dashboard/WalletDisplay.vue';
 import HealthStatus from '~/components/dashboard/HealthStatus.vue';
-const healthCardProps = ['all', 'social', 'physical', 'mental']
+import DashboardServices from '~/components/dashboard/DashboardServices.vue';
+const healthCardProps = ['all', 'social', 'physical', 'mental'];
+const serviceTabTypes = ['history', 'special', 'screening']
 
 
 useSeoMeta({
