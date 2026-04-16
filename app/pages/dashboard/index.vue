@@ -2,9 +2,10 @@
     <div class="flex flex-col gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 w-full gap-3 md:gap-4">
+        <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2 lg:grid-cols-4 w-full gap-3 md:gap-4">
             <HealthStatus v-for="healthState in healthCardProps" :key="healthState" :type="healthState" />
         </div>
+        <NoHealthData v-else />
         <div class=" w-full items-stretch md:flex-row flex-col-reverse flex gap-y-3 md:gap-y-0 gap-x-0 md:gap-x-4 ">
             <div class=" md:basis-1/2">
                 <WalletDisplay />
@@ -26,8 +27,12 @@ import HealthScore from '~/components/dashboard/HealthScore.vue';
 import WalletDisplay from '~/components/dashboard/WalletDisplay.vue';
 import HealthStatus from '~/components/dashboard/HealthStatus.vue';
 import DashboardServices from '~/components/dashboard/DashboardServices.vue';
+import NoHealthData from '~/components/dashboard/NoHealthData.vue';
 const healthCardProps = ['all', 'social', 'physical', 'mental'];
-const serviceTabTypes = ['history', 'special', 'screening']
+const serviceTabTypes = ['history', 'special', 'screening'];
+const healthStore = useHealthStore()
+const hasData = computed(() => healthStore.hasData)
+const isLoadingHealthData = computed(() => healthStore.categories.all.loading)
 
 
 useSeoMeta({

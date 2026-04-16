@@ -30,12 +30,9 @@ export default defineComponent({
         }
     },
     setup(props) {
-        onMounted(() => {
-            console.log(props.routes)
-        })
+
 
         watch(() => props.routes, () => {
-            console.log(props.routes)
         }, { deep: true, immediate: true })
 
         return {

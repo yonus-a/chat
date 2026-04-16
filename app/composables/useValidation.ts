@@ -105,7 +105,6 @@ export const useValidation = () => {
         return errors;
       }
 
-      console.log(year);
       if (month === 12) {
         // FIXED: Explicitly defined the array to prevent type errors
         const leapRemainders = [1, 5, 9, 13, 17, 22, 26, 30];

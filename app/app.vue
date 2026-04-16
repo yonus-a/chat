@@ -24,7 +24,6 @@ useHead({
   }
 });
 onMounted(() => {
-  console.log(colorMode.value)
   toastRef.value = toastComponent.value;
 });
 </script>

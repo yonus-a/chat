@@ -12,8 +12,14 @@
         "good": "خوب",
         "great": "عالی"
       },
+      "noData": {
+        "title": "هنوز اطلاعاتی ثبت نشده",
+        "description": "با وارد کردن سابقه سلامتت، می‌تونیم دقیق تر سلامتیت رو ارزیابی کنیم.",
+        "start": "شروع"
+      },
       "states": {
         "all": "سلامت کلی",
+
         "mental": {
           "title": "سلامت روانی",
           "fields": {
@@ -66,16 +72,16 @@
       }
     },
     "wallet": {
-        "title":"کیف پول",
-        "deposit":"افزایش موجودی",
-        "availableBalance":"موجودی قابل استفاده",
-        "currency":"تومان"
+      "title": "کیف پول",
+      "deposit": "افزایش موجودی",
+      "availableBalance": "موجودی قابل استفاده",
+      "currency": "تومان"
     },
-    "services":{
-      "history":"خدمات دریافت شده",
-      "screening":"غربالگری و خطرسنجی",
-      "special":"ویژه شما",
-      "viewAll":"مشاهده {count} مورد دیگر"
+    "services": {
+      "history": "خدمات دریافت شده",
+      "screening": "غربالگری و خطرسنجی",
+      "special": "ویژه شما",
+      "viewAll": "مشاهده {count} مورد دیگر"
     }
   }
 }

@@ -166,20 +166,7 @@ export const useNavigation = () => {
       label: t("sidebar.calendar"),
       roles: ["user"],
       icon: "PhCalendarDots",
-      links: [
-        {
-          label: t("sidebar.serviceCalendar"),
-          icon: "PhCalendarDots",
-          roles: ["user"],
-          to: prefix("/calendar/service"),
-        },
-        {
-          label: t("sidebar.reminderCalendar"),
-          icon: "PhCalendarPlus", // Distinct icon for reminders
-          roles: ["user"],
-          to: prefix("/calendar/reminder"),
-        },
-      ],
+      to: prefix("/calendar"),
     },
     {
       key: "financial",

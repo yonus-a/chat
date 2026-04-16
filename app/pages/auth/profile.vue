@@ -96,7 +96,6 @@ const genders = computed(() => [
 
 const syncFieldsWithStore = () => {
     const data = profileStore.userData;
-    console.log('fuck')
     if (!data.name && !data.lastName) return; // Wait for real data
 
     name.value.value = data.name;
@@ -123,7 +122,6 @@ const syncFieldsWithStore = () => {
 onMounted(async () => {
     // If store is empty, fetch it.
     if (!profileStore.isLoaded) {
-        console.log('fuck2 ')
         await profileStore.loadUserProfile();
     } else {
         syncFieldsWithStore();

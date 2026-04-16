@@ -25,9 +25,6 @@ export default defineComponent({
     setup(props) {
 
 
-        onMounted(()=>{
-            console.log(props.routeItem)
-        })
         return {
 
         }

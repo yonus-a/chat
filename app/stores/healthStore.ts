@@ -52,7 +52,7 @@ export const useHealthStore = defineStore("health", () => {
 
   const fetchCategoryData = async (type: HealthCategory) => {
     const cat = categories.value[type];
-    if (cat.isLoaded ) return;
+    if (cat.isLoaded) return;
 
     cat.loading = true;
     try {
@@ -113,5 +113,14 @@ export const useHealthStore = defineStore("health", () => {
     return data[data.length - 1];
   };
 
-  return { categories, fetchCategoryData, getTrend, latestValue, level };
+  const hasData = computed(() => categories.value.all.chartData.length !== 0);
+
+  return {
+    categories,
+    fetchCategoryData,
+    getTrend,
+    latestValue,
+    level,
+    hasData,
+  };
 });

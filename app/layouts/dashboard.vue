@@ -13,11 +13,13 @@
                 </div>
             </div>
         </div>
+        <MobileNavigation />
     </div>
 </template>
 <script lang="ts" setup>
 import SideBar from '~/components/layout/dashboard/SideBar.vue';
 import DashboardHeader from '~/components/layout/dashboard/DashboardHeader.vue';
+import MobileNavigation from '~/components/layout/dashboard/MobileNavigation.vue';
 const profileStore = useProfileStore()
 
 
