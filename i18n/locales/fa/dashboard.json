@@ -75,13 +75,18 @@
       "title": "کیف پول",
       "deposit": "افزایش موجودی",
       "availableBalance": "موجودی قابل استفاده",
-      "currency": "تومان"
+      "currency": "تومان",
+      "insuranceType": "نوع بیمه :",
+      "insuranceCoverage": "سهم پرداختی بیمه",
+      "charityCoverage": "سهم پرداختی سازمان حامی",
+      "totalDiscount": "تخفیفات دریافت شده"
     },
     "services": {
-      "history": "خدمات دریافت شده",
-      "screening": "غربالگری و خطرسنجی",
+      "history": "تاریخچه خدمات",
+      "consult":"مشاوره",
       "special": "ویژه شما",
-      "viewAll": "مشاهده {count} مورد دیگر"
+      "viewAll": "مشاهده {count} مورد دیگر",
+      "result":"نتیجه"
     }
   }
 }

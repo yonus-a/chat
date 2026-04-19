@@ -6,6 +6,9 @@
             <HealthStatus v-for="healthState in healthCardProps" :key="healthState" :type="healthState" />
         </div>
         <NoHealthData v-else />
+        <div class=" md:grid grid-cols-3 flex flex-col md:gap-y-0 gap-y-3 md:gap-x-4">
+            <DashboardServices v-for="(service, index) in serviceTabTypes" :key="index" :type="service" />
+        </div>
         <div class=" w-full items-stretch md:flex-row flex-col-reverse flex gap-y-3 md:gap-y-0 gap-x-0 md:gap-x-4 ">
             <div class=" md:basis-1/2">
                 <WalletDisplay />
@@ -13,9 +16,6 @@
             <div class=" md:basis-1/2">
                 <HealthScore />
             </div>
-        </div>
-        <div class=" md:grid grid-cols-3 flex flex-col md:gap-y-0 gap-y-3 md:gap-x-4">
-            <DashboardServices v-for="(service, index) in serviceTabTypes" :key="index" :type="service" />
         </div>
     </div>
 </template>
@@ -29,7 +29,7 @@ import HealthStatus from '~/components/dashboard/HealthStatus.vue';
 import DashboardServices from '~/components/dashboard/DashboardServices.vue';
 import NoHealthData from '~/components/dashboard/NoHealthData.vue';
 const healthCardProps = ['all', 'social', 'physical', 'mental'];
-const serviceTabTypes = ['history', 'special', 'screening'];
+const serviceTabTypes = ['consulting', 'special', 'history'];
 const healthStore = useHealthStore()
 const hasData = computed(() => healthStore.hasData)
 const isLoadingHealthData = computed(() => healthStore.categories.all.loading)

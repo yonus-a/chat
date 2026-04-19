@@ -23,6 +23,9 @@ export const useProfileStore = defineStore("profile", () => {
   const isLoading = ref(true);
   const isLoaded = ref(false);
   const userRoles = ref<UserRoleKey[]>(["user"]);
+  const insuranceCoverage = ref(300000);
+  const charityCoverage = ref(300000);
+  const totalDiscounts = ref(300000);
 
   // 2. Sync state with Cookie on initialization
   const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "user");
@@ -122,6 +125,9 @@ export const useProfileStore = defineStore("profile", () => {
     userRoles,
     chosenRole,
     isLoading,
+    charityCoverage,
+    totalDiscounts,
+    insuranceCoverage,
     isLoaded,
     availableRoles,
     currentRole,
