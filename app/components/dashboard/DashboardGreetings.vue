@@ -6,7 +6,8 @@
         </div>
         <div class=" flex-1 flex flex-col gap-y-2 sm:gap-y-1.5">
             <div v-loading="isLoading">
-                <i18n-t keypath="dashboard.greetings.hello" tag="span" class="select-none text-title-md sm:text-head-sm text-on-surface">
+                <i18n-t keypath="dashboard.greetings.hello" tag="span"
+                    class="select-none text-title-md sm:text-head-sm text-on-surface">
                     <template #name>
                         <span class="text-primary">{{ firstName }}</span>
                     </template>
@@ -14,27 +15,41 @@
             </div>
             <div class=" flex items-center gap-x-3">
                 <div v-loading="isLoading" class=" shrink-0 py-0.5 px-3  rounded-lg bg-primary/20">
-                    <div class=" select-none text-label-sm sm:text-label-md text-primary">{{ t('dashboard.greetings.imBehno') }}</div>
+                    <div class=" select-none text-label-sm sm:text-label-md text-primary">{{
+                        t('dashboard.greetings.imBehno') }}
+                    </div>
                 </div>
                 <div v-loading="isLoading" class=" sm:block hidden text-label-md select-none text-on-surface/50">{{
                     t('dashboard.greetings.text') }}
                 </div>
             </div>
         </div>
+        <div class=" shrink-0 h-full flex items-center gap-x-2">
+            <StoryDisplay v-for="story in allStories" :key="story.id" :story="story" />
+        </div>
     </div>
 </template>
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useProfileStore } from '#imports';
+import { useProfileStore } from '~/stores/profileStore';
 import greetingsImage from '/images/dashboard/greetings.webp'
 import { useI18n } from '#imports';
+import { useStoriesStore } from '#imports';
+import StoryDisplay from './list-items/StoryDisplay.vue';
 export default defineComponent({
     name: 'DashboardGreetings',
+    components: {
+        StoryDisplay,
+    },
     setup() {
+        const storiesStore = useStoriesStore()
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const firstName = computed(() => profileStore.userData.name)
         const isLoading = computed(() => profileStore.isLoading)
+
+        const allStories = computed(() => storiesStore.stories)
+
 
 
         return {
@@ -42,6 +57,7 @@ export default defineComponent({
             isLoading,
             greetingsImage,
             firstName,
+            allStories,
         }
     }
 })
