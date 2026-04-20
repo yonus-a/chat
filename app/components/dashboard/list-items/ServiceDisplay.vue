@@ -11,8 +11,10 @@
             </div>
         </div>
         <div class=" mt-2 w-full flex items-center justify-between" v-if="type == 'history'">
-            <div class=" select-none text-primary text-body-sm">{{ t('dashboard.services.result') }}</div>
-            <div v-if="service.date" class=" text-on-surface/50 text-body-sm">{{ formatDateTime(service.date) }}</div>
+            <div v-loading="isLoading" class=" select-none text-primary text-body-sm">{{ t('dashboard.services.result')
+                }}</div>
+            <div v-loading="isLoading" v-if="service.date" class=" text-on-surface/50 text-body-sm">{{
+                formatDateTime(service.date) }}</div>
         </div>
     </div>
 </template>

@@ -1,20 +1,25 @@
 <template>
     <Teleport to="body">
         <div
-            class=" fixed h-14 shadow-medium gap-x-2 bottom-0 left-0 w-dvw bg-surface z-50 lg:hidden px-3 flex items-center justify-between">
-            <div @click="openRoute(route.route)" v-for="route in routes" :key="route.key">
-                <div v-if="route.label && route.label.trim().length > 0"
-                    class=" h-14 aspect-square flex justify-center items-center cursor-pointer select-none">
+            class=" fixed h-14 shadow-medium gap-x-2 bottom-0 left-0 w-dvw bg-surface z-50 lg:hidden py-0.75 px-3 flex items-center justify-between">
+            <div @click="openRoute(route.route)" v-for="route in routes" :key="route.key" class="basis-1/5 h-full ">
+                <div class="  h-full w-full rounded-xl flex-col gap-y-0.5 flex justify-center items-center transition-all duration-200 ease-in-out cursor-pointer select-none"
+                    :class="[isRouteActive(route.route) ? ' bg-primary/10' : 'bg-primary/0']">
                     <BIcon :icon="route.icon" class=" w-5 h-5 transition-all duration-200 ease-in-out"
                         :class="[isRouteActive(route.route) ? ' fill-primary' : ' fill-on-surface/50']" />
+                    <div class=" select-none text-on-surface text-[10px]">{{ route.label }}</div>
                 </div>
-                <BButton v-else :icon="route.icon" />
             </div>
-            <div @click="openRoute('/dashboard/profile')" class=" h-14 aspect-square flex items-center justify-center">
+            <div @click="openRoute('/dashboard/profile')"
+                class=" h-full flex-col gap-y-0.5 basis-1/5 aspect-square flex items-center justify-center">
                 <div class=" w-5 h-5 rounded-full overflow-hidden">
                     <BImage :src="profileImage" class=" w-full h-full min-w-full min-h-full max-w-full max-h-full" />
                 </div>
+                <div class=" select-none text-on-surface text-[10px]">{{ t('sidebar.profile') }}</div>
             </div>
+            <NuxtLinkLocale to="/dashboard/services">
+                <BButton icon="PhPlus" />
+            </NuxtLinkLocale>
         </div>
     </Teleport>
 </template>
@@ -45,11 +50,11 @@ export default defineComponent({
                 icon: "PhCalendarDots",
                 route: localePath('/dashboard/calendar')
             },
-            {
-                key: 'services',
-                icon: 'PhPlus',
-                route: localePath('/dashboard/services')
-            },
+            // {
+            //     key: 'services',
+            //     icon: 'PhPlus',
+            //     route: localePath('/dashboard/services')
+            // },
             {
                 key: "chat",
                 label: t("sidebar.chat"),
@@ -73,6 +78,7 @@ export default defineComponent({
             routes,
             openRoute,
             profileImage,
+            t,
         }
     }
 })

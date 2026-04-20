@@ -1,13 +1,13 @@
 <template>
-    <div class=" flex items-center gap-x-2 sm:gap-x-6 w-full">
-        <div class=" shrink-0 h-17 w-17 sm:h-30 sm:w-30">
+    <div class=" flex items-center gap-x-2 md:gap-x-6 w-full">
+        <div class=" shrink-0 h-17 w-17 md:h-30 md:w-30">
             <BImage v-loading="isLoading" class=" w-full max-w-full max-h-full h-full min-w-full min-h-full"
                 :src="greetingsImage" />
         </div>
-        <div class=" flex-1 flex flex-col gap-y-2 sm:gap-y-1.5">
+        <div class=" flex-1 flex flex-col gap-y-2 md:gap-y-1.5">
             <div v-loading="isLoading">
                 <i18n-t keypath="dashboard.greetings.hello" tag="span"
-                    class="select-none text-title-md sm:text-head-sm text-on-surface">
+                    class="select-none text-title-md md:text-head-sm text-on-surface">
                     <template #name>
                         <span class="text-primary">{{ firstName }}</span>
                     </template>
@@ -15,11 +15,11 @@
             </div>
             <div class=" flex items-center gap-x-3">
                 <div v-loading="isLoading" class=" shrink-0 py-0.5 px-3  rounded-lg bg-primary/20">
-                    <div class=" select-none text-label-sm sm:text-label-md text-primary">{{
+                    <div class=" select-none text-label-sm md:text-label-md text-primary">{{
                         t('dashboard.greetings.imBehno') }}
                     </div>
                 </div>
-                <div v-loading="isLoading" class=" sm:block hidden text-label-md select-none text-on-surface/50">{{
+                <div v-loading="isLoading" class=" md:block hidden text-label-md select-none text-on-surface/50">{{
                     t('dashboard.greetings.text') }}
                 </div>
             </div>
