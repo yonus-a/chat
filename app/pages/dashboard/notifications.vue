@@ -16,12 +16,11 @@
             </BVirtualVerticalList>
 
             <div v-else class="h-full w-full flex items-center justify-center">
-                <NoDataDisplay :title="t('notifications.noNotifications')" />
+                <NoDataDisplay :image-path="NoData" :title="t('notifications.noNotifications')" />
             </div>
         </div>
     </div>
 </template>
-
 <script lang="ts">
 import { defineComponent, computed, onMounted, watch } from 'vue';
 import { useI18n } from '#imports';
@@ -30,10 +29,14 @@ import { useRouter } from 'vue-router';
 import type { Notification } from '~/types/notification';
 import NotificationDisplay from '~/components/layout/dashboard/header/NotificationDisplay.vue';
 import { useWindowWidth } from '#imports';
+import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
+import NoData from '/images/dashboard/no-notifications.webp'
+
 export default defineComponent({
     name: 'NotificationsPage',
     components: {
         NotificationDisplay,
+        NoDataDisplay,
     },
     setup() {
         const router = useRouter();
@@ -73,7 +76,8 @@ export default defineComponent({
             notifications,
             hasNextPage,
             notificationsStore,
-            handleNotificationClick
+            handleNotificationClick,
+            NoData,
         };
     }
 })
