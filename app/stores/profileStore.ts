@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useI18n, useCookie } from "#imports";
-
+import blankProfile from "/images/dashboard/blank-profile.webp";
 export type UserRoleKey = "user" | "employee" | "business" | "support";
 
 export interface RoleDetail {
@@ -105,10 +105,14 @@ export const useProfileStore = defineStore("profile", () => {
         nationality: "iranian",
         nationalId: "1234567890",
         gender: "male",
-        imageUrl: "imageUrl",
+        imageUrl: "",
         birthDate: new Date("1999-11-25T00:00:00Z"),
         balance: 1000000,
       };
+
+      if (userData.value.imageUrl.trim().length === 0) {
+        userData.value.imageUrl = blankProfile;
+      }
 
       // Assume backend returns these roles
       userRoles.value = ["user", "business"];

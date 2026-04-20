@@ -282,9 +282,13 @@ export const useDate = () => {
   };
 
   const formatDateTime = (dateInput: string | Date): string => {
+    // 1. Get direction from your locale composable
+    const { dir } = useLocale();
+
     const date = parseDate(dateInput);
     const lang = getLang();
     let body = "";
+
     if (lang === "fa") {
       const [jy, jm, jd] = g2j(
         date.getFullYear(),
@@ -299,14 +303,76 @@ export const useDate = () => {
         year: "numeric",
       }).format(date);
     }
+
     const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
-    return localizeDigits(`${body}  ${timeStr}`, lang);
+
+    // 2. Condition the return string based on direction
+    const combinedStr =
+      dir.value === "rtl"
+        ? `${timeStr}  ${body}` // Time + Date for RTL
+        : `${body}  ${timeStr}`; // Date + Time for LTR
+
+    return localizeDigits(combinedStr, lang);
+  };
+
+  /**
+   * Returns a numeric date string: YYYY/MM/DD
+   * Example: ۱۴۰۵/۱/۱۲ or 2026/04/20
+   */
+  const getAbsoluteDate = (dateInput: string | Date): string => {
+    const date = parseDate(dateInput);
+    const lang = getLang();
+    let result = "";
+
+    if (lang === "fa") {
+      const [jy, jm, jd] = g2j(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+      );
+      result = `${jy}/${jm}/${jd}`;
+    } else {
+      const y = date.getFullYear();
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const d = date.getDate().toString().padStart(2, "0");
+      result = `${y}/${m}/${d}`;
+    }
+
+    return localizeDigits(result, lang);
+  };
+
+  /**
+   * Returns numeric date and time: YYYY/MM/DD HH:mm
+   * Example: ۱۴۰۵/۱/۱۲ ۰۹:۳۴
+   */
+  const getAbsoluteDateTime = (dateInput: string | Date): string => {
+    const { dir } = useLocale();
+    const lang = getLang();
+
+    // 1. Get the formatted numeric date part
+    const datePart = getAbsoluteDate(dateInput);
+
+    // 2. Format the time part
+    const date = parseDate(dateInput);
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const timePart = `${hours}:${minutes}`;
+
+    // 3. Place segments based on text direction
+    const combined =
+      dir.value === "rtl"
+        ? `${timePart}  ${datePart}` // Time first for RTL flow
+        : `${datePart}  ${timePart}`; // Date first for LTR flow
+
+    return localizeDigits(combined, lang);
   };
 
   return {
     parseDate,
     formatDate,
     formatNumericDate,
+    getAbsoluteDateTime,
+    getAbsoluteDate,
     formatDateTime,
     formatTime,
     g2j,

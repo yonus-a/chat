@@ -7,9 +7,6 @@
 <script lang="ts">
 
 
-definePageMeta({
-    layout: 'dashboard'
-})
 
 export default defineComponent({
     name: 'DashboardPageBase',

@@ -70,7 +70,7 @@ const BUTTON_CONFIG = {
   sizes: {
     lg: { px: '24px', py: '14px', radius: '12px', fontSize: 'var(--text-label-lg)', iconOnly: '48px', iconSize: 20 },
     md: { px: '20px', py: '10px', radius: '10px', fontSize: 'var(--text-label-md)', iconOnly: '40px', iconSize: 20 },
-    sm: { px: '16px', py: '10px', radius: '9px', fontSize: 'var(--text-label-sm)', iconOnly: '36px', iconSize: 16 },
+    sm: { px: '16px', py: '10px', radius: '9px', fontSize: '12px', iconOnly: '36px', iconSize: 20 },
     xs: { px: '12px', py: '10px', radius: '8px', fontSize: '10px', iconOnly: '30px', iconSize: 14 }
   },
 

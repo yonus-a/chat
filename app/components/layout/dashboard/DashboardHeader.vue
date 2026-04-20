@@ -9,7 +9,7 @@
             <BButton icon="PhPlus" />
         </div>
 
-        <DashboardGreetings class=" md:hidden"/>
+        <DashboardGreetings class=" md:hidden" />
         <div class=" flex items-center gap-x-3 md:gap-x-4">
             <NuxtLinkLocale class=" md:block hidden" to="/dashboard/chat">
                 <BButton type="ghost" icon="PhChatText" />
@@ -17,13 +17,7 @@
             <NuxtLinkLocale class=" md:block hidden" to="/dashboard/calendar/reminder">
                 <BButton type="ghost" icon="PhCalendarDots" />
             </NuxtLinkLocale>
-            <div class=" w-10 h-10 flex items-center justify-center cursor-pointer relative">
-                <div
-                    class=" rounded-full w-6 h-4.5 text-white select-none bg-gradient-error flex justify-center items-center absolute z-10 ltr:left-0 rtl:right-0 top-0">
-                    <div class=" text-label-sm">1</div>
-                </div>
-                <BIcon icon="PhBell" class=" w-5 h-5  fill-primary" />
-            </div>
+            <DashboardNotifications />
             <div @click="openSearch" class=" cursor-pointer w-10 h-10 md:hidden flex items-center justify-center">
                 <BIcon icon="PhMagnifyingGlass" class=" fill-on-surface/50 w-5 h-5" />
             </div>
@@ -41,15 +35,21 @@ import { defineComponent } from 'vue';
 import { useI18n } from '#imports';
 import { useProfileStore } from '#imports';
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
+
+import DashboardNotifications from './header/DashboardNotifications.vue';
 export default defineComponent({
     name: 'DashboardHeader',
     components: {
         DashboardGreetings,
+        DashboardNotifications,
     },
     setup() {
+
         const profileStore = useProfileStore()
         const { t } = useI18n()
+
         const searchText = ref('')
+
 
         const initSearch = () => {
 
@@ -60,10 +60,14 @@ export default defineComponent({
         }
 
 
+
         return {
             t,
+
+
             searchText,
             initSearch,
+
             profileStore,
             openSearch,
         }

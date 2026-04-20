@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full md:h-85 gap-y-4 flex flex-col p-4 bg-surface border border-outline-variant  rounded-3xl">
+    <div class=" w-full md:h-85 gap-y-4 flex flex-col p-3 lg:p-4 bg-surface border border-outline-variant  rounded-3xl">
         <div class=" w-full flex justify-between items-center">
             <div v-loading="isLoading" class=" select-none text-on-surface shrink-0 text-title-sm">{{ cardTitle }}</div>
             <CardLink v-loading="isLoading" to="/dashboard/services" class=" shrink-0"
@@ -20,7 +20,7 @@
 <script lang="ts">
 import { type PropType, defineComponent, computed, ref } from 'vue';
 import { useI18n, useLocalePath } from '#imports';
-import CardLink from './CardLink.vue';
+import CardLink from '../general/CardLink.vue';
 import ServiceDisplay from './list-items/ServiceDisplay.vue';
 export default defineComponent({
     name: 'DashboardServices',

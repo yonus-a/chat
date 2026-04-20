@@ -1,0 +1,15 @@
+{
+  "notifications": {
+    "title": "اعلانات",
+    "types": {
+      "request": "درخواست",
+      "wallet": "کیف پول",
+      "reminder": "یادآوری",
+      "announcement": "اطلاعیه"
+    },
+    "time": "تاریخ",
+    "subject": "موضوع",
+    "seen":"خوانده شده",
+    "noNotifications":"هیچ اعلانی ندارید."
+  }
+}
