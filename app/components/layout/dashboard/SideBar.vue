@@ -1,7 +1,7 @@
 <template>
     <div class=" h-full shrink-0 flex ">
-        <div class=" h-full transition-all duration-200 ease-in-out w-18 flex flex-col"
-            :class="[isOpen ? 'shadow-none' : 'shadow-floating']">
+        <div class=" h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col"
+           >
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
                 <div class=" w-10 h-10">
                     <NuxtLinkLocale class="cursor-pointer w-full h-full" to="/">
@@ -30,10 +30,14 @@
         </div>
         <div class=" transition-all duration-300 ease-in-out overflow-hidden flex flex-col justify-between  text-wrap whitespace-nowrap"
             :class="[showChildList ? ' w-auto' : 'w-0']">
-            <div class=" w-64 bg-surface-variant h-full">
+            <div class=" w-64 bg-surface-variant flex flex-col justify-between h-full">
                 <RouteList :routes="routeList" />
+                <div class=" p-2.5 flex flex-col gap-y-1.5 w-full">
+                    <RouteItem v-for="(route, index) in secondaryRoutes" :key="index" :item="route" />
+                    <ContactCard />
+                </div>
             </div>
-            <div class=" w-full"></div>
+
         </div>
     </div>
 </template>
@@ -48,6 +52,7 @@ import SidebarLocaleSwitch from './sidebar/SidebarLocaleSwitch.vue';
 import type { NavItem } from '~/types/components/nav-item';
 import RouteList from './sidebar/RouteList.vue';
 import { useTheme } from '#imports';
+import ContactCard from './sidebar/ContactCard.vue';
 export default defineComponent({
     name: 'Sidebar',
     components: {
@@ -55,15 +60,19 @@ export default defineComponent({
         RouteItem,
         SidebarLocaleSwitch,
         RouteList,
+        ContactCard,
     },
     setup() {
         const { toggleTheme, colorMode } = useTheme()
         const route = useRoute()
         const router = useRouter()
         const isOpen = ref(true)
-        const { getCategories, getRoutesByCategory } = useNavigation()
+        const { getCategories, getRoutesByCategory, secondaryRoutes } = useNavigation()
         const activeCategory = ref('')
         const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')
+
+
+
 
 
         onMounted(() => {
@@ -115,6 +124,7 @@ export default defineComponent({
             toggleTheme,
             routeList,
             getCategories,
+            secondaryRoutes,
             themeButtonIcon,
         }
     }

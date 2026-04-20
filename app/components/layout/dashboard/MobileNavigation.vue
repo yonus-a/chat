@@ -6,7 +6,8 @@
                 <div @click="openRoute(route.route)" v-for="route in routes" :key="route.key" class="basis-1/5 h-full">
                     <div class="h-full w-full rounded-xl flex-col gap-y-0.5 flex justify-center items-center transition-all duration-200 ease-in-out cursor-pointer select-none"
                         :class="[isRouteActive(route.route) ? 'bg-primary/10' : 'bg-primary/0']">
-                        <BIcon :icon="route.icon" class="w-5 h-5 transition-all duration-200 ease-in-out"
+                        <BIcon :weight="isRouteActive(route.route) ? 'fill' : 'regular'" :icon="route.icon"
+                            class="w-5 h-5 transition-all duration-200 ease-in-out"
                             :class="[isRouteActive(route.route) ? 'fill-primary' : 'fill-on-surface/50']" />
                         <div class="select-none text-on-surface text-[10px]">{{ route.label }}</div>
                     </div>

@@ -13,6 +13,15 @@ export const useNavigation = () => {
     return `/dashboard${path}`.replace(/\/+/g, "/");
   };
 
+  const secondaryRoutes = computed((): NavSubItem[] => [
+    {
+      label: t("sidebar.inviteFriends"),
+      roles: ["user"],
+      icon: "PhUserPlus",
+      to: prefix("/invite-friends"),
+    },
+  ]);
+
   const rawMenu = computed((): NavItem[] => [
     {
       key: "home",
@@ -264,6 +273,7 @@ export const useNavigation = () => {
     getCategories,
     getRoutesByCategory,
     isRouteActive,
+    secondaryRoutes,
     isParentActive,
   };
 };
