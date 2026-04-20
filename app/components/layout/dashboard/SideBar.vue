@@ -28,11 +28,12 @@
                 </div>
             </div>
         </div>
-        <div class=" transition-all duration-300 ease-in-out overflow-hidden text-wrap whitespace-nowrap"
+        <div class=" transition-all duration-300 ease-in-out overflow-hidden flex flex-col justify-between  text-wrap whitespace-nowrap"
             :class="[showChildList ? ' w-auto' : 'w-0']">
             <div class=" w-64 bg-surface-variant h-full">
                 <RouteList :routes="routeList" />
             </div>
+            <div class=" w-full"></div>
         </div>
     </div>
 </template>
@@ -59,7 +60,7 @@ export default defineComponent({
         const { toggleTheme, colorMode } = useTheme()
         const route = useRoute()
         const router = useRouter()
-        const isOpen = ref(false)
+        const isOpen = ref(true)
         const { getCategories, getRoutesByCategory } = useNavigation()
         const activeCategory = ref('')
         const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')

@@ -6,5 +6,4 @@ import { defineComponent } from 'vue';
 definePageMeta({
     layout: 'dashboard'
 })
-
 </script>

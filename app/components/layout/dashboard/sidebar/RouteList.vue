@@ -3,7 +3,6 @@
         <div class="shrink-0 border-b border-b-outline/50 w-full">
             <RoleSwitcher />
         </div>
-
         <div class="flex-1 overflow-y-auto hide-scrollbar py-4 px-2.5 flex flex-col gap-y-1.5">
             <RouteItem v-for="(item, index) in routes" :key="item.label + index" :item="item" />
         </div>

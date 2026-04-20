@@ -4,7 +4,7 @@
             <SideBar />
         </div>
         <div class=" flex-1 h-full flex flex-col">
-            <div class=" w-full shrink-0">
+            <div v-if="hasHeader" class=" w-full shrink-0">
                 <DashboardHeader />
             </div>
             <div class="  flex-1 w-full overflow-y-auto">
@@ -21,7 +21,9 @@ import SideBar from '~/components/layout/dashboard/SideBar.vue';
 import DashboardHeader from '~/components/layout/dashboard/DashboardHeader.vue';
 import MobileNavigation from '~/components/layout/dashboard/MobileNavigation.vue';
 const profileStore = useProfileStore()
+const route = useRoute()
 
+const hasHeader = computed(() => !route.path.startsWith('/dashboard/chat'))
 
 onBeforeMount(() => {
     profileStore.loadUserProfile()

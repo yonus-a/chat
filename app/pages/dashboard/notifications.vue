@@ -32,6 +32,7 @@ import { useWindowWidth } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoData from '/images/dashboard/no-notifications.webp'
 
+
 export default defineComponent({
     name: 'NotificationsPage',
     components: {
