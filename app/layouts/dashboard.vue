@@ -8,7 +8,7 @@
                 <DashboardHeader />
             </div>
             <div class="  flex-1 w-full overflow-y-auto">
-                <div class=" px-3 md:px-8 py-6 w-full">
+                <div class="  w-full" :class="[hasHeader ? 'px-3 md:px-8 py-6' : '']">
                     <NuxtPage />
                 </div>
             </div>
