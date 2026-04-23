@@ -2,7 +2,7 @@
     <BMenu ref="menuRef" :overlay="false" class="flex items-center justify-center">
         <template #trigger="{ isOpen }">
             <div @click="handleTriggerClick" class="w-10 h-10 flex items-center justify-center cursor-pointer relative">
-                <div v-if="!isLoading && unreadCount > 0"
+                <div v-if="unreadCount > 0"
                     class="rounded-full min-w-6 h-4.5 px-1 text-white select-none bg-gradient-error flex justify-center items-center absolute z-10 ltr:left-0 rtl:right-0 top-0 border-2 border-surface">
                     <div class="text-[10px] font-bold">{{ unreadCount }}</div>
                 </div>

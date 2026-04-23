@@ -6,6 +6,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
   // 1. Core State
   const isLoading = ref(false);
   const notifications = ref<Notification[]>([]);
+  const pageMap = ref<Record<number, Notification[]>>({});
   const isMarkingAllAsRead = ref(false);
   const hasLoadedFirstPage = ref(false);
 
@@ -42,31 +43,49 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
   // 3. Loading Simulation Function
   const fetchNotifications = async (page: number = 1) => {
-    hasLoadedFirstPage.value = true;
     if (isLoading.value) return;
+
+    // Check if we already have this data (Circuit Breaker for Desktop)
+    if (pageMap.value[page]) {
+      currentPage.value = page;
+      return;
+    }
 
     isLoading.value = true;
     currentPage.value = page;
-
-    // If it's the first page, we clear the list to show skeletons
-    if (page === 1) notifications.value = [];
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const newData = generateMockData(page);
 
-      // Append data if it's not the first page
+      // Store in Map for Desktop random access
+      pageMap.value[page] = newData;
+
+      // Maintain flat array for Mobile infinite scroll
       if (page === 1) {
         notifications.value = newData;
+        hasLoadedFirstPage.value = true;
       } else {
-        notifications.value = [...notifications.value, ...newData];
+        // Ensure we don't add duplicates if user switches between mobile/desktop
+        const existingIds = new Set(notifications.value.map((n) => n.id));
+        const filteredNew = newData.filter((n) => !existingIds.has(n.id));
+        notifications.value = [...notifications.value, ...filteredNew];
       }
-    } catch (error) {
-      console.error("Fetch error:", error);
     } finally {
       isLoading.value = false;
     }
   };
+
+  const getDesktopPageItems = computed(() => {
+    if (isLoading.value && !pageMap.value[currentPage.value]) {
+      // Show skeletons for the specific page being loaded
+      return Array.from({ length: itemsPerPage.value }, (_, i) => ({
+        ...mockNotification,
+        id: -(currentPage.value * 100 + i), // Unique skeleton IDs per page
+      }));
+    }
+    return pageMap.value[currentPage.value] || [];
+  });
 
   // 4. Final Display Data (Sorted by date, newest first)
   const loadNextPage = async () => {
@@ -124,6 +143,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     hasNextPage,
     unreadCount,
     currentPage,
+    getDesktopPageItems,
     displayedNotifications,
   };
 });
