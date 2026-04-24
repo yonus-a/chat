@@ -1,46 +1,91 @@
 <template>
   <ClientOnly>
-    <div class="b-emoji-picker" @click.stop>
-      <emoji-picker 
-        ref="picker" 
-        :class="theme"
-        @emoji-click="$emit('select', $event.detail.unicode)"
-      ></emoji-picker>
+    <div class="b-emoji-picker relative" @click.stop>
+      <emoji-picker ref="picker" data-source="/data/emoji-data.json" class="light"
+        @emoji-click="$emit('select', $event.detail.unicode)"></emoji-picker>
     </div>
-    
+
     <template #fallback>
-      <div class="w-[350px] h-[400px] bg-surface animate-pulse rounded-2xl border border-outline-variant" />
+      <div class="w-[350px] h-[350px] bg-surface/50 animate-pulse rounded-2xl border border-outline-variant" />
     </template>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
-// No more dynamic imports or onMounted boilerplate here!
-defineProps({
-  theme: { type: String, default: 'light' }
+import { ref, onMounted, onUnmounted } from 'vue';
+
+const emit = defineEmits(['select']);
+const picker = ref<HTMLElement | null>(null);
+let shadowHunter: ReturnType<typeof setInterval> | null = null;
+
+onMounted(() => {
+  // Nuxt's ClientOnly delays the shadow root. We hunt for it every 50ms until it exists.
+  shadowHunter = setInterval(() => {
+    if (picker.value && picker.value.shadowRoot) {
+      clearInterval(shadowHunter!); // We found it, stop hunting.
+
+      const style = document.createElement('style');
+      style.textContent = `
+        /* 1. ANNIHILATE THE SEARCH ROW AND NAV */
+        .search-row, 
+        [part="search"], 
+        nav, 
+        [part="nav"] {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          height: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          pointer-events: none !important;
+          position: absolute !important;
+        }
+
+        /* 2. STYLE THE SCROLLBAR EXACTLY AS REQUESTED */
+        .tabpanel::-webkit-scrollbar {
+          width: 2px !important;
+          height: 2px !important;
+        }
+
+        .tabpanel::-webkit-scrollbar-thumb {
+          background: var(--background-image-gradient-primary-secondary) !important;
+          border-radius: 10px !important;
+        }
+        
+        /* 3. ENSURE TRANSPARENCY */
+        section, .tabpanel {
+          background: transparent !important;
+        }
+      `;
+
+      picker.value.shadowRoot.appendChild(style);
+    }
+  }, 50);
+
+  // Safety clear just in case the element never renders
+  setTimeout(() => {
+    if (shadowHunter) clearInterval(shadowHunter);
+  }, 5000);
 });
 
-defineEmits(['select']);
+onUnmounted(() => {
+  if (shadowHunter) clearInterval(shadowHunter);
+});
 </script>
 
 <style scoped>
-/* Full CSS control remains here */
 emoji-picker {
-  width: 100%;
+  /* Nuke outer bounds and background */
+  --background: transparent;
+  --border-size: 0;
+  --border-color: transparent;
+  --input-border-size: 0;
+  --button-hover-background: transparent;
+  --button-active-background: transparent;
+  --indicator-color: var(--color-primary);
   max-width: 350px;
-  height: 400px;
-  border: 1px solid var(--outline-variant);
-  border-radius: 16px;
-  background-color: var(--surface);
-  --background: var(--surface);
-  --font-family: "IranYekan", "AppleColorEmoji", sans-serif;
-  box-shadow: var(--shadow-floating);
-}
-
-/* Customizing the Search and Tabs */
-emoji-picker::part(search) {
-  background: var(--surface-variant);
-  border: 1px solid var(--outline-variant);
-  border-radius: 8px;
+  height: 350px;
+  /* Adjust height since we removed the top bar */
+  border: none !important;
 }
 </style>

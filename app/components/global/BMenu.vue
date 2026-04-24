@@ -9,7 +9,7 @@
             :class="[isOpen ? 'bg-on-background/20 backdrop-blur-sm pointer-events-auto' : 'backdrop-blur-none bg-on-background/0 pointer-events-none']">
         </div>
 
-        <div ref="panelRef"
+        <div ref="panelRef" @click="handleContentClick"
             class="absolute z-100 rounded-xl bg-surface border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none']">
@@ -23,7 +23,7 @@
                             <BImage :src="opt.imageUrl" class="w-full h-full object-cover" />
                         </div>
                         <span :class="[getColorClass(opt.color), 'text-xs font-medium select-none']">{{ opt.title
-                        }}</span>
+                            }}</span>
                     </div>
                     <div v-if="idx < options.length - 1" class="px-2">
                         <div class="h-px w-full bg-outline-container" />
@@ -46,13 +46,18 @@ export default defineComponent({
     name: 'BMenu',
     props: {
         options: { type: Array as PropType<any[]>, default: () => [] },
-        overlay: { type: Boolean, default: false }
+        overlay: { type: Boolean, default: false },
+        autoClose: {
+            type: Boolean, default: false,
+        }
     },
     emits: ['select', 'open', 'close'],
     setup(props, { emit, expose }) {
         const isOpen = ref(false);
         const menuWrapper = ref<HTMLElement | null>(null);
         const panelRef = ref<HTMLElement | null>(null);
+
+
 
         // New reactive alignment states
         const verticalAlign = ref<'bottom' | 'top'>('bottom');
@@ -148,9 +153,14 @@ export default defineComponent({
             }
         };
 
+        const handleContentClick = () => {
+            if (!props.autoClose) return
+            closeMenu()
+        }
+
         expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });
 
-        return { isOpen, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles };
+        return { isOpen, handleContentClick, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles };
     }
 });
 </script>

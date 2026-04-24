@@ -34,7 +34,7 @@
 
             </div>
             <div class="shrink-0 flex items-center gap-x-8 z-10  h-11" :class="[iconClass]">
-                <BMenu :close-on-content-click="false" placement="top-end">
+                <BMenu ref="menuRef">
                     <template #trigger>
                         <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent />
                     </template>
@@ -48,13 +48,13 @@
             </div>
         </div>
 
-        <div v-show="isRecording" class="flex-1 flex items-center mb-3">
+        <div v-show="isRecording" class="flex-1 flex items-center ">
             <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
                 :style="{ opacity: cancelOpacity }">
                 <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                 <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                     t('chat.cancel')
-                }}</span>
+                    }}</span>
             </div>
 
             <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -64,7 +64,7 @@
                 </div>
                 <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                     formattedTime
-                }}</span>
+                    }}</span>
             </div>
         </div>
 
@@ -74,6 +74,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onUnmounted, onMounted } from 'vue';
 import { useI18n } from '#imports';
+import { type Menu } from '~/types/components/menu';
 
 export default defineComponent({
     name: 'ChatInput',
@@ -88,7 +89,11 @@ export default defineComponent({
         const inputWidth = computed(() => rootElements.value?.clientWidth)
         const micPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
         const cameraPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
+        const menuRef = ref<Menu | null>(null)
 
+        const handleMenuClose = () => {
+            menuRef.value?.close()
+        }
 
         const checkInitialPermissions = async () => {
             try {
@@ -124,6 +129,7 @@ export default defineComponent({
         // Expose the method to parent components
         expose({
             focus: () => {
+                console.log(inputRef.value)
                 inputRef.value?.focus();
             }
         });
@@ -190,7 +196,7 @@ export default defineComponent({
         const secondaryMessageType = ref<'video' | 'voice'>('voice');
         const inputDisabled = computed(() => !props.isActive);
         const inputPlaceholder = computed(() => props.isActive ? t('chat.placeholder') : t('chat.chatLocked'));
-        const iconClass = computed(() => inputDisabled.value ? 'opacity-50 pointer-events-none' : 'opacity-100 pointer-events-auto');
+        const iconClass = computed(() => inputDisabled.value ? 'opacity-50 fill-on-surface pointer-events-none' : ' fill-on-surface opacity-100 pointer-events-auto');
         const secondaryMessageIcon = computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera');
 
         // --- Recording & Drag State ---
@@ -295,6 +301,7 @@ export default defineComponent({
                 sendMessage()
                 return
             }
+            handleMenuClose()
             isPointerDown.value = true;
             isLongPress.value = false;
             startX.value = event.clientX;
@@ -452,6 +459,7 @@ export default defineComponent({
             adjustHeight,
             sendRecording,
             cancelRecording,
+            menuRef,
             rootElements,
             sendMessage,
         };

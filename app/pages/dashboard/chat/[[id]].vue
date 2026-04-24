@@ -1,11 +1,13 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div class=" flex w-full flex-col justify-between items-center h-full" v-if="chatId">
-            <ChatPageBar :contact="selectedChat" />
+        <div class=" flex w-full flex-col justify-between items-center h-full" v-show="chatId">
+            <div class=" w-full bg-surface h-20">
+                <ChatPageBar :contact="selectedChat" />
+            </div>
 
-            <ChatInput :is-active="selectedChat?.isActive" />
+            <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
         </div>
-        <div v-else class=" w-full h-full flex items-center justify-center">
+        <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
         </div>
     </div>
@@ -20,6 +22,7 @@ import ChatInput from '~/components/chat/ChatInput.vue';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoChatSelected from '/images/dashboard/no-chat-selected.webp';
 import { useChatStore } from '#imports';
+import { type ChatTextField } from '~/types/components/chat-input';
 definePageMeta({
     layout: 'dashboard'
 })
@@ -36,11 +39,22 @@ export default defineComponent({
         const chatStore = useChatStore()
         const route = useRoute()
         const { t } = useI18n()
+        const chatInput = ref<ChatTextField | null>(null)
 
         const chatId = computed(() => {
             const id = route.params.id;
             return id ? parseInt(id as string) : null;
         });
+
+        watch(() => route.params.id, () => {
+            console.log('fuck')
+            if (chatId.value && selectedChat.value?.isActive) {
+                nextTick(() => {
+                    console.log(chatInput.value)
+                    chatInput.value?.focus()
+                })
+            }
+        })
 
         const selectedChat = computed(() => {
             if (!chatId.value) return null;
@@ -59,6 +73,7 @@ export default defineComponent({
             t,
             chatId,
             NoChatSelected,
+            chatInput,
             selectedChat,
         }
     }
