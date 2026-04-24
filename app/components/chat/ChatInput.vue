@@ -1,5 +1,5 @@
 <template>
-    <div ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
+    <div dir="rtl" ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
         class=" transition-all duration-200 ease-in-out min-h-[76px] py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none touch-none">
 
         <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
