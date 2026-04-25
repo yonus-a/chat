@@ -17,10 +17,10 @@
 import { defineComponent } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import { useRoute } from 'vue-router';
-import ChatList from '~/components/chat/ChatList.vue';
 import { useWindowSize } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoChatSelected from '/images/chat/no-chat-selected.webp';
+import ChatList from '~/components/chat/contact/ChatList.vue';
 
 definePageMeta({
     layout: 'dashboard' // Keeps your Sidebar perfectly intact

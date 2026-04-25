@@ -17,7 +17,8 @@
                     <div class="flip-vertical"
                         :class="[getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]), virtualRow.index === 0 ? 'pb-2' : '']">
                         <ChatBubble :message="reversedMessages[virtualRow.index]"
-                            :is-self="reversedMessages[virtualRow.index].senderId === currentUserId" />
+                            :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
+                            :contact="contact" />
                     </div>
 
                 </div>
@@ -43,7 +44,7 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n, useChatStore } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
@@ -54,10 +55,17 @@ import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoMessages from '/images/chat/no-messages.webp'
 import { useProfileStore } from '#imports';
 
+
 export default defineComponent({
     name: 'ChatMessages',
     components: { ChatBubble, NoDataDisplay },
-    setup() {
+    props: {
+        contact: {
+            type: Object as PropType<Contact>,
+            required: true,
+        }
+    },
+    setup(props) {
         const profileStore = useProfileStore()
         const route = useRoute();
         const chatStore = useChatStore();
@@ -120,22 +128,26 @@ export default defineComponent({
 
         // 4. Mock Data Generation (dates now span multiple days)
         const generateMockMessages = (page: number): Message[] => {
-            const scenarios = ["text", "voice", "image", "multiImage", "video", "file", "text"];
+            const scenarios = ["text", "voice", "text", "image", "file", "multiImage", "text", "video", "text", "voice"];
 
             return Array.from({ length: 20 }).map((_, i) => {
                 const id = 1000 - ((page - 1) * 20 + (19 - i));
                 const scenario = scenarios[id % scenarios.length];
-                const dateOffset = ((page - 1) * 20 + (19 - i)) * 1000 * 60 * 60 * 8;
-                const isMe = id % 5 === 0 || id % 3 === 0;
+                const clumpIndex = Math.floor(id / 3);
+                const isMe = clumpIndex % 2 === 0;
+                const senderId = isMe ? profileStore.userData.id : 2;
+                const baseOffset = ((page - 1) * 20 + (19 - i)) * 1000 * 60 * 60 * 6;
+                const jitter = (id % 5) * 1000 * 60 * 15;
+                const messageDate = new Date(Date.now() - (baseOffset + jitter));
 
                 return {
                     id,
                     conversationId: Number(route.params.id) || 101,
-                    date: new Date(Date.now() - dateOffset),
+                    date: messageDate,
                     type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
 
                     text: scenario === "text"
-                        ? `Mock Message ${id}: Testing the live assets for ${scenario}.`
+                        ? `Message ${id}: ${isMe ? 'Sent by me.' : 'Received from them.'} Testing grouping and CORS.`
                         : undefined,
 
                     imageUrl: scenario === "image"
@@ -143,29 +155,30 @@ export default defineComponent({
                         : scenario === "multiImage"
                             ? [
                                 `https://picsum.photos/600/600?sig=${id}_1`,
-                                `https://picsum.photos/600/600?sig=${id}_2`
+                                `https://picsum.photos/600/600?sig=${id}_2`,
+                                `https://picsum.photos/600/600?sig=${id}_3`
                             ]
                             : undefined,
 
-                    // Real PDF from Mozilla
+                    // CORS-FRIENDLY PDF (W3C Sample)
                     fileUrl: scenario === "file"
-                        ? `https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf?id=${id}`
+                        ? `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf?id=${id}`
                         : undefined,
 
-                    // Real MP3 from Google Demos
+                    // CORS-FRIENDLY VOICE (MDN Sample)
                     voiceUrl: scenario === "voice"
-                        ? `https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme.mp3?id=${id}`
+                        ? `https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3?id=${id}`
                         : undefined,
 
-                    // Real Video from W3Schools
+                    // VIDEO (W3Schools usually allows standard streaming)
                     videoUrl: scenario === "video"
                         ? 'https://www.w3schools.com/html/mov_bbb.mp4'
                         : undefined,
 
-                    isEdited: id % 7 === 0,
-                    senderId: id % 2 === 0 ? profileStore.userData.id : 2,
-                    isSent: id % 15 !== 0,
-                    isRead: id % 4 !== 0,
+                    isEdited: id % 8 === 0,
+                    senderId: senderId,
+                    isSent: id % 20 !== 0,
+                    isRead: isMe ? (id % 3 !== 0) : true,
                 };
             });
         };

@@ -8,7 +8,7 @@
                     <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
                 </div>
                 <div class="flex-1 w-full min-h-0 overflow-hidden">
-                    <ChatMessages />
+                    <ChatMessages v-if="selectedChat" :contact="selectedChat" />
                 </div>
                 <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
             </div>
@@ -21,7 +21,6 @@
 import { defineComponent, computed } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import ChatPageBar from '~/components/chat/ChatPageBar.vue';
-import ChatList from '~/components/chat/ChatList.vue';
 import { useRoute, useRouter } from 'vue-router';
 import ChatInput from '~/components/chat/ChatInput.vue';
 import { useChatStore } from '#imports';
@@ -29,6 +28,7 @@ import { type ChatTextField } from '~/types/components/chat-input';
 import ChatProfileOverview from '~/components/chat/ChatProfileOverview.vue';
 import ChatMessages from '~/components/chat/ChatMessages.vue';
 import { useWindowSize } from '#imports';
+import ChatList from '~/components/chat/contact/ChatList.vue';
 
 definePageMeta({
     layout: 'dashboard',

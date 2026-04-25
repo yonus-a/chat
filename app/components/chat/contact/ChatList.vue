@@ -34,8 +34,8 @@ import { useI18n } from '#imports';
 import type { ChatFilter, FilterKeys } from '~/types/chat';
 import ChatContactDisplay from './ChatContactDisplay.vue';
 import ChatListSearch from './ChatListSearch.vue';
-import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoData from '/images/dashboard/no-contacts.webp'
+import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 export default defineComponent({
     name: 'ChatList',
     components: {

@@ -4,12 +4,7 @@
         <div class=" w-full md:flex-row flex-row-reverse  justify-end gap-x-4 md:justify-between flex">
             <div @click="openProfile" class="cursor-pointer flex items-center gap-x-3">
                 <div class="w-10 h-10 relative shrink-0">
-                    <BImage
-                        class="min-w-full min-h-full max-w-full max-h-full h-full w-full rounded-full overflow-hidden"
-                        :src="selectedChat?.imageUrl" />
-                    <div v-if="selectedChat.isOnline"
-                        class="absolute right-0 bottom-0 bg-primary rounded-full w-2.5 h-2.5 border-2 border-surface">
-                    </div>
+                    <ContactAvatar v-if="contact" :contact="contact" />
                 </div>
                 <div class="select-none">
                     <div class="text-on-surface text-label-md">{{ selectedChat.name }} {{ selectedChat.lastName }}</div>
@@ -57,6 +52,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useChatStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
+import ContactAvatar from './contact/ContactAvatar.vue';
 
 export default defineComponent({
     name: 'PageBar',
@@ -65,6 +61,9 @@ export default defineComponent({
             type: Object as PropType<Contact | null>,
             required: true,
         }
+    },
+    components: {
+        ContactAvatar,
     },
     emits: ['call', 'open-profile'],
     setup(props, { emit }) {

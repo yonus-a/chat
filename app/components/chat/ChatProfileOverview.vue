@@ -15,9 +15,12 @@
                     </div>
                     <div class=" w-full absolute z-20 flex justify-center items-center -translate-y-1/2">
                         <div class=" w-25 h-25 rounded-full overflow-hidden">
+                            <!--  
                             <BImage v-loading="isLoading"
-                                class=" w-full h-full min-w-full min-h-full max-w-full max-h-full "
-                                :src="localProfile.imageUrl" />
+                            class=" w-full h-full min-w-full min-h-full max-w-full max-h-full "
+                            :src="localProfile.imageUrl" />
+                            -->
+                            <ContactAvatar v-if="profile" :contact="profile" />
                         </div>
                     </div>
                     <div class=" h-12.5 w-full"></div>
@@ -61,6 +64,7 @@ import type { Contact } from '~/types/chat';
 import { useRoute, useRouter } from 'vue-router';
 import { useDate, useI18n, useProfileStore } from '#imports';
 import profileBackground from '/images/chat/profile-background.webp'
+import ContactAvatar from './contact/ContactAvatar.vue';
 
 interface Action {
     title: string;
@@ -77,6 +81,9 @@ export default defineComponent({
             type: Object as PropType<Contact | null>,
             required: true,
         }
+    },
+    components: {
+        ContactAvatar,
     },
     setup(props) {
         const { getYearsPassed } = useDate()

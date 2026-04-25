@@ -3,18 +3,16 @@
         class="rounded-xl w-full transition-all duration-200 ease-in-out cursor-pointer p-2.5 flex justify-between gap-x-3 items-center h-19">
 
         <div class="relative shrink-0 h-11 w-11">
-            <BImage v-loading="isLoading"
-                class="min-w-full min-h-full max-w-full rounded-full overflow-hidden max-h-full h-full w-full"
-                :src="contact.imageUrl" />
-            <div v-if="contact.isOnline"
-                class="absolute right-0 bottom-0 bg-primary rounded-full w-2.5 h-2.5 border-2 border-surface"></div>
+            <ContactAvatar :contact="contact" />
         </div>
 
         <div class="select-none flex-1 overflow-hidden">
             <div class="w-full flex items-center justify-between">
-                <div class="text-label-md text-on-surface min-w-20 truncate" v-loading="isLoading">{{ contact.name }} {{ contact.lastName }}</div>
+                <div class="text-label-md text-on-surface min-w-20 truncate" v-loading="isLoading">{{ contact.name }} {{
+                    contact.lastName }}</div>
                 <div v-if="contact.lastMessage" class="flex gap-x-1.5 items-center shrink-0">
-                    <div v-loading="isLoading" class="text-on-surface/50 text-[11px]">{{ formatRelativeDate(contact.lastMessage.date) }}</div>
+                    <div v-loading="isLoading" class="text-on-surface/50 text-[11px]">{{
+                        formatRelativeDate(contact.lastMessage.date) }}</div>
                     <BIcon v-if="lastMessageIcon.icon !== ''" :icon="lastMessageIcon.icon"
                         :class="lastMessageIcon.color" class="w-4 h-4" />
                 </div>
@@ -49,6 +47,7 @@ import { defineComponent, computed, type PropType } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useRoute, useRouter } from 'vue-router';
 import { useLocalePath, useI18n, useDate, useProfileStore } from '#imports';
+import ContactAvatar from './ContactAvatar.vue';
 
 export default defineComponent({
     name: "ContactDisplay",
@@ -61,6 +60,9 @@ export default defineComponent({
             type: Boolean,
             default: false,
         }
+    },
+    components: {
+        ContactAvatar,
     },
     setup(props) {
         const { t } = useI18n();

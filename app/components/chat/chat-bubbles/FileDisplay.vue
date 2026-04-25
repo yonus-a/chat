@@ -50,9 +50,7 @@ export default defineComponent({
         const { t } = useI18n()
         const { dir } = useLocale()
 
-        onMounted(() => {
-            console.log(props.url)
-        })
+
         // State
         const status = ref<'idle' | 'downloading' | 'downloaded'>('idle');
         const progress = ref(0);
