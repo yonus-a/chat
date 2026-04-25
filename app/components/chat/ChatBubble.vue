@@ -33,7 +33,7 @@
                             </div>
                         </div>
                         <div v-else-if="messageType === 'video'">
-                            <BubbleVideo />
+                            <BubbleVideo :video-url="message.videoUrl" mode="playback" />
                         </div>
                         <div class=" w-full pt-2 flex items-center gap-x-2.5"
                             :class="[isMine ? 'justify-start' : 'justify-end']">

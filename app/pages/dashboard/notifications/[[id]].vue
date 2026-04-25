@@ -19,7 +19,7 @@
             </p>
         </div>
         <div v-else class=" w-full h-full flex items-center justify-center">
-            <NoDataDisplay />
+            <NoDataDisplay :image-path="NoNotificationSelected" :title="t('notifications.noNotificationSelected')" />
         </div>
     </div>
 </template>
@@ -29,6 +29,7 @@ import { useRoute } from 'vue-router';
 import { useNotificationsStore, useDate, useI18n } from '#imports';
 import type { Notification } from '~/types/notification';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
+import NoNotificationSelected from '/images/dashboard/no-notification-selected.webp'
 definePageMeta({
     hideBottomNav: true
 })
@@ -121,6 +122,8 @@ export default defineComponent({
             getAbsoluteDateTime,
             isLoading: localLoading,
             notification,
+            NoNotificationSelected,
+            t,
         }
     }
 })
