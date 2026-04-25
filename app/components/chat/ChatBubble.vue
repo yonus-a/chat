@@ -1,7 +1,6 @@
 <template>
-    <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center py-5 w-full">
+    <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center  w-full">
         <div class=" w-full">
-            {{ messageType }} {{ is }}
             <div v-if="message.isFirstInDate" class=" py-5 w-full flex items-center justify-center">
                 <div class=" rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
                     <div class=" text-on-surface select-none text-body-sm">{{ formatDateShort(message.date) }}</div>
@@ -10,9 +9,10 @@
             <div class=" w-full flex items-center" :class="[isMine ? 'justify-start' : 'justify-end']">
                 <div class=" flex max-w-4/5 items-end gap-x-3">
                     <div class=" flex-1">
-                        <div v-if="messageType === 'text'" class=" text-body-sm text-on-surface p-3 rounded-xl "
-                            :class="[roundingClasses, isMine ? 'bg-surface-variant-2' : 'bg-surface']">
-                            <p class=" max-w-full">{{ message.text }}</p>
+                        <div v-if="messageType === 'text' || messageType === 'file'" class="  p-3 rounded-xl "
+                            :class="[roundingClasses, isMine ? 'bg-surface-variant-2' : 'bg-surface', messageType === 'text' ? 'text-body-sm text-on-surface' : '']">
+                            <p v-if="messageType === 'text'" class=" max-w-full">{{ message.text }}</p>
+                            <FileDisplay v-else :url="message.fileUrl" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'image'"
                             class=" cursor-pointer overflow-hidden rounded-xl w-85 h-40.5">
@@ -44,7 +44,8 @@
                         </div>
                     </div>
                     <div class=" shrink-0 w-10 pb-8">
-                        <div v-if="!isMine && !isSameSenderNext" class=" w-10 h-10 rounded-full overflow-hidden">
+                        <div v-if="!isMine && (!isSameSenderNext || !isSameDayNext)"
+                            class=" w-10 h-10 rounded-full overflow-hidden">
                             <BImage :src="message.contact?.imageUrl"
                                 class=" w-full h-full max-w-full min-w-full max-h-full min-h-full" />
                         </div>
@@ -59,7 +60,8 @@
 import { defineComponent, computed, type PropType } from 'vue';
 import type { ExtendedMessage } from '~/types/chat';
 import { useProfileStore, useDate } from '#imports';
-import BubbleVideo from './BubbleVideo.vue';
+import BubbleVideo from './chat-bubbles/BubbleVideo.vue';
+import FileDisplay from './chat-bubbles/FileDisplay.vue';
 export default defineComponent({
     name: 'ChatBubble',
     props: {
@@ -70,6 +72,7 @@ export default defineComponent({
     },
     components: {
         BubbleVideo,
+        FileDisplay,
     },
     setup(props) {
         const profileStore = useProfileStore()
@@ -134,6 +137,7 @@ export default defineComponent({
             shouldShowStatus,
             isSameSenderNext,
             displayedImages,
+            isSameDayNext,
             isSameSenderPrev,
         }
     }
