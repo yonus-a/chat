@@ -26,6 +26,7 @@ export const useProfileStore = defineStore("profile", () => {
   const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "employee");
 
   const userData = ref<Profile>({
+    id: 1,
     name: "",
     lastName: "",
     nationality: "iranian",
@@ -95,6 +96,7 @@ export const useProfileStore = defineStore("profile", () => {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       userData.value = {
+        id: 1,
         name: "امیر",
         lastName: "صفری",
         nationality: "iranian",

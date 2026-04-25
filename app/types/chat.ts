@@ -37,3 +37,10 @@ export interface ChatFilter {
   key: FilterKeys;
   label: string;
 }
+
+export interface ExtendedMessage extends Message {
+  prevMessage?: Message;
+  nextMessage?: Message;
+  isFirstInDate: boolean;
+  contact?: Contact;
+}

@@ -7,15 +7,13 @@
                 <div class=" w-full bg-surface h-16 md:h-20">
                     <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
                 </div>
-                <div class=" flex-1 w-full">
+                <div class="flex-1 w-full min-h-0 overflow-hidden">
                     <ChatMessages />
                 </div>
-
                 <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
             </div>
-        </div>
-        <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
-            <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
+            <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
+            </div>
         </div>
     </div>
 </template>
@@ -26,8 +24,6 @@ import ChatPageBar from '~/components/chat/ChatPageBar.vue';
 import ChatList from '~/components/chat/ChatList.vue';
 import { useRoute, useRouter } from 'vue-router';
 import ChatInput from '~/components/chat/ChatInput.vue';
-import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
-import NoChatSelected from '/images/dashboard/no-chat-selected.webp';
 import { useChatStore } from '#imports';
 import { type ChatTextField } from '~/types/components/chat-input';
 import ChatProfileOverview from '~/components/chat/ChatProfileOverview.vue';
@@ -45,7 +41,6 @@ export default defineComponent({
         ChatPageBar,
         ChatList,
         ChatInput,
-        NoDataDisplay,
         ChatProfileOverview,
         ChatMessages,
     },
@@ -64,7 +59,7 @@ export default defineComponent({
         });
 
         const canShowMessagingSection = computed(() => {
-            if (!isMobile.value) {
+            if (isMobile.value) {
                 return !route.query.view
             }
             return true
@@ -100,7 +95,6 @@ export default defineComponent({
         return {
             t,
             chatId,
-            NoChatSelected,
             chatInput,
             openProfile,
             selectedChat,

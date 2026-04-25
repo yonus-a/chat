@@ -2,6 +2,9 @@
     <div class="flex w-full max-h-dvh h-dvh overflow-hidden">
         <div v-if="showMessagingSection" class="h-full flex-1 relative">
             <NuxtPage v-if="isInChat" />
+            <div v-else class=" w-full h-full flex items-center justify-center ">
+                <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
+            </div>
         </div>
 
         <div v-if="showContactList" class="md:w-80 w-full h-full shrink-0 border-l border-outline-variant">
@@ -16,6 +19,9 @@ import { useI18n, useSeoMeta } from '#imports';
 import { useRoute } from 'vue-router';
 import ChatList from '~/components/chat/ChatList.vue';
 import { useWindowSize } from '#imports';
+import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
+import NoChatSelected from '/images/chat/no-chat-selected.webp';
+
 definePageMeta({
     layout: 'dashboard' // Keeps your Sidebar perfectly intact
 })
@@ -24,6 +30,7 @@ export default defineComponent({
     name: 'ChatWrapper',
     components: {
         ChatList,
+        NoDataDisplay,
     },
     setup() {
         const { width } = useWindowSize()
@@ -65,6 +72,8 @@ export default defineComponent({
             isMobile,
             showContactList,
             showMessagingSection,
+            NoChatSelected,
+            t,
         }
     }
 })
