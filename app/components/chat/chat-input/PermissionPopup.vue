@@ -50,13 +50,13 @@ export default defineComponent({
                     }
                 case 'cam-error':
                     return {
-                        title: t('chat.permissions.micError.title'),
-                        description: t('chat.permissions.micError.description')
+                        title: t('chat.permissions.camError.title'),
+                        description: t('chat.permissions.camError.description')
                     }
                 case 'mic-error':
                     return {
-                        title: t('chat.permissions.camError.title'),
-                        description: t('chat.permissions.camError.description')
+                        title: t('chat.permissions.micError.title'),
+                        description: t('chat.permissions.micError.description')
                     }
                 case 'cam-permission':
                     return {
