@@ -20,15 +20,15 @@
                                 :url="message.voiceUrl" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'image'"
-                            class=" cursor-pointer overflow-hidden rounded-xl w-85 h-40.5">
-                            <BImage fit="cover" :src="message.imageUrl[0]"
-                                class=" w-full h-full max-w-full max-h-full min-w-full min-h-full" />
+                            class=" cursor-pointer md:h-[75vh] overflow-hidden rounded-xl w-85 h-40.5">
+                            <BImage auto-aspect @click="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
+                                class=" w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'multiImage'"
                             class=" max-w-75 flex items-center gap-x-3 h-16">
                             <div v-for="(image, index) in displayedImages" :key="index"
                                 class=" h-full rounded-xl overflow-hidden aspect-square">
-                                <BImage :src="image"
+                                <BImage :src="image" @click="previewImage(index)"
                                     class=" cursor-pointer min-w-full min-h-full max-w-full max-h-full h-full w-full" />
                                 <div v-if="message.imageUrl.length > 3"
                                     class=" h-full cursor-pointer aspect-square flex items-center justify-center rounded-xl bg-surface-variant-2">
@@ -49,14 +49,15 @@
                         </div>
                     </div>
                     <div class=" shrink-0 w-10 pb-8">
-                        <div v-if="!isMine && (!isSameSenderNext || !isSameDayNext)"
-                            class=" w-10 h-10 ">
+                        <div v-if="!isMine && (!isSameSenderNext || !isSameDayNext)" class=" w-10 h-10 ">
                             <ContactAvatar :contact="contact" :show-online="false" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <ImageGroupDisplay v-if="message.imageUrl && message.imageUrl.length > 0" ref="imageDisplayRef"
+            :images="message.imageUrl" />
     </div>
 </template>
 
@@ -68,6 +69,8 @@ import BubbleVideo from './chat-bubbles/BubbleVideo.vue';
 import FileDisplay from './chat-bubbles/FileDisplay.vue';
 import VoiceDisplay from './chat-bubbles/VoiceDisplay.vue';
 import ContactAvatar from './contact/ContactAvatar.vue';
+import ImageGroupDisplay from './chat-bubbles/ImageGroupDisplay.vue';
+type ImageDisplayInstance = InstanceType<typeof ImageGroupDisplay>
 export default defineComponent({
     name: 'ChatBubble',
     props: {
@@ -81,6 +84,7 @@ export default defineComponent({
         }
     },
     components: {
+        ImageGroupDisplay,
         BubbleVideo,
         FileDisplay,
         VoiceDisplay,
@@ -90,6 +94,7 @@ export default defineComponent({
         const profileStore = useProfileStore()
         const { formatDateShort, formatTime } = useDate()
         const isMine = computed(() => props.message.senderId === profileStore.userData.id)
+        const imageDisplayRef = ref(null);
 
         const messageType = computed(() => {
             if (props.message.voiceUrl && props.message.voiceUrl.trim().length > 0) return 'voice'
@@ -140,6 +145,10 @@ export default defineComponent({
             return props.message.imageUrl?.slice(0, 3) || [];
         });
 
+        const previewImage = (index: number) => {
+            imageDisplayRef.value?.open(index)
+        }
+
         return {
             formatTime,
             isMine,
@@ -150,7 +159,9 @@ export default defineComponent({
             isSameSenderNext,
             displayedImages,
             isSameDayNext,
+            imageDisplayRef,
             isSameSenderPrev,
+            previewImage,
         }
     }
 })

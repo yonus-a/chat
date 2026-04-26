@@ -2,7 +2,7 @@
     <div @click="openChat" :class="[isActive ? 'bg-surface-variant' : 'bg-surface-variant/0']"
         class="rounded-xl w-full transition-all duration-200 ease-in-out cursor-pointer p-2.5 flex justify-between gap-x-3 items-center h-19">
 
-        <div class="relative shrink-0 h-11 w-11">
+        <div v-loading="isLoading" class="relative shrink-0 h-11 w-11">
             <ContactAvatar :contact="contact" />
         </div>
 

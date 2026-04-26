@@ -1,5 +1,5 @@
 <template>
-    <div class="relative w-60.5 h-60.5 p-1 shrink-0 group select-none flex items-center justify-center">
+    <div class="relative w-60.5 h-60.5 p-2 shrink-0 group select-none flex items-center justify-center">
 
         <svg class="absolute w-57.5 h-57.5 -rotate-90 pointer-events-none" viewBox="0 0 230 230">
             <circle cx="115" cy="115" r="113" class="stroke-white dark:stroke-surface" stroke-width="4" fill="none" />
