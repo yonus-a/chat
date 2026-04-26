@@ -30,7 +30,7 @@
                                 class=" h-full rounded-xl overflow-hidden aspect-square">
                                 <BImage :src="image" @click="previewImage(index)"
                                     class=" cursor-pointer min-w-full min-h-full max-w-full max-h-full h-full w-full" />
-                                <div v-if="message.imageUrl.length > 3"
+                                <div @click="previewImage(3)" v-if="message.imageUrl.length > 3"
                                     class=" h-full cursor-pointer aspect-square flex items-center justify-center rounded-xl bg-surface-variant-2">
                                     <div class=" text-on-surface select-none text-label-md">+{{ message.imageUrl.length
                                         - 3 }}</div>

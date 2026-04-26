@@ -111,8 +111,9 @@ export default defineComponent({
         ])
 
         const autoAspectImageClasses = computed(() => [
-            'select-none block w-full h-full object-cover transition-all duration-500 ease-in-out',
+            'select-none block w-full h-full object-cover ',
             showImage.value ? 'opacity-100' : 'opacity-0',
+            props.noLoading ? ' transition-none' : 'transition-all duration-500 ease-in-out',
             props.imageClass
         ])
 
