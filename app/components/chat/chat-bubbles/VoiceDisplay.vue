@@ -20,7 +20,7 @@
             </div>
         </div>
         <div class="shrink-0 w-11 h-11 relative flex items-center justify-center cursor-pointer transition-colors duration-200"
-            :class="[status === 'downloaded' ? ' bg-gradient-black rounded-xl' : 'rounded-full group']"
+            :class="[status === 'downloaded' ? ' bg-gradient-black dark:bg-gradient-gray rounded-xl' : 'rounded-full group']"
             @click="handleAction">
             <svg v-if="status !== 'downloaded'" class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
                 viewBox="0 0 44 44">

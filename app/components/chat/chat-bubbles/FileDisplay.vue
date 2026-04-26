@@ -24,8 +24,8 @@
             </svg>
 
             <div class="absolute inset-0 flex items-center justify-center transition-colors ">
-                <BIcon v-if="status === 'downloading'" icon="PhX" class="w-4 h-4 fill-current" />
-                <BIcon v-else icon="PhArrowDown" class="w-4 h-4 fill-current" />
+                <BIcon v-if="status === 'downloading'" icon="PhX" class="w-4 h-4 " />
+                <BIcon v-else icon="PhArrowDown" class="w-4 h-4 fill-on-surface " />
             </div>
         </div>
     </div>

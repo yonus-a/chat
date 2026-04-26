@@ -26,7 +26,8 @@
 
             <div class="flex items-center w-11 h-11 justify-center transition-all duration-200"
                 :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? ' rounded-full bg-primary/10' : 'w-6 h-6 bg-primary/0']"
-                @pointerdown="!isLocked ? handlePointerDown($event) : null">
+                @pointerdown="!isLocked ? handlePointerDown($event) : null"
+                @click="!isLocked ? toggleSecondaryMessageType() : null">
                 <BIcon v-if="!isLocked && messageText.trim().length == 0" :icon="secondaryMessageIcon"
                     :weight="isRecording ? 'fill' : 'regular'" class="cursor-pointer w-6 h-6 shrink-0 transition-colors"
                     :class="[isRecording ? ' fill-primary' : iconClass]" />
@@ -76,428 +77,182 @@
                 }}</span>
             </div>
         </div>
-
+        <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onUnmounted, onMounted } from 'vue';
+import { defineComponent, ref, computed, nextTick } from 'vue';
 import { useI18n } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
+import PermissionPopup from './chat-input/PermissionPopup.vue';
+import { useAppPermissions } from '~/composables/useAppPermissions';
+import { useChatRecording } from '~/composables/chat/useChatRecording';
 
 export default defineComponent({
     name: 'ChatInput',
-    props: {
-        isActive: { type: Boolean, default: false }
-    },
-    components: {
-        InputAttachement,
-    },
+    components: { InputAttachement, PermissionPopup },
+    props: { isActive: { type: Boolean, default: false } },
     emits: ['send'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
 
-        const rootElements = ref<HTMLElement | null>(null)
-        const inputWidth = computed(() => rootElements.value?.clientWidth)
+        // Refs
+        const rootElements = ref<HTMLElement | null>(null);
+        const inputRef = ref<HTMLTextAreaElement | null>(null);
+        const menuRef = ref<Menu | null>(null);
+        const permissionPopup = ref<InstanceType<typeof PermissionPopup> | null>(null);
+
         const micPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
         const cameraPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
-        const menuRef = ref<Menu | null>(null)
-        const attachementMenu = ref<Menu | null>(null)
 
-
-
-
-        const handleMenuClose = () => {
-            menuRef.value?.close()
-        }
-
-        const checkInitialPermissions = async () => {
-            try {
-                // Checking Microphone
-                const micStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-                micPermissionStatus.value = micStatus.state;
-
-                // Checking Camera
-                const camStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-                cameraPermissionStatus.value = camStatus.state;
-
-                console.log(`Initial Status - Mic: ${micPermissionStatus.value}, Cam: ${cameraPermissionStatus.value}`);
-            } catch (err) {
-                console.warn("Permissions API not fully supported or blocked by context.");
-            }
-        };
-
-        const inputRef = ref<HTMLTextAreaElement | null>(null);
+        // State
         const messageText = ref('');
+        const secondaryMessageType = ref<'video' | 'voice'>('voice');
+        const inputWidth = computed(() => rootElements.value?.clientWidth);
 
-        const adjustHeight = () => {
-            const el = inputRef.value;
-            if (!el) return;
-            el.style.height = 'auto'; // Reset to calculate true height
-            el.style.height = `${el.scrollHeight}px`;
-        };
+        const { requestMediaAccess, checkMediaStatus } = useAppPermissions();
 
-        // Method to handle focus
-        const focus = () => {
-            inputRef.value?.focus();
-        };
 
-        // Expose the method to parent components
-        expose({
-            focus: () => {
-                console.log(inputRef.value)
-                inputRef.value?.focus();
-            }
+        const recording = useChatRecording(inputWidth, {
+            onStart: () => console.log('Recording Started'),
+            onCancel: () => console.log('Recording Canceled'),
+            onSend: () => {
+                console.log(`Sending ${secondaryMessageType.value} message.`);
+            },
+            requestPermission: async () => await ensurePermissions()
         });
 
+        // --- Permission Flow ---
+        let permissionResolver: ((value: boolean) => void) | null = null;
 
-        const handleEmojiSelect = (emoji: string) => {
-            const input = inputRef.value;
-            if (!input) return;
-
-            const start = input.selectionStart ?? messageText.value.length;
-            const end = input.selectionEnd ?? messageText.value.length;
-
-            messageText.value =
-                messageText.value.substring(0, start) +
-                emoji +
-                messageText.value.substring(end);
-
-            nextTick(() => {
-                const newPos = start + emoji.length;
-                input.setSelectionRange(newPos, newPos);
-                input.focus();
-
-                // Ensure textarea expands if an emoji wraps it to a new line
-                adjustHeight();
-            });
-        };
         const ensurePermissions = async () => {
             const isVideo = secondaryMessageType.value === 'video';
 
-            // If already granted, we can skip the prompt logic
+            // Check native browser status to see if it changed externally
+            const currentStatus = await checkMediaStatus();
+            if (currentStatus.mic !== 'unknown') micPermissionStatus.value = currentStatus.mic;
+            if (currentStatus.cam !== 'unknown') cameraPermissionStatus.value = currentStatus.cam;
+
+            // 1. Instantly approve if already granted (Starts recording immediately on hold)
             if (isVideo && cameraPermissionStatus.value === 'granted') return true;
             if (!isVideo && micPermissionStatus.value === 'granted') return true;
 
-            try {
-                const constraints = {
-                    audio: true,
-                    video: isVideo
-                };
+            // 2. Instantly reject if explicitly denied previously (e.g. Mac mini missing cam)
+            if (isVideo && cameraPermissionStatus.value === 'denied') {
+                permissionPopup.value?.open('cam-error');
+                return false;
+            }
+            if (!isVideo && micPermissionStatus.value === 'denied') {
+                permissionPopup.value?.open('mic-error');
+                return false;
+            }
 
-                // This is what triggers the actual browser popup
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            // 3. Open prompt and pause execution
+            permissionPopup.value?.open('permission');
+            return new Promise<boolean>((resolve) => {
+                permissionResolver = resolve;
+            });
+        };
 
-                // Success! Immediately kill the tracks (no streaming allowed yet)
-                stream.getTracks().forEach(track => track.stop());
+        const handlePopupAction = async () => {
+            const isVideo = secondaryMessageType.value === 'video';
+            const fallbackNeed = isVideo ? 'video' : 'audio';
 
-                // Update local state
+            // Fire native browser prompt using the composable
+            const result = await requestMediaAccess(fallbackNeed);
+
+            permissionPopup.value?.setLoading(false);
+            permissionPopup.value?.close();
+
+            if (result.success) {
                 if (isVideo) cameraPermissionStatus.value = 'granted';
                 micPermissionStatus.value = 'granted';
 
-                return true;
-            } catch (err: any) {
-                if (err.name === 'NotFoundError') {
-                    console.error("Hardware missing. Mac mini has no camera.");
-                } else if (err.name === 'NotAllowedError') {
-                    console.error("User explicitly denied permission.");
-                    if (isVideo) cameraPermissionStatus.value = 'denied';
-                    micPermissionStatus.value = 'denied';
-                }
-                return false;
-            }
-        };
-
-        // --- Core State ---
-        const secondaryMessageType = ref<'video' | 'voice'>('voice');
-        const inputDisabled = computed(() => !props.isActive);
-        const inputPlaceholder = computed(() => props.isActive ? t('chat.placeholder') : t('chat.chatLocked'));
-        const iconClass = computed(() => inputDisabled.value ? 'opacity-50 fill-on-surface pointer-events-none' : ' fill-on-surface opacity-100 pointer-events-auto');
-        const secondaryMessageIcon = computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera');
-
-        // --- Recording & Drag State ---
-        const isRecording = ref(false);
-        const isLocked = ref(false);
-        const recordingTime = ref(0);
-        const isPaused = ref(false);
-        let timerInterval: ReturnType<typeof setInterval> | null = null;
-
-        const togglePause = () => {
-            if (isPaused.value) {
-                isPaused.value = false;
-                timerInterval = setInterval(() => {
-                    recordingTime.value++;
-                }, 1000);
+                if (permissionResolver) permissionResolver(true);
             } else {
-                isPaused.value = true;
-                if (timerInterval) clearInterval(timerInterval);
+                // Mark as denied so we don't spam the browser prompt again
+                if (isVideo) cameraPermissionStatus.value = 'denied';
+                micPermissionStatus.value = 'denied';
+
+                // Wait for close animation, then open specific error
+                setTimeout(() => {
+                    permissionPopup.value?.open(isVideo ? 'cam-error' : 'mic-error');
+                }, 300);
+
+                if (permissionResolver) permissionResolver(false);
             }
+            permissionResolver = null;
+        };
+        const handlePopupCancel = () => {
+            if (permissionResolver) permissionResolver(false);
+            permissionResolver = null;
         };
 
-        const isDragging = ref(false);
-        const startX = ref(0);
-        const startY = ref(0);
-        const dragOffset = ref({ x: 0, y: 0 });
-        const dragAxis = ref<'x' | 'y' | null>(null);
-
-        const pressTimer = ref<ReturnType<typeof setTimeout> | null>(null);
-        const isLongPress = ref(false);
-
-        // --- Computed Visuals ---
-        const formattedTime = computed(() => {
-            const m = Math.floor(recordingTime.value / 60).toString().padStart(2, '0');
-            const s = (recordingTime.value % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        });
-
-        // Fades lock pill if dragging sideways
-        const lockOpacity = computed(() => {
-            if (dragAxis.value === 'x') return 0;
-            return 1;
-        });
-
-        // Fades out cancel text as user drags towards it
-        const cancelOpacity = computed(() => {
-            if (dragAxis.value === 'y') return 1;
-            const progress = Math.min(Math.abs(dragOffset.value.x) / 80, 1);
-            return 1 - progress;
-        });
-
-        // --- Actions ---
-        const toggleSecondaryMessageType = () => {
-            secondaryMessageType.value = secondaryMessageType.value === 'voice' ? 'video' : 'voice';
+        // --- Input Logistics ---
+        const adjustHeight = () => {
+            if (!inputRef.value) return;
+            inputRef.value.style.height = 'auto';
+            inputRef.value.style.height = `${inputRef.value.scrollHeight}px`;
         };
 
-        const startRecording = () => {
-            isRecording.value = true;
-            isPaused.value = false; // ADDED
-            recordingTime.value = 0;
-            timerInterval = setInterval(() => {
-                recordingTime.value++;
-            }, 1000);
-        };
-
-        const stopRecording = () => {
-            if (timerInterval) clearInterval(timerInterval);
-            isRecording.value = false;
-            isLocked.value = false;
-            isPaused.value = false; // ADDED
-            recordingTime.value = 0;
-            resetDrag();
-        };
-
-        const sendRecording = () => {
-            console.log(`Sending ${secondaryMessageType.value} message. Duration: ${recordingTime.value}s`);
-            stopRecording();
-        };
-
-        const cancelRecording = () => {
-            console.log("Recording Canceled.");
-            stopRecording();
-        };
-
-        const resetDrag = () => {
-            isDragging.value = false;
-            dragOffset.value = { x: 0, y: 0 };
-            dragAxis.value = null;
-        };
-
-        const lockRecording = () => {
-            isLocked.value = true;
-            resetDrag(); // Snap button back to center
-        };
-
-        // --- Pointer Event Handlers ---
-
-
-        onMounted(() => {
-            checkInitialPermissions();
-        });
-
-
-        const isPointerDown = ref(false);
         const sendMessage = () => {
             if (messageText.value.trim().length === 0) return;
             emit('send', messageText.value);
             messageText.value = '';
+            nextTick(() => adjustHeight());
+        };
 
-            // Reset textarea height back to 1 row after sending
+        const handleEmojiSelect = (emoji: string) => {
+            if (!inputRef.value) return;
+            const start = inputRef.value.selectionStart ?? messageText.value.length;
+            const end = inputRef.value.selectionEnd ?? messageText.value.length;
+            messageText.value = messageText.value.substring(0, start) + emoji + messageText.value.substring(end);
+
             nextTick(() => {
+                const newPos = start + emoji.length;
+                inputRef.value?.setSelectionRange(newPos, newPos);
+                inputRef.value?.focus();
                 adjustHeight();
             });
         };
 
         const handlePointerDown = (event: PointerEvent) => {
             if (messageText.value.trim().length > 0) {
-                sendMessage()
-                return
+                sendMessage();
+                return;
             }
-            handleMenuClose()
-            isPointerDown.value = true;
-            isLongPress.value = false;
-            startX.value = event.clientX;
-            startY.value = event.clientY;
-            resetDrag();
+            menuRef.value?.close();
+            recording.onPointerDown(event);
 
-            // BULLETPROOF FIX: Listen to the whole window for dragging and releasing
-            // This prevents the button from becoming a "zombie" if the DOM resizes
-            window.addEventListener('pointermove', handlePointerMove);
-            window.addEventListener('pointerup', handlePointerUp);
-            window.addEventListener('pointercancel', handlePointerUp);
-
-            if (pressTimer.value) clearTimeout(pressTimer.value);
-
-            pressTimer.value = setTimeout(async () => {
-                isLongPress.value = true;
-                const hasPermission = await ensurePermissions();
-
-                if (hasPermission && isPointerDown.value) {
-                    isDragging.value = true;
-                    startRecording();
-                }
-            }, 400);
+            // NOTE: The 300ms setTimeout has been completely removed from here. 
+            // The @click event now handles the toggle safely!
         };
 
-        const handlePointerMove = (event: PointerEvent) => {
-            if (messageText.value.trim().length > 0) return
-            if (!isRecording.value || isLocked.value || !isDragging.value) return;
-
-            const deltaX = event.clientX - startX.value;
-            const deltaY = event.clientY - startY.value;
-
-            // 1. Determine User Intent (Lock vs Cancel)
-            if (!dragAxis.value) {
-                if (deltaY < -10) dragAxis.value = 'y'; // UP
-                else if (deltaX < -10) dragAxis.value = 'x'; // LEFT
-            }
-
-            // 2. Handle Axis Movement
-            if (dragAxis.value === 'y') {
-                dragOffset.value.y = Math.max(-100, Math.min(0, deltaY));
-                if (dragOffset.value.y <= -60) lockRecording();
-            }
-            else if (dragAxis.value === 'x') {
-                const cancelThreshold = inputWidth.value ? (inputWidth.value / 3) : 150;
-
-                dragOffset.value.x = Math.max(-cancelThreshold, Math.min(0, deltaX));
-
-                // INSTANT CANCEL: If they hit the threshold while dragging
-                if (deltaX <= -cancelThreshold) {
-                    cancelRecording();
-                }
+        const toggleSecondaryMessageType = () => {
+            // Only toggle if we are NOT holding it down and NOT already recording
+            if (!recording.isLongPress.value && !recording.isRecording.value) {
+                secondaryMessageType.value = secondaryMessageType.value === 'voice' ? 'video' : 'voice';
             }
         };
 
-        const handlePointerUp = (event: PointerEvent) => {
-            if (messageText.value.trim().length > 0) return
-            isPointerDown.value = false;
-
-            // Immediately clean up global listeners
-            window.removeEventListener('pointermove', handlePointerMove);
-            window.removeEventListener('pointerup', handlePointerUp);
-            window.removeEventListener('pointercancel', handlePointerUp);
-
-            if (pressTimer.value) {
-                clearTimeout(pressTimer.value);
-                pressTimer.value = null;
-            }
-
-            // 1. Quick tap -> Toggle Mode
-            if (!isLongPress.value) {
-                toggleSecondaryMessageType();
-            }
-            // 2. Was holding and recording, but NOT locked
-            else if (isRecording.value && !isLocked.value) {
-                // END DRAG CANCEL: If horizontal drag was initiated AT ALL, cancel it on release
-                if (dragAxis.value === 'x') {
-                    cancelRecording();
-                } else {
-                    // Otherwise send the message
-                    sendRecording();
-                }
-            }
-
-            resetDrag();
-        };
-
-        // Ensure listeners are wiped if the component unmounts mid-drag
-        onUnmounted(() => {
-            if (timerInterval) clearInterval(timerInterval);
-            if (typeof window !== 'undefined') {
-                window.removeEventListener('pointermove', handlePointerMove);
-                window.removeEventListener('pointerup', handlePointerUp);
-                window.removeEventListener('pointercancel', handlePointerUp);
-            }
-        });
-
-
-        const checkAndRequestPermissions = async () => {
-            const isVideo = secondaryMessageType.value === 'video';
-
-            const constraints = {
-                audio: true,
-                video: isVideo
-            };
-
-            try {
-                console.log(`Requesting permissions for: ${isVideo ? 'Video + Audio' : 'Audio Only'}`);
-
-                // This MUST be called directly from a user-initiated event (like our pressTimer)
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                // Permission granted! Stop tracks immediately as we aren't streaming yet
-                stream.getTracks().forEach(track => track.stop());
-
-                console.log("Permissions cleared and granted.");
-            } catch (err: any) {
-                // This is likely why you don't see the popup on your Mac mini:
-                if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    console.error("HARDWARE ERROR: Browser skipped popup because no camera/mic was found.");
-                    // If on Mac mini, try Voice mode instead of Video to see the prompt.
-                } else {
-                    console.error("PERMISSION ERROR: User denied or browser blocked the prompt.", err);
-                }
-
-                // If permission fails, we should stop the "Recording" visual state
-                cancelRecording();
-            }
-        };
-
-        onUnmounted(() => {
-            if (timerInterval) clearInterval(timerInterval);
-        });
+        expose({ focus: () => inputRef.value?.focus() });
 
         return {
-            t,
-            inputDisabled,
-            inputPlaceholder,
-            iconClass,
-            secondaryMessageIcon,
-            isRecording,
-            isLocked,
-            inputRef,
-            messageText,
-            handleEmojiSelect,
-            focus,
-            formattedTime,
-            lockOpacity,
-            cancelOpacity,
-            dragOffset,
-            isDragging,
-            handlePointerDown,
-            handlePointerMove,
-            handlePointerUp,
-            adjustHeight,
-            sendRecording,
-            cancelRecording,
-            isPaused,
-            togglePause,
-            menuRef,
-            attachementMenu,
-            rootElements,
-            sendMessage,
+            t, rootElements, inputRef, menuRef, permissionPopup, messageText, handlePopupAction, handlePopupCancel,
+            secondaryMessageIcon: computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera'),
+            inputDisabled: computed(() => !props.isActive),
+            inputPlaceholder: computed(() => props.isActive ? t('chat.placeholder') : t('chat.chatLocked')),
+            iconClass: computed(() => !props.isActive ? 'opacity-50 fill-on-surface pointer-events-none' : 'fill-on-surface opacity-100 pointer-events-auto'),
+
+            adjustHeight, handleEmojiSelect, handlePointerDown, sendMessage,
+            sendRecording: () => recording.stopRecording(true),
+            cancelRecording: () => recording.stopRecording(false),
+            toggleSecondaryMessageType,
+
+            ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };
     }
-})
+});
 </script>
