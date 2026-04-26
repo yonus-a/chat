@@ -20,8 +20,8 @@
                                 :url="message.voiceUrl" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'image'"
-                            class=" cursor-pointer md:h-[75vh] overflow-hidden rounded-xl w-85 h-40.5">
-                            <BImage auto-aspect @click="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
+                            class=" cursor-pointer  overflow-hidden rounded-xl w-85 h-40.5">
+                            <BImage @click="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
                                 class=" w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
                         </div>
                         <div v-else-if="message.imageUrl && messageType === 'multiImage'"
