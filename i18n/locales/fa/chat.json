@@ -27,7 +27,7 @@
       "image": "عکس",
       "file": "فایل",
       "voice": "پیام صوتی",
-      "video":"ویدیو"
+      "video": "ویدیو"
     },
     "messageOptions": {
       "edit": "ویرایش پیام",
@@ -35,7 +35,7 @@
       "copy": "کپی",
       "select": "انتخاب",
       "reply": "پاسخ",
-      "deselect":"لغو انتخاب"
+      "deselect": "لغو انتخاب"
     },
     "barOptions": {
       "prescribeMedications": "تجویز نسخه",
@@ -79,6 +79,7 @@
         "description": "برای ارسال پیام و تماس ویدیویی نیاز به تایید دسترسی دوربین داریم."
       }
     },
+    "you": "شما",
     "copiedMessage": "پیام با موفقیت به کلیپ بورد الصاق شد.",
     "unreadMessages": "خوانده نشده."
   }

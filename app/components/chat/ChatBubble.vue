@@ -22,9 +22,17 @@
                         <div class=" flex max-w-4/5 items-end gap-x-3">
                             <div class=" flex-1">
                                 <div v-if="messageType === 'text' || messageType === 'file' || messageType === 'voice'"
-                                    class="  p-3 rounded-xl "
+                                    class="  p-1 rounded-xl "
                                     :class="[roundingClasses, isMine ? 'bg-surface-variant-2' : 'bg-surface', messageType === 'text' ? 'text-body-sm text-on-surface' : '']">
-                                    <p v-if="messageType === 'text'" class=" max-w-full">{{ message.text }}</p>
+                                    <div v-if="messageType === 'text' && message.repliedTo"
+                                        class=" text-body-sm select-none w-full h-10 gap-x-2 flex items-center rounded-lg justify-between p-2"
+                                        :class="[isMine ? ' bg-surface-variant-3' : 'bg-surface-variant']">
+                                        <div class=" text-on-surface/50 shrink-0"></div>
+                                        <div class=" text-on-surface flex-1"></div>
+                                        <BIcon icon="PhArrowUUpLeft" class=" w-5 h-5 fill-on-surface/20"
+                                            weight="fill" />
+                                    </div>
+                                    <p v-if="messageType === 'text'" class=" p-3 max-w-full">{{ message.text }}</p>
                                     <FileDisplay :is-mine="isMine" v-else-if="message.fileUrl && messageType === 'file'"
                                         :url="message.fileUrl" />
                                     <VoiceDisplay v-else-if="message.voiceUrl && messageType === 'voice'"
@@ -54,12 +62,11 @@
                                 </div>
                                 <div class=" w-full pt-2 flex items-center gap-x-2.5"
                                     :class="[isMine ? 'justify-start' : 'justify-end']">
-                                    <BIcon v-if="isMine" :icon="message.isRead ? 'PhChecks' : 'PhCheck'"
-                                        class=" w-4 h-4"
+                                    <BIcon v-if="isMine" :icon="checkIcon" class=" w-4 h-4"
                                         :class="[message.isRead ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                    }}
+                                        }}
                                     </div>
                                 </div>
                             </div>
@@ -198,10 +205,19 @@ export default defineComponent({
         const isSelected = computed(() => chatActionStore.selectedMessages.has(props.message.id));
         const isSelectMode = computed(() => chatActionStore.isSelectMode)
 
+        const checkIcon = computed(() => {
+            if (props.message.isSent) {
+                return props.message.isRead ? 'PhChecks' : 'PhCheck'
+            } else {
+                return 'PhClock'
+            }
+        })
+
         return {
             formatTime,
             isMine,
             messageType,
+            checkIcon,
             formatDateShort,
             roundingClasses,
             shouldShowStatus,

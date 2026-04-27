@@ -7,7 +7,7 @@
                     class=" w-5 h-5 fill-on-surface shrink-0" />
                 <div class=" flex-1 flex items-center gap-x-2">
                     <div v-if="textMode === 'reply'" class=" shrink-0 text-on-surface/50 ">{{
-                        replyingToMessageData?.contact?.name }} :</div>
+                        displayActionName }} :</div>
                     <div class=" flex-1">
                         <div class=" text-on-surface w-full overflow-hidden text-ellipsis line-clamp-1">{{
                             displayedActionText }}</div>
@@ -103,7 +103,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
-import { useI18n, useChatActionStore } from '#imports';
+import { useI18n, useChatActionStore, useProfileStore } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import PermissionPopup from './chat-input/PermissionPopup.vue';
@@ -118,6 +118,7 @@ export default defineComponent({
     setup(props, { expose, emit }) {
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
+        const profileStore = useProfileStore()
 
         const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
         const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
@@ -331,6 +332,13 @@ export default defineComponent({
             return message?.text
         })
 
+        const displayActionName = computed(() => {
+            let message = replyingToMessageData.value?.senderId
+            if (textMode.value === 'edit') return t('chat.you')
+            if (profileStore.userData.id === message) return t('chat.you')
+            return `${replyingToMessageData.value?.contact?.name}`
+        })
+
         return {
             t, rootElements, inputRef, menuRef, permissionPopup, messageText, handlePopupAction, handlePopupCancel,
             secondaryMessageIcon: computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera'),
@@ -347,6 +355,7 @@ export default defineComponent({
             editingMessageData,
             replyingToMessageData,
             displayedActionText,
+            displayActionName,
 
             ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };

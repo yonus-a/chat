@@ -156,18 +156,33 @@ export default defineComponent({
                 const isMe = Math.floor(globalIndex / 2) % 2 === 0;
                 const senderId = isMe ? profileStore.userData.id : 2;
 
-                // Date Logic: 
-                // Group messages into clumps of 5. Each clump jumps back 1.5 days.
-                // Inside the clump, messages are spaced out by 15 minutes.
+                // Date Logic
                 const daysOffset = Math.floor(globalIndex / 5) * 1.5;
                 const minutesOffset = (globalIndex % 5) * 15;
-
-                // Add 30 mins base offset so the absolute newest message is always ~30 mins old (under 6 hour limit)
                 const totalOffset = daysOffset * 24 * 60 * 60 * 1000 + minutesOffset * 60 * 1000 + 30 * 60 * 1000;
                 const messageDate = new Date(Date.now() - totalOffset);
 
                 // Make the 4 newest messages unread to test the divider
                 const isRead = globalIndex > 3;
+
+                // --- NEW: Generate a 'repliedTo' message for every 3rd message ---
+                let repliedTo: any = undefined;
+                if (id % 3 === 0) {
+                    const repliedId = id - 2; // Acts as if it's replying to an older message
+                    const repliedIsMe = Math.floor((globalIndex + 2) / 2) % 2 === 0;
+
+                    repliedTo = {
+                        id: repliedId,
+                        conversationId: Number(route.params.id) || 101,
+                        date: new Date(messageDate.getTime() - 15 * 60 * 1000), // 15 mins older than current
+                        type: 'text',
+                        text: `This is the original message ${repliedId} that got replied to.`,
+                        isEdited: false,
+                        senderId: repliedIsMe ? profileStore.userData.id : 2,
+                        isSent: true,
+                        isRead: true,
+                    };
+                }
 
                 return {
                     id,
@@ -183,7 +198,8 @@ export default defineComponent({
                     senderId: senderId,
                     isSent: true,
                     isRead: isMe ? true : isRead, // My messages are always read by me
-                };
+                    repliedTo: repliedTo // --- ADDED HERE ---
+                } as Message;
             });
         };
 
