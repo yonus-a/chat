@@ -26,7 +26,8 @@
     "attachementTypes": {
       "image": "عکس",
       "file": "فایل",
-      "voice": "پیام صوتی"
+      "voice": "پیام صوتی",
+      "video":"ویدیو"
     },
     "messageOptions": {
       "edit": "ویرایش پیام",

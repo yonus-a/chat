@@ -1,95 +1,115 @@
 <template>
-    <div dir="rtl" ref="rootElements"
-        :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
-        class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
-
-        <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
-            transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
-            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-        }">
-            <div v-if="isRecording"
-                class="absolute -top-20 flex flex-col items-center justify-center bg-surface shadow-floating rounded-full w-9 transition-opacity"
-                :class="[isLocked ? 'pointer-events-auto py-1.5' : 'pointer-events-none py-3 gap-y-3']"
-                :style="{ opacity: lockOpacity }">
-
-                <template v-if="!isLocked">
-                    <BIcon icon="PhLockKey" class="w-5 h-5 fill-on-surface" />
-                </template>
-
-                <template v-else>
-                    <div class="w-full h-9 flex items-center justify-center cursor-pointer" @click="togglePause">
-                        <BIcon :icon="isPaused ? 'PhPlayCircle' : 'PhPauseCircle'" class="w-6 h-6 fill-on-surface" />
+    <div dir="rtl" class=" w-full">
+        <div>
+            <div :class="[textMode !== 'normal' ? ' h-10' : 'h-0']"
+                class=" gap-x-3 px-3 w-full whitespace-nowrap overflow-hidden border-t select-none text-body-sm border-t-outline-variant flex justify-between items-center transition-all duration-200 ease-in-out bg-surface">
+                <BIcon :icon="textMode === 'edit' ? 'PhPencilSimpleLine' : 'PhArrowBendUpLeft'"
+                    class=" w-5 h-5 fill-on-surface shrink-0" />
+                <div class=" flex-1 flex items-center gap-x-2">
+                    <div v-if="textMode === 'reply'" class=" shrink-0 text-on-surface/50 ">{{
+                        replyingToMessageData?.contact?.name }} :</div>
+                    <div class=" flex-1">
+                        <div class=" text-on-surface w-full overflow-hidden text-ellipsis line-clamp-1">{{
+                            displayedActionText }}</div>
                     </div>
-                </template>
-                <BIcon icon="PhCaretUp" class="w-4 h-4 fill-on-surface/60 animate-bounce" />
-            </div>
-
-            <div class="flex items-center w-11 touch-none h-11 justify-center transition-all duration-200"
-                :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? ' rounded-full bg-primary/10' : 'w-6 h-6 bg-primary/0']"
-                @pointerdown="!isLocked ? handlePointerDown($event) : null"
-                @click="!isLocked ? toggleSecondaryMessageType() : null">
-                <BIcon v-if="!isLocked && messageText.trim().length == 0" :icon="secondaryMessageIcon"
-                    :weight="isRecording ? 'fill' : 'regular'" class="cursor-pointer w-6 h-6 shrink-0 transition-colors"
-                    :class="[isRecording ? ' fill-primary' : iconClass]" />
-                <div v-else
-                    class=" min-w-11 min-h-11 aspect-square rounded-full bg-gradient-primary-secondary flex items-center justify-center cursor-pointer">
-                    <BIcon icon="PhPaperPlaneTilt" class=" w-6 h-6 fill-white shrink-0  " @click="sendRecording" />
                 </div>
+                <BIcon icon="PhX" class=" cursor-pointer w-5 shrink-0 h-5 fill-on-surface/50" @click="cancelAction" />
             </div>
         </div>
+        <div ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
+            class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
 
-        <div v-show="!isRecording" class="flex-1 flex items-end gap-x-5">
-            <div class=" min-h-11 flex items-center w-full">
-                <textarea @keydown.enter.exact.prevent="sendMessage" @input="adjustHeight" ref="inputRef"
-                    v-model="messageText" :disabled="inputDisabled" rows="1" :placeholder="inputPlaceholder"
-                    class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 resize-none  max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1"></textarea>
+            <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
+                transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
+                transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+            }">
+                <div v-if="isRecording"
+                    class="absolute -top-20 flex flex-col items-center justify-center bg-surface shadow-floating rounded-full w-9 transition-opacity"
+                    :class="[isLocked ? 'pointer-events-auto py-1.5' : 'pointer-events-none py-3 gap-y-3']"
+                    :style="{ opacity: lockOpacity }">
 
-            </div>
-            <div class="shrink-0 flex items-center gap-x-8 z-10  h-11" :class="[iconClass]">
-                <BMenu ref="menuRef">
-                    <template #trigger>
-                        <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent />
+                    <template v-if="!isLocked">
+                        <BIcon icon="PhLockKey" class="w-5 h-5 fill-on-surface" />
                     </template>
-                    <div class="mb-4">
-                        <BEmojiPicker @select="handleEmojiSelect" />
-                    </div>
-                </BMenu>
-                <InputAttachement />
-            </div>
-        </div>
 
-        <div v-show="isRecording" class="flex-1 flex items-center ">
-            <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
-                :style="{ opacity: cancelOpacity }">
-                <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
-                <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
-                    t('chat.cancel')
-                    }}</span>
-            </div>
-
-            <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
-                <div class="w-2.5 h-2.5 relative">
-                    <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-error animate-ping absolute top-0 left-0 inset-0"></div>
+                    <template v-else>
+                        <div class="w-full h-9 flex items-center justify-center cursor-pointer" @click="togglePause">
+                            <BIcon :icon="isPaused ? 'PhPlayCircle' : 'PhPauseCircle'"
+                                class="w-6 h-6 fill-on-surface" />
+                        </div>
+                    </template>
+                    <BIcon icon="PhCaretUp" class="w-4 h-4 fill-on-surface/60 animate-bounce" />
                 </div>
-                <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
-                    formattedTime
-                    }}</span>
+
+                <div class="flex items-center w-11 touch-none h-11 justify-center transition-all duration-200"
+                    :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? ' rounded-full bg-primary/10' : 'w-6 h-6 bg-primary/0']"
+                    @pointerdown="!isLocked ? handlePointerDown($event) : null"
+                    @click="!isLocked ? toggleSecondaryMessageType() : null">
+                    <BIcon v-if="!isLocked && messageText.trim().length == 0" :icon="secondaryMessageIcon"
+                        :weight="isRecording ? 'fill' : 'regular'"
+                        class="cursor-pointer w-6 h-6 shrink-0 transition-colors"
+                        :class="[isRecording ? ' fill-primary' : iconClass]" />
+                    <div v-else
+                        class=" min-w-11 min-h-11 aspect-square rounded-full bg-gradient-primary-secondary flex items-center justify-center cursor-pointer">
+                        <BIcon icon="PhPaperPlaneTilt" class=" w-6 h-6 fill-white shrink-0  " @click="sendRecording" />
+                    </div>
+                </div>
             </div>
+
+            <div v-show="!isRecording" class="flex-1 flex items-end gap-x-5">
+                <div class=" min-h-11 flex items-center w-full">
+                    <textarea @keydown.esc.exact.prevent="cancelAction" @keydown.enter.exact.prevent="sendMessage"
+                        @input="adjustHeight" ref="inputRef" v-model="messageText" :disabled="inputDisabled" rows="1"
+                        :placeholder="inputPlaceholder"
+                        class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 resize-none  max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1"></textarea>
+
+                </div>
+                <div class="shrink-0 flex items-center gap-x-8 z-10  h-11" :class="[iconClass]">
+                    <BMenu ref="menuRef">
+                        <template #trigger>
+                            <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent />
+                        </template>
+                        <div class="mb-4">
+                            <BEmojiPicker @select="handleEmojiSelect" />
+                        </div>
+                    </BMenu>
+                    <InputAttachement />
+                </div>
+            </div>
+
+            <div v-show="isRecording" class="flex-1 flex items-center ">
+                <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
+                    :style="{ opacity: cancelOpacity }">
+                    <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
+                    <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
+                        t('chat.cancel')
+                    }}</span>
+                </div>
+
+                <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
+                    <div class="w-2.5 h-2.5 relative">
+                        <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-error animate-ping absolute top-0 left-0 inset-0"></div>
+                    </div>
+                    <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
+                        formattedTime
+                    }}</span>
+                </div>
+            </div>
+            <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
         </div>
-        <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, nextTick } from 'vue';
-import { useI18n } from '#imports';
+import { defineComponent, ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
+import { useI18n, useChatActionStore } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import PermissionPopup from './chat-input/PermissionPopup.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
-
+import type { ExtendedMessage } from '~/types/chat';
 export default defineComponent({
     name: 'ChatInput',
     components: { InputAttachement, PermissionPopup },
@@ -97,6 +117,54 @@ export default defineComponent({
     emits: ['send'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
+        const chatActionStore = useChatActionStore();
+
+        const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
+        const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
+        const replyingToMessageData = ref<ExtendedMessage | null>(null);
+
+        // 2. REPLACE YOUR PREVIOUS WATCHERS WITH THESE
+        watch(() => chatActionStore.editingMessage, (msg) => {
+            if (msg) {
+                textMode.value = 'edit';
+                editingMessageData.value = msg;
+                messageText.value = msg.text || ''; // Inject text
+
+                nextTick(() => {
+                    inputRef.value?.focus();
+                    adjustHeight();
+                });
+            } else if (textMode.value === 'edit') {
+                // Only reset if we were actually in edit mode
+                textMode.value = 'normal';
+                editingMessageData.value = null;
+                messageText.value = '';
+                nextTick(() => adjustHeight());
+            }
+        });
+
+        watch(() => chatActionStore.replyingTo, (msg) => {
+            if (msg) {
+                textMode.value = 'reply';
+                replyingToMessageData.value = msg;
+
+                nextTick(() => {
+                    inputRef.value?.focus();
+                });
+            } else if (textMode.value === 'reply') {
+                // Only reset if we were actually in reply mode
+                textMode.value = 'normal';
+                replyingToMessageData.value = null;
+            }
+        });
+
+        // 3. ADD THE CANCEL FUNCTION
+        const cancelAction = () => {
+            if (textMode.value !== 'normal') {
+                // This clears the store, which automatically triggers the watchers above to reset the UI
+                chatActionStore.clearActions();
+            }
+        };
 
         // Refs
         const rootElements = ref<HTMLElement | null>(null);
@@ -202,6 +270,7 @@ export default defineComponent({
             emit('send', messageText.value);
             messageText.value = '';
             nextTick(() => adjustHeight());
+            chatActionStore.clearActions();
         };
 
         const handleEmojiSelect = (emoji: string) => {
@@ -237,7 +306,30 @@ export default defineComponent({
             }
         };
 
+        const handleGlobalKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                cancelAction();
+            }
+        };
+
+        onMounted(() => {
+            window.addEventListener('keydown', handleGlobalKeyDown);
+        });
+
+        onUnmounted(() => {
+            window.removeEventListener('keydown', handleGlobalKeyDown);
+        });
+
         expose({ focus: () => inputRef.value?.focus() });
+
+        const displayedActionText = computed(() => {
+            let message = textMode.value === 'edit' ? editingMessageData.value : replyingToMessageData.value
+            if (message?.voiceUrl && message.voiceUrl.trim().length > 0) return t('chat.attachementTypes.voice')
+            if (message?.videoUrl && message.videoUrl.trim().length > 0) return t('chat.attachementTypes.video')
+            if (message?.imageUrl && message.imageUrl.length > 0) return t('chat.attachementTypes.image')
+            if (message?.fileUrl && message.fileUrl.trim().length > 0) return t('chat.attachementTypes.file')
+            return message?.text
+        })
 
         return {
             t, rootElements, inputRef, menuRef, permissionPopup, messageText, handlePopupAction, handlePopupCancel,
@@ -250,6 +342,11 @@ export default defineComponent({
             sendRecording: () => recording.stopRecording(true),
             cancelRecording: () => recording.stopRecording(false),
             toggleSecondaryMessageType,
+            cancelAction,
+            textMode,
+            editingMessageData,
+            replyingToMessageData,
+            displayedActionText,
 
             ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };
