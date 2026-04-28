@@ -17,7 +17,8 @@
                 </div>
             </div>
             <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center flex-1 relative"
-                @contextmenu.prevent="handleRightClick" @click="handleLeftClick">
+                @contextmenu.prevent="handleRightClick" @click="handleLeftClick" @pointerdown="onPointerDown"
+                @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp">
                 <div class=" w-full">
                     <div class=" w-full flex items-center" :class="[isMine ? 'justify-start' : 'justify-end']">
                         <div class=" flex max-w-4/5 items-end gap-x-3">
@@ -214,6 +215,8 @@ export default defineComponent({
                 chatActionStore.toggleSelection(props.message);
             }
             console.log(event.clientX, event.clientY)
+
+            // when openning the menu remember to make also a mode for vibrate
             bubbleOptionsRef.value?.openMenu(event.clientX, event.clientY);
         };
 
@@ -251,9 +254,52 @@ export default defineComponent({
             return message.text
         })
 
+        const longPressTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+        const touchStartPos = ref({ x: 0, y: 0 });
+
+        const onPointerDown = (event: PointerEvent) => {
+            // Only handle primary pointer (left click or single finger)
+            if (event.button !== 0 && event.pointerType === 'mouse') return;
+            if (chatActionStore.isSelectMode) return;
+
+            // Store starting position to detect if the user moves too much (scrolling)
+            touchStartPos.value = { x: event.clientX, y: event.clientY };
+
+            // Start the 1-second timer
+            longPressTimer.value = setTimeout(() => {
+                // Vibrate for feedback if available on mobile
+                if ('vibrate' in navigator) navigator.vibrate(50);
+
+                handleRightClick(event as unknown as MouseEvent);
+                longPressTimer.value = null;
+            }, 1000); // 1 Second as requested
+        };
+
+        const onPointerMove = (event: PointerEvent) => {
+            if (!longPressTimer.value) return;
+
+            // If the user moves more than 10px, they are likely scrolling. Cancel the timer.
+            const deltaX = Math.abs(event.clientX - touchStartPos.value.x);
+            const deltaY = Math.abs(event.clientY - touchStartPos.value.y);
+
+            if (deltaX > 10 || deltaY > 10) {
+                clearTimeout(longPressTimer.value);
+                longPressTimer.value = null;
+            }
+        };
+
+        const onPointerUp = () => {
+            if (longPressTimer.value) {
+                clearTimeout(longPressTimer.value);
+                longPressTimer.value = null;
+            }
+        };
 
 
         return {
+            onPointerMove,
+            onPointerDown,
+            onPointerUp,
             formatTime,
             isMine,
             replyContent,
