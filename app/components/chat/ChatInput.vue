@@ -77,7 +77,7 @@
                 </div>
             </div>
 
-            <div v-show="isRecording" class="flex-1 flex items-center ">
+            <div v-show="isRecording" class="flex-1 -translate-y-2 flex items-center ">
                 <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
                     :style="{ opacity: cancelOpacity }">
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
