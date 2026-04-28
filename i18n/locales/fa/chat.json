@@ -10,7 +10,9 @@
       "nationalCode": "کد ملی",
       "phoneNumber": "شماره تماس",
       "age": "سن",
-      "ageDisplay": "{year} سال"
+      "ageDisplay": "{year} سال",
+      "files": "فایل ها",
+      "media": "تصاویر"
     },
     "lastSeen": "آخرین بازدید {time}",
     "nationalId": "کد ملی",

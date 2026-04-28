@@ -2,8 +2,8 @@
     <div class="  transition-none md:transition-all duration-300 ease-in-out h-full overflow-hidden rtl:border-l-surface-variant ltr:border-surface-variant ltr:border-r rtl:border-l bg-surface shrink-0"
         :class="[isOpen ? ' w-dvw md:w-80' : 'w-0 border-none!']">
         <div class=" w-full h-full flex flex-col">
-            <div class=" md:pt-16.5 md:px-2 w-full h-full">
-                <div class=" w-full  relative">
+            <div class=" flex flex-col md:pt-16.5 md:px-2 w-full h-full">
+                <div class=" shrink-0 w-full  relative">
                     <div class=" w-full h-29">
                         <BImage
                             class=" md:rounded-xl overflow-hidden w-full h-full max-w-full min-w-full max-h-full min-h-full"
@@ -20,12 +20,12 @@
                     </div>
                     <div class=" h-12.5 w-full"></div>
                 </div>
-                <div class=" w-full mt-2 flex flex-col items-center select-none justify-center gap-y-2">
+                <div class=" shrink-0 w-full mt-2 flex flex-col items-center select-none justify-center gap-y-2">
                     <div v-loading="isLoading" class=" text-title-md text-on-surface">{{ localProfile.name }}</div>
                     <BLabel v-loading="isLoading" color="primary" :text="t('chat.online')"
                         v-if="localProfile.isOnline" />
                 </div>
-                <div class=" w-full px-6">
+                <div class=" shrink-0 w-full px-6">
                     <div class=" w-full py-4 flex items-center justify-center gap-x-2">
                         <div v-loading="isLoading" @click="handleAction(action)"
                             class=" w-15.5 aspect-square flex items-center flex-col gap-y-0.5 justify-center rounded-xl bg-surface-variant transition-all duration-200 ease-in-out"
@@ -48,6 +48,29 @@
                         </div>
                     </div>
                 </div>
+                <div class=" w-full flex-1 flex flex-col select-none">
+                    <div v-if="shouldShowTabs" class=" flex flex-col gap-y-1 w-full h-full">
+                        <div v-if="fileAttachements.length > 0" class=" w-full shrink-0 flex flex-col gap-y-1">
+                            <div class=" text-on-surface/50 text-body-sm">{{ t('chat.info.files') }}</div>
+                            <FileDisplay v-for="(file, index) in fileAttachements" :key="index" :url="file" />
+                        </div>
+                        <div v-if="mediaAttachements.length > 0" class=" flex-1 flex-col gap-y-1">
+                            <div class=" shrink-0 text-on-surface/50 text-body-sm">{{ t('chat.info.media') }}</div>
+                            <div class=" flex-1 w-full " ref="imagesSection">
+                                <div class=" w-full grid grid-cols-4 gap-x-4 gap-y-3 ">
+                                    <div v-for="(media, index) in mediaAttachements" :key="index"
+                                        class=" w-14 h-14 overflow-hidden rounded-xl">
+                                        <BImage :src="media"
+                                            class=" w-full h-full min-w-full max-w-full max-h-full min-h-full" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class=" w-full h-full">
+                        <BTab v-model="currentTab" :tabs="tabs" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -60,6 +83,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useDate, useI18n, useProfileStore } from '#imports';
 import profileBackground from '/images/chat/profile-background.webp'
 import ContactAvatar from './contact/ContactAvatar.vue';
+import FileDisplay from './profile/FileDisplay.vue';
 
 interface Action {
     title: string;
@@ -79,6 +103,7 @@ export default defineComponent({
     },
     components: {
         ContactAvatar,
+        FileDisplay,
     },
     setup(props) {
         const { getYearsPassed } = useDate()
@@ -86,8 +111,25 @@ export default defineComponent({
         const route = useRoute()
         const { t } = useI18n()
         const profileStore = useProfileStore()
+        const imageList = ref<HTMLElement | null>(null)
+        const isLoadingAttachements = ref(false)
+        const isLoadingMedia = ref(false)
+        const hasMediaNextPage = ref(false)
+        const hasFileNextPage = ref(false)
+        const currentFilePage = ref(1)
+        const currentMediaPage = ref(1)
 
         const role = computed(() => profileStore.chosenRole)
+
+        const maxImageCounts = computed(() => {
+            if (!imageList.value) return 0
+            return imageList.value?.clientHeight / 62
+        })
+
+        const maxFileCounts = ref(2)
+        const tabs = computed(() => [t('chat.info.media'), t('chat.info.files')])
+        const currentTab = ref(0)
+        const shouldShowTabs = computed(() => fileAttachements.value.length > maxFileCounts.value || mediaAttachements.value.length > maxImageCounts.value)
 
 
         const mockProfile = ref<Contact>(
@@ -190,6 +232,32 @@ export default defineComponent({
             router.back()
         }
 
+
+        const fileAttachements = ref([
+            // 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            // 'https://res.cloudinary.com/demo/image/upload/multi_page_pdf.pdf',
+            // 'https://www.antennahouse.com/hubfs/pdf-samples/guide-sample.pdf',
+            // 'https://www.clickdimensions.com/links/TestPDFfile.pdf',
+            // 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf',
+            // 'https://www.adobe.com/support/products/enterprise/knowledgecenter/whitepapers/pdf/acrobat_tips_tricks.pdf',
+            // 'https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf',
+            // 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/183411/Self-build_and_custom_housebuilding_policy_guide.pdf',
+            'https://file-examples.com/storage/fe7930811e66299443c647b/2017/10/file-example_PDF_500kB.pdf',
+            'https://raw.githubusercontent.com/mozilla/pdf.js/master/web/compressed.tracemonkey-pldi-09.pdf'
+        ])
+
+        const mediaAttachements = ref([
+            'https://picsum.photos/id/11/400/400',
+            'https://picsum.photos/id/21/400/400',
+            'https://picsum.photos/id/31/400/400',
+            'https://picsum.photos/id/41/400/400',
+            'https://picsum.photos/id/51/400/400',
+            'https://picsum.photos/id/61/400/400',
+            'https://picsum.photos/id/71/400/400',
+            'https://picsum.photos/id/81/400/400',
+            'https://picsum.photos/id/91/400/400',
+            'https://picsum.photos/id/101/400/400'
+        ])
         const showPersonalInfo = computed(() => role.value !== 'user')
 
         const handleAction = (action: Action) => {
@@ -244,6 +312,12 @@ export default defineComponent({
             displayedInfo,
             showPersonalInfo,
             isLoading,
+            mediaAttachements,
+            fileAttachements,
+            tabs,
+            currentTab,
+            imageList,
+            shouldShowTabs,
         }
 
     }
