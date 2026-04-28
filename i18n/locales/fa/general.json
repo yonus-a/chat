@@ -4,16 +4,18 @@
       "light": "روشن",
       "dark": "تاریک"
     },
-    "viewAll":"مشاهده همه",
-    "search":"جستجو",
+    "viewAll": "مشاهده همه",
+    "search": "جستجو",
     "roles": {
       "user": "گیرنده خدمت",
       "employee": "ارائه دهنده خدمت",
       "business": "کسب و کار"
     },
-    "pagination":{
-      "next":"بعدی",
-      "prev":"قبلی"
-    }
+    "pagination": {
+      "next": "بعدی",
+      "prev": "قبلی"
+    },
+    "cancel": "لغو",
+    "confirm": "تایید"
   }
 }

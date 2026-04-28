@@ -73,7 +73,7 @@
                             <BEmojiPicker @select="handleEmojiSelect" />
                         </div>
                     </BMenu>
-                    <InputAttachement />
+                    <InputAttachement :initial-caption="messageText" @send-attachments="handleAttachments" />
                 </div>
             </div>
 
@@ -83,7 +83,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                    }}</span>
+                        }}</span>
                 </div>
 
                 <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
@@ -93,7 +93,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                    }}</span>
+                        }}</span>
                 </div>
             </div>
             <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
@@ -109,16 +109,18 @@ import InputAttachement from './chat-input/InputAttachement.vue';
 import PermissionPopup from './chat-input/PermissionPopup.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
-import type { ExtendedMessage } from '~/types/chat';
+import { useRoute } from 'vue-router';
+import type { ExtendedMessage, Message } from '~/types/chat';
 export default defineComponent({
     name: 'ChatInput',
     components: { InputAttachement, PermissionPopup },
     props: { isActive: { type: Boolean, default: false } },
-    emits: ['send'],
+    emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const profileStore = useProfileStore()
+        const route = useRoute()
 
         const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
         const editingMessageData = ref<ExtendedMessage | null>(null); // Replace 'any' with ExtendedMessage if imported
@@ -187,9 +189,25 @@ export default defineComponent({
         const recording = useChatRecording(inputWidth, {
             onStart: () => console.log('Recording Started'),
             onCancel: () => console.log('Recording Canceled'),
-            onSend: () => {
-                console.log(`Sending ${secondaryMessageType.value} message.`);
-            },
+
+            // Bypass the signature error by casting the function, 
+            // but still receive the url argument at runtime
+            onSend: ((mediaUrl?: string) => {
+                // Fallback in case your composable doesn't pass the URL yet
+                const finalUrl = mediaUrl || 'placeholder_url_until_composable_updated';
+
+                const msg = createBaseMessage();
+
+                // Bypass the overlap error with 'as any'
+                msg.type = secondaryMessageType.value as any;
+
+                if (msg.type === 'voice') msg.voiceUrl = finalUrl;
+                if (msg.type === 'video' as any) msg.videoUrl = finalUrl;
+
+                emit('send', [msg]);
+                chatActionStore.clearActions();
+            }) as () => void,
+
             requestPermission: async () => await ensurePermissions()
         });
 
@@ -266,14 +284,64 @@ export default defineComponent({
             inputRef.value.style.height = `${inputRef.value.scrollHeight}px`;
         };
 
-        const sendMessage = () => {
-            if (messageText.value.trim().length === 0) return;
-            emit('send', messageText.value);
+        const createBaseMessage = (): Message => {
+            return {
+                id: Date.now() + Math.floor(Math.random() * 1000), // Temporary fake ID
+                conversationId: Number(route.params.id) || 101,
+                date: new Date(),
+                type: 'text', // default
+                isEdited: false,
+                senderId: profileStore.userData.id,
+                isSent: false,
+                isRead: false, // Mine are always read
+                repliedTo: chatActionStore.replyingTo || undefined // Inject reply data if active
+            } as Message;
+        };
+
+        // 4. Update handleAttachments to map payloads
+        const handleAttachments = (payloads: any[]) => {
+            const newMessages: Message[] = payloads.map(payload => {
+                const msg = createBaseMessage();
+                msg.type = payload.type;
+
+                if (payload.type === 'text') msg.text = payload.text;
+                if (payload.type === 'image') msg.imageUrl = payload.imageUrl;
+                if (payload.type === 'file') msg.fileUrl = payload.fileUrl;
+                if (payload.type === 'voice') msg.voiceUrl = payload.voiceUrl;
+                if (payload.type === 'video') msg.videoUrl = payload.videoUrl;
+
+                return msg;
+            });
+
+            // Emit the mapped array
+            emit('send', newMessages);
+
             messageText.value = '';
-            nextTick(() => adjustHeight());
             chatActionStore.clearActions();
         };
 
+        // 5. Update sendMessage to use the same logic
+        const sendMessage = () => {
+            if (messageText.value.trim().length === 0) return;
+
+            // --- ADDED EDIT INTERCEPTION ---
+            if (textMode.value === 'edit' && editingMessageData.value) {
+                emit('edit', {
+                    id: editingMessageData.value.id,
+                    text: messageText.value
+                });
+            } else {
+                // Normal send logic
+                const msg = createBaseMessage();
+                msg.type = 'text';
+                msg.text = messageText.value;
+                emit('send', [msg]);
+            }
+
+            messageText.value = '';
+            chatActionStore.clearActions();
+            nextTick(() => adjustHeight());
+        };
         const handleEmojiSelect = (emoji: string) => {
             if (!inputRef.value) return;
             const start = inputRef.value.selectionStart ?? messageText.value.length;
@@ -339,6 +407,8 @@ export default defineComponent({
             return `${replyingToMessageData.value?.contact?.name}`
         })
 
+
+
         return {
             t, rootElements, inputRef, menuRef, permissionPopup, messageText, handlePopupAction, handlePopupCancel,
             secondaryMessageIcon: computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera'),
@@ -356,6 +426,7 @@ export default defineComponent({
             replyingToMessageData,
             displayedActionText,
             displayActionName,
+            handleAttachments,
 
             ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };

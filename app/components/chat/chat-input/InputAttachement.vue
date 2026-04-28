@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import { useI18n, useAppToast } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Popup } from '~/types/components/popup';
@@ -76,7 +76,13 @@ export default defineComponent({
     components: {
         AttachementFileDisplay,
     },
-    emits: ['send'],
+    props: {
+        initialCaption: {
+            type: String,
+            default: ''
+        }
+    },
+    emits: ['send-attachments'],
     setup(props, { emit }) {
         const popup = ref<Popup | null>(null)
         const { t } = useI18n()
@@ -84,6 +90,10 @@ export default defineComponent({
         const attachementMenu = ref<Menu | null>(null)
         const popupMode = ref<PopupMode>('file')
         const caption = ref('')
+
+        watch(() => props.initialCaption, (newVal) => {
+            caption.value = newVal;
+        }, { immediate: true });
 
         const selectedMedia = ref<any[]>([])
         const selectedFiles = ref<any[]>([])
@@ -142,10 +152,40 @@ export default defineComponent({
         })
 
         const sendMessages = () => {
-            popup.value?.close()
-            resetSelections()
-            emit('send')
-        }
+            const messagesToEmit = [];
+
+            if (caption.value.trim()) {
+                messagesToEmit.push({
+                    type: 'text',
+                    text: caption.value
+                });
+            }
+
+            if (selectedMedia.value.length > 0) {
+                messagesToEmit.push({
+                    type: 'image',
+                    imageUrl: selectedMedia.value.map(m => m.path),
+                    files: selectedMedia.value.map(m => m.file)
+                });
+            }
+
+            if (selectedFiles.value.length > 0) {
+                selectedFiles.value.forEach(fileData => {
+                    messagesToEmit.push({
+                        type: 'file',
+                        fileUrl: fileData.path,
+                        file: fileData.file,
+                        fileName: fileData.name
+                    });
+                });
+            }
+
+            emit('send-attachments', messagesToEmit);
+
+            popup.value?.close();
+            resetSelections();
+        };
+
 
 
         return {

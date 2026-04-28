@@ -1,5 +1,5 @@
 <template>
-    <div class="relative w-full h-full overflow-hidden">
+    <div v-if="contact" class="relative w-full h-full overflow-hidden">
 
         <div class="absolute top-4 left-0 right-0 z-20 flex justify-center pointer-events-none transition-opacity duration-200"
             :style="{ opacity: headerOpacity }">
@@ -24,9 +24,18 @@
                             transform: `translateY(${virtualRow.start}px)`
                         }">
 
-                        <div class="flip-vertical"
-                            :class="[getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]), virtualRow.index === 0 ? 'pb-2' : '']">
-                            <ChatBubble :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
+                        <div class="flip-vertical" :class="[
+                            getSpacingClass(virtualRow.index, reversedMessages[virtualRow.index]),
+                            virtualRow.index === 0 ? 'pb-2' : '',
+                            // Logic: If message is in animatingIds, check if it's mine or theirs
+                            animatingIds.has(reversedMessages[virtualRow.index].id)
+                                ? (reversedMessages[virtualRow.index].senderId === currentUserId ? 'animate-slide-right' : 'animate-slide-left')
+                                : ''
+                        ]">
+
+                            <ChatBubble @delete="handleDeleteMessages"
+                                :is-deleting="deletingIds.has(reversedMessages[virtualRow.index].id)"
+                                :is-first-unread="reversedMessages[virtualRow.index].id === firstUnreadId"
                                 :message="reversedMessages[virtualRow.index]"
                                 :is-self="reversedMessages[virtualRow.index].senderId === currentUserId"
                                 :contact="contact" />
@@ -54,6 +63,7 @@
             </div>
         </div>
     </div>
+    <BModal ref="modal" @action="deleteMessages" />
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
@@ -66,17 +76,18 @@ import loading from '@/assets/lottie/loading.json'
 import NoDataDisplay from '../general/NoDataDisplay.vue';
 import NoMessages from '/images/chat/no-messages.webp'
 import { useProfileStore } from '#imports';
-
+import type { Modal } from '~/types/components/modal';
 export default defineComponent({
     name: 'ChatMessages',
     components: { ChatBubble, NoDataDisplay },
     props: {
         contact: {
-            type: Object as PropType<Contact>,
+            type: Object as PropType<Contact | null>,
             required: true,
         }
     },
     setup(props) {
+        const modal = ref<Modal | null>(null)
         const profileStore = useProfileStore()
         const route = useRoute();
         const chatStore = useChatStore();
@@ -309,12 +320,67 @@ export default defineComponent({
             return formatDateShort(msg.date);
         });
 
+        const animatingIds = ref<Set<number>>(new Set());
+
+        // 2. Update the addMessages function
+        const addMessages = (newMsgs: Message[]) => {
+            if (!newMsgs || newMsgs.length === 0) return;
+
+            // Track the new IDs so the animation triggers
+            newMsgs.forEach(msg => animatingIds.value.add(msg.id));
+
+            // Remove the IDs after animation finishes so it NEVER animates again on scroll
+            setTimeout(() => {
+                newMsgs.forEach(msg => animatingIds.value.delete(msg.id));
+            }, 400);
+
+            messages.value.push(...newMsgs);
+
+            nextTick(() => {
+                if (scrollContainer.value) {
+                    targetScroll.value = 0;
+                    scrollContainer.value.scrollTop = 0;
+                }
+            });
+        };
+
+        const editMessage = (id: number, newText: string) => {
+            const msg = messages.value.find(m => m.id === id);
+            if (msg) {
+                msg.text = newText;
+                msg.isSent = false;
+                msg.isEdited = true;
+            }
+        };
+
+        let selectedToDelete = ref<number[]>([])
+
+        const handleDeleteMessages = (idsToDelete: number[]) => {
+            selectedToDelete.value = idsToDelete
+            modal.value?.openModal(t('chat.delete.title'), idsToDelete.length === 1 ? t('chat.delete.singleMessage') : t('chat.delete.multipleMessages', { count: idsToDelete.length }), 'error', true, t('chat.delete.confirm'))
+        };
+
+
+        const deletingIds = ref<Set<number>>(new Set());
+
+        const deleteMessages = () => {
+            modal.value?.closeModal()
+            setTimeout(() => {
+                selectedToDelete.value.forEach(id => deletingIds.value.add(id));
+                setTimeout(() => {
+                    messages.value = messages.value.filter(m => !selectedToDelete.value.includes(m.id));
+                }, 300)
+            }, 300)
+        }
+
         return {
             floatingHeader,
             t, scrollContainer, loaderRef, virtualizer, reversedMessages,
             messages, handleWheel, isLoading, currentUserId, loading,
             NoMessages, getSpacingClass, handleScroll,
-            firstUnreadId, headerOpacity,
+            firstUnreadId, headerOpacity, addMessages,
+            animatingIds, handleDeleteMessages, editMessage,
+            modal, deleteMessages, deletingIds,
         };
     }
 });
@@ -336,5 +402,40 @@ export default defineComponent({
 
 .hide-scrollbar::-webkit-scrollbar {
     display: none;
+}
+
+@keyframes slide-in-right {
+    0% {
+        opacity: 0;
+        transform: scaleY(-1) translateX(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleY(-1) translateX(0);
+    }
+}
+
+/* Animation for 'Their' messages (Left to Right) */
+@keyframes slide-in-left {
+    0% {
+        opacity: 0;
+        transform: scaleY(-1) translateX(-30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleY(-1) translateX(0);
+    }
+}
+
+.animate-slide-right {
+    animation: slide-in-right 300ms ease-out forwards;
+    will-change: transform, opacity;
+}
+
+.animate-slide-left {
+    animation: slide-in-left 300ms ease-out forwards;
+    will-change: transform, opacity;
 }
 </style>

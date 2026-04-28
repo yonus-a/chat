@@ -87,6 +87,12 @@
     "copiedMessage": "پیام با موفقیت به کلیپ بورد الصاق شد.",
     "unreadMessages": "خوانده نشده.",
     "caption": "کپشن",
-    "send": "ارسال"
+    "send": "ارسال",
+    "delete": {
+      "title": "حذف پیام",
+      "singleMessage": "آیا از حذف پیام اطمینان دارید ؟",
+      "multipleMessages": "آیا از حذف {count} پیام اطمینان دارید؟",
+      "confirm": "حذف"
+    }
   }
 }

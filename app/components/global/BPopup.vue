@@ -67,9 +67,13 @@ export default defineComponent({
         title: {
             type: String,
             default: ''
+        },
+        autoClose: {
+            type: Boolean,
+            default: true,
         }
     },
-    setup(_, { emit, expose }) {
+    setup(props, { emit, expose }) {
         const isOpen = ref(false);
         const { width } = useWindowSize();
         const isMobile = computed(() => width.value < 768);
@@ -85,6 +89,7 @@ export default defineComponent({
         }
 
         const close = () => {
+            if (!props.autoClose) return
             isOpen.value = false;
             emit('close')
             // The 300ms timeout matches our CSS transition duration
@@ -121,7 +126,9 @@ export default defineComponent({
 
             // If dragged down enough, close it
             if (translateY.value > 100) {
-                close();
+                if (props.autoClose) {
+                    close();
+                }
             } else {
                 translateY.value = 0;
             }

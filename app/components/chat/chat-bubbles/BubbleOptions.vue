@@ -32,7 +32,6 @@ import { useChatActionStore } from '~/stores/chatActionStore';
 import { useProfileStore, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { ExtendedMessage } from '~/types/chat';
-
 export default defineComponent({
     name: 'BubbleOptions',
     props: {
@@ -41,7 +40,8 @@ export default defineComponent({
             required: true,
         }
     },
-    setup(props, { expose }) {
+    emits: ['delete'],
+    setup(props, { expose, emit }) {
         const { t } = useI18n();
         const { openToast } = useAppToast();
         const { formatDateShort, formatTime } = useDate();
@@ -110,6 +110,7 @@ export default defineComponent({
 
                 switch (key) {
                     case 'delete':
+                        emit('delete', targets.map(t => t.id));
                         chatActionStore.clearActions();
                         break;
                     case 'select_toggle':

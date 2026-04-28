@@ -1,5 +1,6 @@
 <template>
-    <div class=" w-full">
+    <div class="w-full transition-all duration-300 ease-in-out"
+        :class="[isDeleting ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-250 opacity-100']">
         <div v-if="message.isFirstInDate || isFirstUnread" class=" py-5 w-full flex items-center justify-center">
             <div class=" rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
                 <div class=" text-on-surface select-none text-body-sm">{{ !isFirstUnread ?
@@ -63,10 +64,10 @@
                                 <div v-else-if="messageType === 'video'">
                                     <BubbleVideo :video-url="message.videoUrl" mode="playback" />
                                 </div>
-                                <div class=" w-full pt-2 flex items-center gap-x-2.5"
+                                <div v-if="shouldShowStatus" class=" w-full pt-2 flex items-center gap-x-2.5"
                                     :class="[isMine ? 'justify-start' : 'justify-end']">
                                     <BIcon v-if="isMine" :icon="checkIcon" class=" w-4 h-4"
-                                        :class="[message.isRead ? 'fill-primary' : 'fill-on-surface/50']" />
+                                        :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
                                     }}
@@ -84,7 +85,7 @@
                 <ImageGroupDisplay v-if="message.imageUrl && message.imageUrl.length > 0" ref="imageDisplayRef"
                     :images="message.imageUrl" />
 
-                <BubbleOptions :message="message" ref="bubbleOptionsRef" />
+                <BubbleOptions @delete="$emit('delete', $event)" :message="message" ref="bubbleOptionsRef" />
             </div>
         </div>
     </div>
@@ -118,6 +119,10 @@ export default defineComponent({
         isFirstUnread: {
             type: Boolean,
             default: false
+        },
+        isDeleting: {
+            type: Boolean,
+            default: false
         }
     },
     components: {
@@ -128,7 +133,8 @@ export default defineComponent({
         ContactAvatar,
         BubbleOptions,
     },
-    setup(props) {
+    emits: ['delete'],
+    setup(props, { emit }) {
         const profileStore = useProfileStore()
         const chatActionStore = useChatActionStore()
         const { formatDateShort, formatTime } = useDate()
@@ -171,11 +177,23 @@ export default defineComponent({
         });
 
         const shouldShowStatus = computed(() => {
-            const isNextSameSender = props.message.nextMessage?.senderId === props.message.senderId;
-            if (!props.message.nextMessage || !isNextSameSender || !isSameDayNext.value) {
-                return true;
-            }
-            return false;
+            const nextMsg = props.message.nextMessage;
+
+            // 1. If there is no next message, it's the last one, so show status
+            if (!nextMsg) return true;
+
+            const isNextSameSender = nextMsg.senderId === props.message.senderId;
+
+            // 2. If the next message is from a different person or on a different day, show status
+            if (!isNextSameSender || !isSameDayNext.value) return true;
+
+            // 3. Check the 10-minute threshold
+            const currentTime = new Date(props.message.date).getTime();
+            const nextTime = new Date(nextMsg.date).getTime();
+            const tenMinutesInMs = 10 * 60 * 1000;
+
+            // Show status only if the next message is sent MORE than 10 minutes later
+            return (nextTime - currentTime) > tenMinutesInMs;
         });
 
         const isSameSenderPrev = computed(() => props.message.prevMessage?.senderId === props.message.senderId);
@@ -233,6 +251,8 @@ export default defineComponent({
             return message.text
         })
 
+
+
         return {
             formatTime,
             isMine,
@@ -259,3 +279,40 @@ export default defineComponent({
     }
 })
 </script>
+<style scoped>
+@keyframes slide-out-right {
+    0% {
+        transform: scaleY(-1) translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scaleY(-1) translateX(40px);
+        opacity: 0;
+    }
+}
+
+/* Animation for 'Their' messages exiting (Left) */
+@keyframes slide-out-left {
+    0% {
+        transform: scaleY(-1) translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scaleY(-1) translateX(-40px);
+        opacity: 0;
+    }
+}
+
+.animate-delete-right {
+    animation: slide-out-right 300ms ease-in forwards;
+    white-space: nowrap;
+    /* Prevents text re-flow during collapse */
+}
+
+.animate-delete-left {
+    animation: slide-out-left 300ms ease-in forwards;
+    white-space: nowrap;
+}
+</style>

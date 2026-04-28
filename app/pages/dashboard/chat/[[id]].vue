@@ -8,9 +8,10 @@
                     <ChatPageBar @open-profile="openProfile" :contact="selectedChat" />
                 </div>
                 <div class="flex-1 w-full min-h-0 overflow-hidden">
-                    <ChatMessages v-if="selectedChat" :contact="selectedChat" />
+                    <ChatMessages ref="chatMessagesRef" v-show="selectedChat" :contact="selectedChat || null" />
                 </div>
-                <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
+                <ChatInput @edit="handleEditMessage" @send="handleNewMessages" ref="chatInput"
+                    :is-active="selectedChat?.isActive" />
             </div>
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>
@@ -52,6 +53,7 @@ export default defineComponent({
         const chatInput = ref<ChatTextField | null>(null)
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
+        const chatMessagesRef = ref<any>(null);
 
         const chatId = computed(() => {
             const id = route.params.id;
@@ -92,13 +94,27 @@ export default defineComponent({
             router.push({ query: { ...route.query, view: 'profile' } })
         }
 
+        const handleNewMessages = (newMsgs: any[]) => { // Replace any with Message type if imported
+            if (!newMsgs || newMsgs.length === 0) return;
+
+            // Pass the messages down to the child component
+            chatMessagesRef.value?.addMessages(newMsgs);
+        };
+
+        const handleEditMessage = (payload: { id: number, text: string }) => {
+            chatMessagesRef.value?.editMessage(payload.id, payload.text);
+        };
+
         return {
             t,
             chatId,
             chatInput,
             openProfile,
+            chatMessagesRef,
             selectedChat,
             canShowMessagingSection,
+            handleNewMessages,
+            handleEditMessage,
         }
     }
 })
