@@ -19,7 +19,7 @@
             <div :class="[isMine ? ' justify-start' : 'justify-end']" class=" flex items-center flex-1 relative"
                 @contextmenu.prevent="handleRightClick" @click="handleLeftClick" @pointerdown="onPointerDown"
                 @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp">
-                <div class=" w-full">
+                <div class=" select-none md:select-auto w-full">
                     <div class=" w-full flex items-center" :class="[isMine ? 'justify-start' : 'justify-end']">
                         <div class=" flex max-w-4/5 items-end gap-x-3">
                             <div class=" flex-1">
@@ -44,7 +44,7 @@
                                         :url="message.voiceUrl" />
                                 </div>
                                 <div v-else-if="message.imageUrl && messageType === 'image'"
-                                    class=" cursor-pointer  overflow-hidden rounded-xl max-w-4/5 w-85 h-40.5">
+                                    class=" cursor-pointer  overflow-hidden rounded-xl max-w-4/5 md:max-w-85 w-85 h-40.5">
                                     <BImage @click.stop="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
                                         class=" w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
                                 </div>
@@ -71,7 +71,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                    }}
+                                        }}
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +191,7 @@ export default defineComponent({
             // 3. Check the 10-minute threshold
             const currentTime = new Date(props.message.date).getTime();
             const nextTime = new Date(nextMsg.date).getTime();
-            const tenMinutesInMs = 10 * 60 * 1000;
+            const tenMinutesInMs = 2 * 60 * 1000;
 
             // Show status only if the next message is sent MORE than 10 minutes later
             return (nextTime - currentTime) > tenMinutesInMs;

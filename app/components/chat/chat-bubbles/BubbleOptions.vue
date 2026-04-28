@@ -9,7 +9,7 @@
                 </template>
 
                 <div
-                    class="w-60 p-3 flex flex-col gap-y-1 bg-surface shadow-floating rounded-xl border border-outline-variant pointer-events-auto">
+                    class="w-40 p-3 flex flex-col gap-y-1 bg-surface shadow-floating rounded-xl border border-outline-variant pointer-events-auto">
                     <div @click="handleOption(option.key)"
                         class="bg-surface-variant-2/0 hover:bg-surface-variant-2 transition-all duration-200 ease-in-out h-11 flex items-center cursor-pointer rounded-lg px-2 gap-x-2 w-full"
                         v-for="option in options" :key="option.key">
@@ -88,7 +88,7 @@ export default defineComponent({
         //t('chat.messageOptions.deselect')
         const options = computed(() => {
             const allOptions = [
-                { icon: 'PhArrowBendUpLeft', key: 'reply', title: t('chat.messageOptions.reply'), canShow: chatActionStore.canReply },
+                { icon: 'PhArrowBendUpLeft', key: 'reply', title: t('chat.messageOptions.reply'), canShow: props.message.isSent },
                 { icon: 'PhPencilSimpleLine', key: 'edit', title: t('chat.messageOptions.edit'), canShow: chatActionStore.canEdit },
                 { icon: 'PhCopy', key: 'copy', title: t('chat.messageOptions.copy'), canShow: true },
                 {
@@ -124,6 +124,7 @@ export default defineComponent({
                         chatActionStore.editingMessage = props.message;
                         break;
                     case 'reply':
+                        if (!props.message.isSent) return
                         chatActionStore.replyingTo = props.message;
                         break;
                     case 'copy':
