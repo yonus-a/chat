@@ -62,6 +62,11 @@
                 <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true" :auto-play="true" />
             </div>
         </div>
+        <div @click="resetScroll"
+            :class="[canScroll ? ' scale-100 pointer-events-auto opacity-100' : ' opacity-0 pointer-events-none scale-0']"
+            class=" w-11 absolute origin-bottom transition-all duration-200 ease-in-out bottom-3 right-3 h-11 rounded-full overflow-hidden bg-surface shadow-floating flex items-center justify-center cursor-pointer">
+            <BIcon icon="PhArrowDown" class=" fill-on-surface w-6 h-6" />
+        </div>
     </div>
     <BModal ref="modal" @action="deleteMessages" />
 </template>
@@ -226,10 +231,11 @@ export default defineComponent({
 
         const headerOpacity = ref(0);
         let scrollTimer: any = null;
-
+        const scrollOffset = ref(0);
         const handleScroll = () => {
             const el = scrollContainer.value;
 
+            scrollOffset.value = el.scrollTop;
             headerOpacity.value = 1; // Show header when scrolling
             if (scrollTimer) clearTimeout(scrollTimer);
 
@@ -256,6 +262,10 @@ export default defineComponent({
                 topVisibleMessageIndex.value = closestIndex;
             }
         };
+
+        const canScroll = computed(() => {
+            return scrollOffset.value > 100;
+        });
 
         // ... Smooth Wheel Logic remains the same ...
         const targetScroll = ref(0);
@@ -326,22 +336,29 @@ export default defineComponent({
         const addMessages = (newMsgs: Message[]) => {
             if (!newMsgs || newMsgs.length === 0) return;
 
+            // 1. Check if any of the incoming messages are from the current user
+            const hasMyMessage = newMsgs.some(msg => msg.senderId === profileStore.userData.id);
+
             // Track the new IDs so the animation triggers
             newMsgs.forEach(msg => animatingIds.value.add(msg.id));
 
-            // Remove the IDs after animation finishes so it NEVER animates again on scroll
+            // Remove the IDs after animation finishes
             setTimeout(() => {
                 newMsgs.forEach(msg => animatingIds.value.delete(msg.id));
             }, 400);
 
             messages.value.push(...newMsgs);
 
-            nextTick(() => {
-                if (scrollContainer.value) {
-                    targetScroll.value = 0;
-                    scrollContainer.value.scrollTop = 0;
-                }
-            });
+            // 2. Only snap scroll to bottom if I sent a message
+            if (hasMyMessage) {
+                nextTick(() => {
+                    resetScroll();
+                });
+            }
+        };
+
+        const resetScroll = () => {
+            virtualizer.value.scrollToOffset(0, { behavior: 'smooth' });
         };
 
         const editMessage = (id: number, newText: string) => {
@@ -380,7 +397,8 @@ export default defineComponent({
             NoMessages, getSpacingClass, handleScroll,
             firstUnreadId, headerOpacity, addMessages,
             animatingIds, handleDeleteMessages, editMessage,
-            modal, deleteMessages, deletingIds,
+            modal, deleteMessages, deletingIds, canScroll,
+            resetScroll,
         };
     }
 });
