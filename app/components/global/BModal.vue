@@ -1,6 +1,6 @@
 <template>
     <BPopup @closed="handleOnClosed" :auto-close="!isLoading" ref="popup" no-padding>
-        <div class=" p-6  w-dvw md:max-w-120 flex flex-col items-center text-wrap">
+        <div v-if="!card" class=" p-6  w-dvw md:max-w-120 flex flex-col items-center text-wrap">
             <div class=" w-16 h-16 rounded-full flex items-center justify-center " :class="[modalColorings?.bgColor]">
                 <BIcon :icon="modalIcon" class=" w-8 h-8" :class="[modalColorings?.iconColor]" weight="fill" />
             </div>
@@ -19,6 +19,20 @@
                 </div>
             </div>
         </div>
+        <div v-else class=" w-dvw max-w-120">
+            <div class=" flex items-center p-5 gap-x-2 w-full border-b border-b-outline-variant">
+                <BIcon :icon="modalIcon" :class="[modalColorings?.iconColor]" class=" w-7 h-7" weight="fill" />
+                <div class=" select-none  text-on-surface text-label-lg">{{ modalTitle }}</div>
+            </div>
+            <div class="border-b text-wrap border-b-outline-variant w-full p-5 select-none">
+                <p class=" text-body-md text-on-surface/50">{{ modalText }}</p>
+            </div>
+            <div class=" w-full flex items-center p-5 gap-x-3">
+                <BButton :text="actionButtonText" :type="primaryButtonMode.type" :color="primaryButtonMode.color"
+                    :loading="isLoading" @click="handleAction" />
+                <BButton @click="closeModal" color="secondary" type="outline" :text="t('chat.permissions.notNow')" />
+            </div>
+        </div>
     </BPopup>
 </template>
 <script lang="ts">
@@ -32,6 +46,10 @@ export default defineComponent({
         loading: {
             type: Boolean,
             default: false,
+        },
+        card: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['cancel', 'action', 'closed'],
