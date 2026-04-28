@@ -48,18 +48,19 @@
                         </div>
                     </div>
                 </div>
-                <div class=" w-full flex-1 flex flex-col select-none">
-                    <div v-if="shouldShowTabs" class=" flex flex-col gap-y-1 w-full h-full">
+                <div class=" w-full flex-1 flex flex-col min-h-0 select-none">
+                    <div v-if="!shouldShowTabs" class=" flex min-h-0 flex-col gap-y-1 w-full h-full">
                         <div v-if="fileAttachements.length > 0" class=" w-full shrink-0 flex flex-col gap-y-1">
                             <div class=" text-on-surface/50 text-body-sm">{{ t('chat.info.files') }}</div>
-                            <FileDisplay v-for="(file, index) in fileAttachements" :key="index" :url="file" />
+                            <FileDisplay :loading="isLoadingAttachements" v-for="(file, index) in fileAttachements"
+                                :key="index" :url="file" />
                         </div>
                         <div v-if="mediaAttachements.length > 0" class=" flex-1 flex-col gap-y-1">
                             <div class=" shrink-0 text-on-surface/50 text-body-sm">{{ t('chat.info.media') }}</div>
                             <div class=" flex-1 w-full " ref="imagesSection">
                                 <div class=" w-full grid grid-cols-4 gap-x-4 gap-y-3 ">
                                     <div v-for="(media, index) in mediaAttachements" :key="index"
-                                        class=" w-14 h-14 overflow-hidden rounded-xl">
+                                        class=" aspect-square md:w-14 md:h-14 overflow-hidden rounded-xl">
                                         <BImage :src="media"
                                             class=" w-full h-full min-w-full max-w-full max-h-full min-h-full" />
                                     </div>
@@ -67,8 +68,41 @@
                             </div>
                         </div>
                     </div>
-                    <div v-else class=" w-full h-full">
-                        <BTab v-model="currentTab" :tabs="tabs" />
+                    <div v-else class=" w-full min-h-0 h-full flex flex-col gap-y-2">
+                        <BTab v-model="currentTab" :tabs="tabs" class="min-h-0 shrink-0" />
+                        <div class=" w-full overflow-hidden flex-1 min-h-0">
+                            <div :class="[currentTab === 0 ? ' translate-x-0' : ' ltr:-translate-x-1/2 rtl:translate-x-1/2']"
+                                class=" flex transition-all min-h-0 duration-200 ease-in-out w-[200%] h-full">
+
+                                <div class=" h-full min-h-0 w-1/2 px-1">
+                                    <BVirtualVerticalList :items="chunkedMedia" :loading="isLoadingMedia"
+                                        :has-next-page="hasMediaNextPage" @load-more="fetchMoreMedia">
+                                        <template #item="{ item: row }">
+                                            <div class="w-full grid grid-cols-4 gap-4 pb-3">
+                                                <div v-for="(media, idx) in row" :key="idx"
+                                                    class=" aspect-square md:w-14 md:h-14 overflow-hidden rounded-xl">
+                                                    <BImage :src="media"
+                                                        class="w-full h-full min-w-full max-w-full max-h-full min-h-full" />
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </BVirtualVerticalList>
+                                </div>
+
+                                <div class=" h-full min-h-0 w-1/2 px-1">
+                                    <BVirtualVerticalList :items="fileAttachements" :loading="isLoadingAttachements"
+                                        :has-next-page="hasFileNextPage" @load-more="fetchMoreFiles">
+                                        <template #item="{ item: file }">
+                                            <div class="pb-2">
+                                                <FileDisplay :loading="isLoadingAttachements && currentFilePage === 0"
+                                                    :url="file" />
+                                            </div>
+                                        </template>
+                                    </BVirtualVerticalList>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,16 +150,19 @@ export default defineComponent({
         const isLoadingMedia = ref(false)
         const hasMediaNextPage = ref(false)
         const hasFileNextPage = ref(false)
-        const currentFilePage = ref(1)
+        const currentFilePage = ref(0)
         const currentMediaPage = ref(1)
 
         const role = computed(() => profileStore.chosenRole)
-
-        const maxImageCounts = computed(() => {
-            if (!imageList.value) return 0
-            return imageList.value?.clientHeight / 62
+        const listHeight = computed(() => {
+            if (!imageList.value) return 12;
+            return imageList.value.clientHeight;
         })
-
+        const maxImageCounts = computed(() => {
+            return Math.max(Math.floor(listHeight.value / 62) * 4, 12);
+        });
+        const imagesPerPage = computed(() => maxImageCounts.value * 4)
+        const filesPerPage = computed(() => maxImageCounts.value)
         const maxFileCounts = ref(2)
         const tabs = computed(() => [t('chat.info.media'), t('chat.info.files')])
         const currentTab = ref(0)
@@ -233,31 +270,8 @@ export default defineComponent({
         }
 
 
-        const fileAttachements = ref([
-            // 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            // 'https://res.cloudinary.com/demo/image/upload/multi_page_pdf.pdf',
-            // 'https://www.antennahouse.com/hubfs/pdf-samples/guide-sample.pdf',
-            // 'https://www.clickdimensions.com/links/TestPDFfile.pdf',
-            // 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf',
-            // 'https://www.adobe.com/support/products/enterprise/knowledgecenter/whitepapers/pdf/acrobat_tips_tricks.pdf',
-            // 'https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf',
-            // 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/183411/Self-build_and_custom_housebuilding_policy_guide.pdf',
-            'https://file-examples.com/storage/fe7930811e66299443c647b/2017/10/file-example_PDF_500kB.pdf',
-            'https://raw.githubusercontent.com/mozilla/pdf.js/master/web/compressed.tracemonkey-pldi-09.pdf'
-        ])
-
-        const mediaAttachements = ref([
-            'https://picsum.photos/id/11/400/400',
-            'https://picsum.photos/id/21/400/400',
-            'https://picsum.photos/id/31/400/400',
-            'https://picsum.photos/id/41/400/400',
-            'https://picsum.photos/id/51/400/400',
-            'https://picsum.photos/id/61/400/400',
-            'https://picsum.photos/id/71/400/400',
-            'https://picsum.photos/id/81/400/400',
-            'https://picsum.photos/id/91/400/400',
-            'https://picsum.photos/id/101/400/400'
-        ])
+        const fileAttachements = ref<string[]>(new Array(imagesPerPage.value).fill(''));
+        const mediaAttachements = ref<string[]>(new Array(filesPerPage.value).fill(''));
         const showPersonalInfo = computed(() => role.value !== 'user')
 
         const handleAction = (action: Action) => {
@@ -277,6 +291,83 @@ export default defineComponent({
                     break;
             }
         }
+
+        const chunkedMedia = computed(() => {
+            const rows = [];
+            for (let i = 0; i < mediaAttachements.value.length; i += 4) {
+                rows.push(mediaAttachements.value.slice(i, i + 4));
+            }
+            return rows;
+        });
+
+        // Mock API Functions
+        const fetchMoreMedia = async () => {
+            if (isLoadingMedia.value || !hasMediaNextPage.value) return;
+            isLoadingMedia.value = true;
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Get the length from the computed property
+            const count = imagesPerPage.value
+
+            const newMedia = Array.from({ length: count }).map((_, i) =>
+                `https://picsum.photos/id/${110 + (currentMediaPage.value * count) + i}/400/400`
+            );
+
+            // If we only have empty strings (initial state), replace them.
+            // Otherwise, append the new page.
+            if (mediaAttachements.value.length > 0 && mediaAttachements.value.every(i => i === '')) {
+                mediaAttachements.value = newMedia;
+            } else {
+                mediaAttachements.value.push(...newMedia);
+            }
+
+            currentMediaPage.value++;
+            if (currentMediaPage.value >= 5) hasMediaNextPage.value = false;
+            isLoadingMedia.value = false;
+        };
+
+        const fetchMoreFiles = async () => {
+            if (isLoadingAttachements.value || !hasFileNextPage.value) return;
+            isLoadingAttachements.value = true;
+
+            // Mock API Delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const count = filesPerPage.value;
+
+            // Procedurally populate with the same URL as requested
+            const newFiles = new Array(count).fill('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+
+            // Procedural swap if we are in the initial skeleton state
+            if (fileAttachements.value === '') {
+                fileAttachements.value = newFiles;
+            } else {
+                fileAttachements.value.push(...newFiles);
+            }
+
+            currentFilePage.value++;
+
+            // End pagination after 4 pages
+            if (currentFilePage.value >= 4) hasFileNextPage.value = false;
+            isLoadingAttachements.value = false;
+        };
+        onMounted(async () => {
+            // Wait for DOM to paint so imageList.value has height
+            await nextTick();
+
+
+            // Populate with empty strings as initial value
+            const initialCount = maxImageCounts.value;
+            mediaAttachements.value = Array(initialCount).fill('');
+
+            // Trigger the first actual data load
+            hasMediaNextPage.value = true;
+            hasFileNextPage.value = true;
+            fetchMoreMedia();
+            fetchMoreFiles()
+            console.log('page', currentFilePage.value)
+        });
 
         const displayedInfo = computed(() => {
             let items = [
@@ -318,6 +409,15 @@ export default defineComponent({
             currentTab,
             imageList,
             shouldShowTabs,
+            chunkedMedia,
+            fetchMoreMedia,
+            fetchMoreFiles,
+            isLoadingAttachements,
+            isLoadingMedia,
+            hasMediaNextPage,
+            currentMediaPage,
+            currentFilePage,
+            hasFileNextPage,
         }
 
     }

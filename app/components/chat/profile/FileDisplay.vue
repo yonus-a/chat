@@ -1,12 +1,12 @@
 <template>
     <div class="w-full flex gap-x-2 select-none items-center">
         <div class="flex text-left flex-col gap-y-0.5 flex-1 min-w-0">
-            <div class="text-on-surface text-label-md truncate">{{ fileName }}</div>
-            <div dir="ltr" class="text-body-sm text-on-surface/70">{{ formattedSize }}</div>
+            <div class="text-on-surface text-label-md truncate" v-loading="isLoading">{{ fileName }}</div>
+            <div dir="ltr" class="text-body-sm text-on-surface/70" v-loading="isLoading">{{ formattedSize }}</div>
         </div>
 
-        <div class="relative shrink-0 cursor-pointer active:scale-95 transition-transform">
-            <BIcon icon="PhFile" class=" fill-surface-variant drop-shadow-sm w-10 h-10" weight="fill" />
+        <div v-loading="isLoading" class="relative shrink-0 cursor-pointer active:scale-95 transition-transform">
+            <BIcon icon="PhFile" class="  fill-surface-variant-3 w-10 h-10" weight="fill" />
             <div class="absolute bottom-2 right-0 bg-error rounded-sm px-1 py-0.5 flex items-center justify-center">
                 <div class="text-center text-white text-[7px] font-bold leading-none uppercase tracking-wide">
                     {{ fileExt }}
@@ -27,12 +27,15 @@ export default defineComponent({
             required: true
         },
         loading: {
-
+            type: Boolean,
+            default: true,
         }
     },
     setup(props) {
         const { t } = useI18n()
         const fetchedSize = ref<number | null>(null);
+        const isLoading = computed(() => props.loading)
+
 
 
         const fileName = computed(() => {
@@ -83,6 +86,7 @@ export default defineComponent({
             formattedSize,
             fileExt,
             fileName,
+            isLoading,
         }
     }
 })

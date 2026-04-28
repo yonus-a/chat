@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <div v-show="pagination" ref="sentinelRef" class="w-full h-13 flex items-center justify-center">
+        <div v-show="pagination && hasNextPage" ref="sentinelRef" class="w-full h-13 flex items-center justify-center">
             <slot name="loader" v-if="hasNextPage">
                 <LottieAnimation :animation-data="loading" :height="52" :width="52" :loop="true" :auto-play="true" />
             </slot>
