@@ -1,7 +1,5 @@
 <template>
     <div class="w-55 p-2 flex items-center gap-x-2.5 select-none text-on-surface">
-
-
         <div class="flex-1 h-7 relative flex items-center cursor-pointer overflow-hidden" @click="seekAudio">
             <audio ref="audioRef" :src="audioSrc" @timeupdate="onTimeUpdate" @ended="onEnded"></audio>
 
@@ -19,41 +17,43 @@
                 </div>
             </div>
         </div>
-        <div class="shrink-0 w-11 h-11 relative flex items-center justify-center cursor-pointer transition-colors duration-200"
-            :class="[status === 'downloaded' ? ' bg-diamond-surface rounded-xl' : 'rounded-full group']"
+
+        <div class="shrink-0 w-11 h-11 relative flex items-center justify-center transition-colors duration-200"
+            :class="[status === 'downloaded' && !isUploading ? 'bg-diamond-surface rounded-xl cursor-pointer' : 'rounded-full group', !isUploading ? 'cursor-pointer' : 'cursor-default']"
             @click="handleAction">
-            <svg v-if="status !== 'downloaded'" class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-                viewBox="0 0 44 44">
+
+            <svg v-if="status !== 'downloaded' || isUploading"
+                class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 44 44">
                 <circle cx="22" cy="22" r="20" class="stroke-on-surface/20" stroke-width="2.5" fill="none" />
                 <circle cx="22" cy="22" r="20" class="stroke-on-surface transition-all duration-200 ease-linear"
                     stroke-width="2.5" fill="none" stroke-linecap="round" :stroke-dasharray="circumference"
                     :stroke-dashoffset="dashOffset" />
             </svg>
 
-            <BIcon v-if="status === 'idle'" icon="PhArrowDown" class="w-5 h-5 fill-on-surface transition-colors " />
-            <BIcon v-else-if="status === 'downloading'" icon="PhX" class="w-5 h-5 fill-on-surface transition-colors " />
+            <BIcon v-if="isUploading" icon="PhUploadSimple" class="w-5 h-5 fill-on-surface" />
+            <BIcon v-else-if="status === 'idle'" icon="PhArrowDown" class="w-5 h-5 fill-on-surface transition-colors" />
+            <BIcon v-else-if="status === 'downloading'" icon="PhX" class="w-5 h-5 fill-on-surface transition-colors" />
 
-            <BIcon v-else-if="status === 'downloaded'" :icon="isPlaying ? 'PhPause' : 'PhPlay'" weight="light"
-                class="w-5 h-5  text-surface transition-transform duration-300"
-                :class="[isPlaying ? 'scale-90' : ' scale-100']" />
+            <BIcon v-else-if="status === 'downloaded' && !isUploading" :icon="isPlaying ? 'PhPause' : 'PhPlay'"
+                weight="light" class="w-5 h-5 text-surface transition-transform duration-300"
+                :class="[isPlaying ? 'scale-90' : 'scale-100']" />
         </div>
-
-
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useChatActionStore } from '~/stores/chatActionStore';
 
 export default defineComponent({
     name: 'VoiceDisplay',
     props: {
-        url: {
-            type: String,
-            required: true
-        }
+        url: { type: String, required: true },
+        messageId: { type: Number, required: false },
+        isSent: { type: Boolean, default: true }
     },
     setup(props) {
+        const chatActionStore = useChatActionStore();
         const status = ref<'idle' | 'downloading' | 'downloaded'>('idle');
         const downloadProgress = ref(0);
         const playProgress = ref(0);
@@ -64,18 +64,22 @@ export default defineComponent({
         let abortController: AbortController | null = null;
         const dbName = 'ChatFileCache';
 
-        // --- Adjusted SVG Math for 44px Button (r=20) ---
-        const circumference = 2 * Math.PI * 20; // ~125.6
-        const dashOffset = computed(() => circumference - (downloadProgress.value / 100) * circumference);
+        const uploadData = computed(() => props.messageId ? chatActionStore.uploadProgress.get(props.messageId) : null);
+        const isUploading = computed(() => !props.isSent && uploadData.value);
 
-        // --- HARDCODED WAVEFORM FROM IMAGE ---
-        // 23 bars matching the exact high/low pattern of the image
+        const circumference = 2 * Math.PI * 20;
+        const dashOffset = computed(() => {
+            if (isUploading.value && uploadData.value) {
+                return circumference - (uploadData.value.progress / 100) * circumference;
+            }
+            return circumference - (downloadProgress.value / 100) * circumference;
+        });
+
         const staticWaveform = [
             20, 50, 90, 60, 30, 40, 80, 50, 30, 50, 80, 80,
             90, 30, 60, 40, 70, 90, 40, 70, 40, 60, 20
         ];
 
-        // --- IDB & Logic (Unchanged core functionality) ---
         const getDB = () => new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(dbName, 1);
             request.onupgradeneeded = () => request.result.createObjectStore('files');
@@ -88,26 +92,38 @@ export default defineComponent({
                 const db = await getDB();
                 const tx = db.transaction('files', 'readonly');
                 const store = tx.objectStore('files');
-
                 store.get(props.url).onsuccess = (e: any) => {
                     if (e.target.result) {
                         audioSrc.value = URL.createObjectURL(e.target.result);
                         status.value = 'downloaded';
                     }
                 };
-            } catch (e) {
-                console.warn('IDB check failed', e);
-            }
+            } catch (e) { console.warn('IDB check failed', e); }
         };
 
         const handleAction = async () => {
+            if (isUploading.value) return;
+
             if (status.value === 'downloaded' && audioRef.value) {
                 if (isPlaying.value) {
                     audioRef.value.pause();
                     isPlaying.value = false;
                 } else {
-                    audioRef.value.play();
-                    isPlaying.value = true;
+                    // FIX: Catch the NotSupportedError from the fake mock blob and fall back to the network URL
+                    console.log(audioRef.value)
+                    console.log(audioRef.value.src)
+                    console.log(props.url)
+                    audioRef.value.play().then(() => {
+                        isPlaying.value = true;
+                    }).catch((err) => {
+                        console.warn('Cached blob invalid (likely mock data). Falling back to URL.', err);
+                        if (audioRef.value) {
+                            audioRef.value.src = props.url;
+                            audioRef.value.play().then(() => {
+                                isPlaying.value = true;
+                            });
+                        }
+                    });
                 }
                 return;
             }
@@ -152,7 +168,6 @@ export default defineComponent({
 
                 audioSrc.value = URL.createObjectURL(blob);
                 status.value = 'downloaded';
-
             } catch (error: any) {
                 if (error.name !== 'AbortError') console.error('Voice download error:', error);
                 status.value = 'idle';
@@ -173,10 +188,9 @@ export default defineComponent({
         };
 
         const seekAudio = (e: MouseEvent) => {
-            if (status.value !== 'downloaded' || !audioRef.value) return;
+            if (status.value !== 'downloaded' || !audioRef.value || isUploading.value) return;
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
             const clickPosition = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-
             const newTime = clickPosition * audioRef.value.duration;
             if (isFinite(newTime)) {
                 audioRef.value.currentTime = newTime;
@@ -185,26 +199,14 @@ export default defineComponent({
         };
 
         onMounted(() => checkLocalExistence());
-
         onBeforeUnmount(() => {
             if (audioSrc.value) URL.revokeObjectURL(audioSrc.value);
             abortController?.abort();
         });
 
         return {
-            status,
-            downloadProgress,
-            playProgress,
-            isPlaying,
-            audioSrc,
-            audioRef,
-            circumference,
-            dashOffset,
-            staticWaveform,
-            handleAction,
-            onTimeUpdate,
-            onEnded,
-            seekAudio
+            status, downloadProgress, playProgress, isPlaying, audioSrc, audioRef,
+            circumference, dashOffset, staticWaveform, handleAction, onTimeUpdate, onEnded, seekAudio, isUploading
         };
     }
 });

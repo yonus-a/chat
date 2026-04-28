@@ -11,6 +11,9 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const { openToast } = useAppToast();
   const { formatDateShort, formatTime } = useDate();
   const chatStore = useChatStore();
+  const uploadProgress = ref<
+    Map<number, { progress: number; uploaded: number; total: number }>
+  >(new Map());
 
   // --- State ---
   const isSelectMode = ref(false);
@@ -72,41 +75,92 @@ export const useChatActionStore = defineStore("chatAction", () => {
   };
 
   const sendMessage = async (messages: Message[]) => {
-    // 1. Assign temporary IDs and set isSent to false for the optimistic render
     const tempMessages = messages.map((m) => ({
       ...m,
       id: Math.floor(Math.random() * -1000000),
       isSent: false,
     }));
 
-    // 2. Instantly push to the UI
     sendBus.emit(tempMessages);
 
-    // 3. Instantly update the sidebar's last message so it bumps to the top
     if (tempMessages.length > 0) {
       const latest = tempMessages[tempMessages.length - 1];
       chatStore.updateLastMessage(latest.conversationId, latest);
     }
 
-    // Mock API Call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Process mock uploads for each message
+    for (const tempMsg of tempMessages) {
+      // Mock File Sizes based on attachment type
+      let totalSize = 1024 * 1024 * 2; // Default 2MB
+      if (tempMsg.type === "video") totalSize = 1024 * 1024 * 15; // 15MB
+      if (tempMsg.type === "file") totalSize = 1024 * 1024 * 5; // 5MB
 
-    // 4. Update the UI and Sidebar with the real data from the server
-    tempMessages.forEach((tempMsg) => {
-      const realId = Math.floor(Math.random() * 100000) + 1000;
+      // Initialize progress
+      if (tempMsg.type !== "text") {
+        uploadProgress.value.set(tempMsg.id, {
+          progress: 0,
+          uploaded: 0,
+          total: totalSize,
+        });
+      }
 
-      // Update the active chat window
-      updateBus.emit({
-        id: tempMsg.id,
-        updates: { id: realId, isSent: true },
-      });
+      // Mock chunked uploading taking 2.5 seconds total (250ms interval * 10)
+      let currentBytes = 0;
+      const interval = setInterval(async () => {
+        currentBytes += totalSize / 10;
 
-      // Update the sidebar last message status
-      chatStore.patchLastMessage(tempMsg.conversationId, tempMsg.id, {
-        id: realId,
-        isSent: true,
-      });
-    });
+        if (currentBytes >= totalSize) {
+          clearInterval(interval);
+          uploadProgress.value.delete(tempMsg.id);
+
+          const realId = Math.floor(Math.random() * 100000) + 1000;
+
+          // Mock Caching to IDB to ensure instant availability without downloading
+          try {
+            const dbName = "ChatFileCache";
+            const db = await new Promise<IDBDatabase>((res, rej) => {
+              const req = indexedDB.open(dbName, 1);
+              req.onupgradeneeded = () => req.result.createObjectStore("files");
+              req.onsuccess = () => res(req.result);
+              req.onerror = () => rej(req.error);
+            });
+            const tx = db.transaction("files", "readwrite");
+            const mockBlob = new Blob(["mock content"], {
+              type: "application/octet-stream",
+            });
+
+            // Cache against every URL found in the message
+            const urlsToCache = [
+              tempMsg.fileUrl,
+              tempMsg.voiceUrl,
+              tempMsg.videoUrl,
+              ...(tempMsg.imageUrl || []),
+            ].filter(Boolean) as string[];
+            urlsToCache.forEach((url) =>
+              tx.objectStore("files").put(mockBlob, url),
+            );
+          } catch (e) {
+            console.warn("Failed to mock cache", e);
+          }
+
+          // Commit to UI
+          updateBus.emit({
+            id: tempMsg.id,
+            updates: { id: realId, isSent: true },
+          });
+          chatStore.patchLastMessage(tempMsg.conversationId, tempMsg.id, {
+            id: realId,
+            isSent: true,
+          });
+        } else {
+          uploadProgress.value.set(tempMsg.id, {
+            progress: Math.round((currentBytes / totalSize) * 100),
+            uploaded: currentBytes,
+            total: totalSize,
+          });
+        }
+      }, 250);
+    }
   };
 
   const saveEditMessage = async (id: number, text: string) => {
@@ -202,5 +256,6 @@ export const useChatActionStore = defineStore("chatAction", () => {
     clearActions,
     copyMessageText,
     editBus,
+    uploadProgress,
   };
 });

@@ -39,28 +39,60 @@
                                     </div>
                                     <p v-if="messageType === 'text'" class=" p-3 max-w-full">{{ message.text }}</p>
                                     <FileDisplay :is-mine="isMine" v-else-if="message.fileUrl && messageType === 'file'"
-                                        :url="message.fileUrl" />
+                                        :url="message.fileUrl" :message-id="message.id" :is-sent="message.isSent" />
+
                                     <VoiceDisplay v-else-if="message.voiceUrl && messageType === 'voice'"
-                                        :url="message.voiceUrl" />
+                                        :url="message.voiceUrl" :message-id="message.id" :is-sent="message.isSent" />
                                 </div>
                                 <div v-else-if="message.imageUrl && messageType === 'image'"
-                                    class=" cursor-pointer  overflow-hidden rounded-xl max-w-4/5 md:max-w-85 w-85 h-40.5">
+                                    class="relative cursor-pointer overflow-hidden rounded-xl max-w-4/5 md:max-w-85 w-85 h-40.5">
                                     <BImage @click.stop="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
-                                        class=" w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
+                                        class="w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
+
+                                    <div v-if="!message.isSent && uploadData"
+                                        class="absolute inset-0 flex items-center justify-center bg-black/40 z-10 pointer-events-none">
+                                        <svg class="absolute w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                                            <circle cx="24" cy="24" r="22" class="stroke-white/30" stroke-width="3"
+                                                fill="none" />
+                                            <circle cx="24" cy="24" r="22"
+                                                class="stroke-white transition-all duration-200 ease-linear"
+                                                stroke-width="3" fill="none" stroke-linecap="round"
+                                                stroke-dasharray="138.2"
+                                                :stroke-dashoffset="138.2 - (uploadData.progress / 100) * 138.2" />
+                                        </svg>
+                                        <BIcon icon="PhUploadSimple" class="w-5 h-5 text-white absolute" />
+                                    </div>
                                 </div>
+
                                 <div v-else-if="message.imageUrl && messageType === 'multiImage'"
-                                    class=" max-w-75 flex items-center gap-x-3 h-16">
+                                    class="max-w-75 flex items-center gap-x-3 h-16">
+                                    <div @click.stop="previewImage(3)" v-if="message.imageUrl.length > 3"
+                                        class=" h-full rounded-xl overflow-hidden aspect-square flex items-center justify-center bg-surface-variant-2">
+                                        <div class="text-on-surface select-none text-label-md">+{{
+                                            message.imageUrl.length - 3 }}</div>
+                                    </div>
                                     <div v-for="(image, index) in displayedImages" :key="index"
-                                        class=" h-full rounded-xl overflow-hidden aspect-square">
+                                        class="relative h-full rounded-xl overflow-hidden aspect-square">
                                         <BImage :src="image" @click.stop="previewImage(index)"
-                                            class=" cursor-pointer min-w-full min-h-full max-w-full max-h-full h-full w-full" />
-                                        <div @click.stop="previewImage(3)" v-if="message.imageUrl.length > 3"
-                                            class=" h-full cursor-pointer aspect-square flex items-center justify-center rounded-xl bg-surface-variant-2">
-                                            <div class=" text-on-surface select-none text-label-md">+{{
-                                                message.imageUrl.length
-                                                - 3 }}</div>
+                                            class="cursor-pointer min-w-full min-h-full max-w-full max-h-full h-full w-full" />
+
+
+
+                                        <div v-if="!message.isSent && uploadData"
+                                            class="absolute inset-0 flex items-center justify-center bg-black/40 z-10 pointer-events-none">
+                                            <svg class="absolute w-8 h-8 -rotate-90" viewBox="0 0 32 32">
+                                                <circle cx="16" cy="16" r="14" class="stroke-white/30"
+                                                    stroke-width="2.5" fill="none" />
+                                                <circle cx="16" cy="16" r="14"
+                                                    class="stroke-white transition-all duration-200 ease-linear"
+                                                    stroke-width="2.5" fill="none" stroke-linecap="round"
+                                                    stroke-dasharray="87.9"
+                                                    :stroke-dashoffset="87.9 - (uploadData.progress / 100) * 87.9" />
+                                            </svg>
+                                            <BIcon icon="PhUploadSimple" class="w-3.5 h-3.5 text-white absolute" />
                                         </div>
                                     </div>
+
                                 </div>
                                 <div v-else-if="messageType === 'video'">
                                     <BubbleVideo :video-url="message.videoUrl" mode="playback" />
@@ -71,7 +103,7 @@
                                         :class="[message.isRead && message.isSent ? 'fill-primary' : 'fill-on-surface/50']" />
                                     <div class=" select-none  text-body-sm text-on-surface/50">{{
                                         formatTime(message.date)
-                                        }}
+                                    }}
                                     </div>
                                 </div>
                             </div>
@@ -294,6 +326,7 @@ export default defineComponent({
             }
         };
 
+        const uploadData = computed(() => chatActionStore.uploadProgress.get(props.message.id));
 
         return {
             onPointerMove,
@@ -318,6 +351,7 @@ export default defineComponent({
             handleRightClick,
             handleLeftClick,
             isSelected,
+            uploadData,
             isSelectMode,
             t,
         }
