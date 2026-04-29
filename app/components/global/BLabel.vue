@@ -1,10 +1,11 @@
 <template>
     <div>
         <div @click="emit('click')" :class="[
-            'relative inline-flex items-center justify-center select-none rounded-full transition-all duration-200 ease-in-out',
+            'relative inline-flex  items-center justify-center select-none rounded-full transition-all duration-200 ease-in-out',
             sizeClasses,
             colorClasses,
             paddingClasses,
+            icon.trim().length == 0 ? 'gap-x-0' : 'gap-x-1',
             { 'border-gradient-active': type === 'bold' || (type === 'outline' && hasGradient) }
         ]" :style="styleOverrides">
 
@@ -69,9 +70,9 @@ const sizeClasses = computed(() => {
 // Used on the wrapper now to control the animated width
 const iconSizeClass = computed(() => {
     switch (props.size) {
-        case 'sm': return 'w-4 h-4'; // 16px
-        case 'md': return 'w-[18px] h-[18px]';
-        case 'lg': return 'w-5 h-5'; // 20px
+        case 'sm': return 'w-3 h-3'; // 16px
+        case 'md': return 'w-4 h-4';
+        case 'lg': return 'w-4.5 h-4.5'; // 20px
         default: return 'w-[18px] h-[18px]';
     }
 });

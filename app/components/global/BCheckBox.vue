@@ -1,6 +1,6 @@
 <template>
-    <div @click="toggleCheck" class="group inline-flex items-center cursor-pointer transition-all duration-200"
-        :class="{ 'gap-x-3': hasContent }">
+    <div @click="toggleCheck" class="group inline-flex items-center transition-all duration-200"
+        :class="{ 'gap-x-3': hasContent, 'cursor-pointer': !disabled, 'opacity-50 cursor-not-allowed': disabled }">
         <div class="shrink-0 flex items-center justify-center">
 
             <div v-if="mode === 'checkbox'"
@@ -64,6 +64,10 @@ const props = defineProps({
     color: {
         type: String as () => 'primary' | 'error',
         default: 'primary'
+    },
+    disabled: {
+        type: Boolean,
+        default: false,
     }
 });
 
@@ -78,6 +82,7 @@ watch(() => props.modelValue, (newVal) => {
 });
 
 const toggleCheck = () => {
+    if (props.disabled) return
     emit('update:modelValue', !isActive.value);
 };
 

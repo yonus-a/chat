@@ -3,9 +3,9 @@ import type { Invoice } from "./invoice";
 
 export interface Service {
   id: number;
-  icon: string;
+  icon?: string;
   label: string;
-  status: "pending" | "approved" | "rejected" | "expired";
+  status?: "pending" | "approved" | "rejected" | "expired";
   provider?: Contact;
   invoice?: Invoice;
 }

@@ -33,7 +33,7 @@ export interface Contact {
   isActive: boolean;
   birthDate: Date;
   lastMessage?: Message;
-  unreadCount: number;
+  unreadCount?: number;
   serviceType: "video-call" | "voice-call" | "chat";
 }
 

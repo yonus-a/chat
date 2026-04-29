@@ -96,8 +96,19 @@
       "multipleMessages": "آیا از حذف {count} پیام اطمینان دارید؟",
       "confirm": "حذف"
     },
-    "medicOptions": {
-      
+    "addMedic": {
+      "title": "افزودن ارایه دهنده",
+      "expertise": "تخصص",
+      "select": "انتخاب کنید...",
+      "autoSelect": "انتخاب توسط سیستم",
+      "search": "جستجو ...",
+      "available": "آماده ویزیت",
+      "online": "آنلاین",
+      "add": "افزودن",
+      "buttonText": {
+        "single": "افزودن پزشک",
+        "multiple": "افزودن {count} پزشک"
+      }
     }
   }
 }

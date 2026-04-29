@@ -1,5 +1,5 @@
 <template>
-    <div class="w-75 flex flex-col outline-none" ref="dropdownRef" :tabindex="tabindex" @keyup.tab="openOnTab"
+    <div class=" w-full max-w-90 flex flex-col outline-none" ref="dropdownRef" :tabindex="tabindex" @keyup.tab="openOnTab"
         @keydown.down.prevent="highlightNext" @keydown.up.prevent="highlightPrev"
         @keydown.enter.prevent="selectHighlighted" @keydown.esc.prevent="closeDropdown">
 

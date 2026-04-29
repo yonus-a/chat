@@ -10,7 +10,7 @@
         </div>
 
         <div ref="panelRef" @click="handleContentClick"
-            class="absolute z-120 p-2 bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
+            class="absolute z-120  bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', !hasCustomContent && options && options.length > 0 ? 'w-50' : '']">
 
@@ -18,7 +18,7 @@
                 <slot :close="closeMenu" />
             </div>
 
-            <div v-else-if="options && options.length > 0" key="menu-list" class="flex flex-col gap-y-1">
+            <div v-else-if="options && options.length > 0" key="menu-list" class="flex p-3 flex-col gap-y-1">
                 <template v-for="(opt, idx) in options" :key="opt.key">
                     <div class="pointer-events-auto">
                         <div @click="handleSelect(opt.key)"

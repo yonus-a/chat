@@ -33,7 +33,7 @@
                                     aria-controls="overlay_menu" />
                             </template>
                             <div v-if="menuMode === 'medic'" class="p-1">
-                                <div>Hello</div>
+                                <MedicSelector @close="closeMenu" />
                             </div>
                         </BMenu>
                     </div>
@@ -134,9 +134,6 @@ export default defineComponent({
             menuRef.value?.close()
         }
 
-        const handleMenuOpenning = () => {
-
-        }
 
         const openProfile = () => {
             emit('open-profile')
@@ -152,8 +149,6 @@ export default defineComponent({
 
         const deleteMessages = () => {
             if (!canDelete.value) return
-            //const targets = chatActionStore.selectedArray;
-            //const targetIds = targets.map(t => t.id)
             chatActionStore.triggerDelete();
         }
 
@@ -183,6 +178,10 @@ export default defineComponent({
             }, 300);
         };
 
+        const closeMenu = () => {
+            menuRef.value?.close()
+        }
+
         return {
             t,
             copy,
@@ -197,6 +196,7 @@ export default defineComponent({
             isSelectMode,
             goBack,
             canDelete,
+            closeMenu,
             openProfile,
             handleSelect,
             menuMode,
