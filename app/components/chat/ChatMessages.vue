@@ -10,7 +10,7 @@
         </div>
         <div dir="rtl" id="list" ref="scrollContainer"
             class="h-full w-full overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
-            :class="[showOptionsBar ? 'pb-16' : 'pb-4']" @scroll="handleScroll" @wheel.prevent="handleWheel">
+            :class="[showOptionsBar ? 'pt-16' : 'pt-4']" @scroll="handleScroll" @wheel.prevent="handleWheel">
 
             <div v-show="messages.length">
                 <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
@@ -496,6 +496,6 @@ export default defineComponent({
 }
 
 #list {
-    will-change: padding-bottom;
+    will-change: padding-top;
 }
 </style>
