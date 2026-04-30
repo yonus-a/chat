@@ -7,7 +7,11 @@
         </div>
         <div class="flex justify-center flex-col flex-1 select-none h-full">
             <div class=" text-label-md text-on-surface " v-loading="loading">{{ medic.name }} {{ medic.lastName }}</div>
-            <div class=" text-body-sm text-on-surface/50" v-loading="loading">{{ expertise }}</div>
+            <div class=" text-body-sm text-on-surface/50 " v-loading="loading">
+                <div class="text-wrap max-w-full text-ellipsis overflow-hidden line-clamp-1">
+                    {{ fellowshipString }}
+                </div>
+            </div>
         </div>
         <div class=" shrink-0 w-5  flex flex-col items-center justify-center h-full">
             <div class="w-5 h-5 rounded-full overflow-hidden">
@@ -22,19 +26,16 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import type { Contact } from '~/types/chat';
+import { defineComponent, type PropType, computed } from 'vue';
+import type { Provider } from '~/types/service'; // Updated import
 import ContactAvatar from '../contact/ContactAvatar.vue';
+
 export default defineComponent({
     name: 'MedicDisplay',
     props: {
         medic: {
-            type: Object as PropType<Contact>,
+            type: Object as PropType<Provider>,
             required: true,
-        },
-        expertise: {
-            type: String,
-            default: ''
         },
         isSelected: {
             type: Boolean,
@@ -48,10 +49,21 @@ export default defineComponent({
     components: {
         ContactAvatar,
     },
-    setup() {
+    setup(props) {
+        // Computed method to generate the fellowship string
+        const fellowshipString = computed(() => {
+            if (!props.medic.fellowships || props.medic.fellowships.length === 0) {
+                return props.medic.expertise || ''; // Fallback to expertise if no fellowships exist
+            }
+            return props.medic.fellowships.map(f => f.title).join(', ');
+        });
+
+        onMounted(() => {
+            console.log('medic', props.medic)
+        })
 
         return {
-
+            fellowshipString
         }
     }
 })

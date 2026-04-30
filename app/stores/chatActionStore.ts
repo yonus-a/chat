@@ -4,8 +4,8 @@ import { useProfileStore, useDate, useI18n, useAppToast } from "#imports";
 import type { ExtendedMessage, Message } from "~/types/chat";
 import { useEventBus } from "@vueuse/core";
 import { useChatStore } from "~/stores/chatStore";
-import type { Service } from "~/types/service";
-import type { Contact } from "~/types/chat";
+import type { RequestProvider, ServiceRequest } from "~/types/chat";
+import type { Provider } from "~/types/service";
 
 export const useChatActionStore = defineStore("chatAction", () => {
   const profileStore = useProfileStore();
@@ -239,11 +239,24 @@ export const useChatActionStore = defineStore("chatAction", () => {
     conversationId: number,
     serviceId: number,
     serviceLabel: string,
-    selectedProviders: Contact[],
+    selectedProviders: Provider[],
   ) => {
-    // Logic: 1 provider = 'pending', otherwise (0 or >1) = 'searching'
-    const requestStatus =
-      selectedProviders.length === 1 ? "pending" : "searching";
+    // 1. Check if we are in "auto-select" mode (no providers selected)
+    const isAutoSelect = selectedProviders.length === 0;
+    const requestStatus = isAutoSelect ? "searching" : "pending";
+
+    // 2. Map selected providers to RequestProvider type with the mandatory individual status
+    const mappedProviders: RequestProvider[] = selectedProviders.map((p) => ({
+      ...p,
+      status: "pending",
+    }));
+
+    // 3. Find the full service object from the serviceStore to include all its data
+    // (icon, fellowships, expertiseLevel, etc.)
+    const serviceStore = useServiceStore();
+    const fullServiceData = serviceStore.services.find(
+      (s) => s.id === serviceId,
+    );
 
     const newRequestMessage: Message = {
       id: Math.floor(Math.random() * -1000000),
@@ -259,11 +272,16 @@ export const useChatActionStore = defineStore("chatAction", () => {
         id: Math.floor(Math.random() * 10000),
         type: "add-person",
         request: {
+          // Spread all service data (label, fellowships, level, icon)
+          ...fullServiceData,
           id: serviceId,
           label: serviceLabel,
           status: requestStatus,
-          ...(selectedProviders.length > 0 && { provider: selectedProviders }),
-        } as Service,
+          // Always include the provider array (empty if auto-select)
+          provider: mappedProviders,
+          // Also include the service object explicitly as per your updated interface
+          service: fullServiceData,
+        } as ServiceRequest,
       },
     };
 

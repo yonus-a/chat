@@ -19,14 +19,13 @@
                         :icon="filterProps(filter.key).icon" :key="filter.key" @click="setFilter(filter.key)" />
                 </div>
                 <div class=" w-full h-90.5 mt-4 relative">
-                    <div v-if="!isLoading && providers.length > 0" class="w-full h-full">
+                    <div v-if="isLoading || providers.length > 0" class="w-full h-full">
                         <BVirtualVerticalList :items="providers" @load-more="serviceStore.fetchProviders(true)"
                             :hasNextPage="serviceStore.hasProviderNextPage" :loading="isLoading">
                             <template #item="{ item: medic }">
                                 <div class=" w-full pb-2">
                                     <MedicDisplay @click="toggleSelect(medic.id)" :isSelected="isSelected(medic.id)"
-                                        :medic="medic" :expertise="selectedExpertiseLabel"
-                                        :loading="isLoading && serviceStore.currentResultPage === 1" />
+                                        :medic="medic" :loading="isLoading && serviceStore.currentResultPage === 1" />
                                 </div>
                             </template>
                         </BVirtualVerticalList>
@@ -48,11 +47,12 @@
 </template>
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
-import { useServiceStore, useI18n, useChatActionStore } from '#imports';
+import { useServiceStore, useI18n, useChatActionStore, useAppToast } from '#imports';
 import MedicDisplay from './MedicDisplay.vue';
 import { useRoute } from 'vue-router';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
-import NoProviderImage from '/images/chat/no-provider-found.webp'
+import NoProviderImage from '/images/chat/no-provider-found.webp';
+import type { Provider } from '~/types/service';
 
 export default defineComponent({
     name: 'MedicSelector',
@@ -68,6 +68,7 @@ export default defineComponent({
         const chatActionStore = useChatActionStore()
         const activeFilter = ref('')
         const autoSelect = ref(true)
+        const { openToast } = useAppToast()
 
         const currentConversationId = computed(() => Number(route.params.id) || 0);
 
@@ -134,8 +135,8 @@ export default defineComponent({
         // 2. Watcher: When filters, search, or expertise changes, reset and fetch providers
         watch([field, searchText, activeFilter], () => {
             serviceStore.resetProviderData();
-            // Trigger initial fetch for the new parameters
-            serviceStore.fetchProviders(false);
+            // Trigger initial fetch with explicit parameters for serviceId and searchString
+            serviceStore.fetchProviders(false, field.value, searchText.value);
         }, { immediate: false });
 
         const filterProps = (type: string) => {
@@ -148,6 +149,10 @@ export default defineComponent({
 
         const toggleSelect = (id: number) => {
             if (isLoading.value) return
+            if (!isSelected(id) && selectedMedics.value.length >= 5) {
+                openToast(t('chat.addMedic.error.maxMedics'), 'error')
+                return
+            }
             const index = selectedMedics.value.indexOf(id);
             if (index > -1) {
                 selectedMedics.value.splice(index, 1);
@@ -161,7 +166,7 @@ export default defineComponent({
 
         const buttonProps = computed(() => {
             let buttonText = t('chat.addMedic.buttonText.single')
-            let disabled = !autoSelect.value && selectedMedics.value.length === 0;
+            let disabled = !autoSelect.value && (selectedMedics.value.length > 5 || selectedMedics.value.length === 0);
             if (selectedMedics.value.length > 1) {
                 buttonText = t('chat.addMedic.buttonText.multiple', { count: selectedMedics.value.length })
             }
@@ -171,25 +176,33 @@ export default defineComponent({
             }
         })
 
-        watch(() => providers.value, () => {
-            console.log(providers.value)
-        })
+
 
         watch(() => autoSelect.value, () => {
+            resetComponent()
+        })
+
+        const resetComponent = () => {
             if (!autoSelect.value) {
                 searchText.value = ''
                 activeFilter.value = ''
+                selectedMedics.value = []
             }
-        })
+        }
+
+
 
 
         const selectMedic = () => {
             if (field.value === -1) return;
             if (!autoSelect.value && selectedMedics.value.length === 0) return;
 
-            let providersToSend: any[] = [];
+            let providersToSend: Provider[] = [];
+
             if (!autoSelect.value) {
-                providersToSend = serviceStore.providers.filter(p => selectedMedics.value.includes(p.id));
+                providersToSend = serviceStore.providers.filter(p =>
+                    selectedMedics.value.includes(p.id)
+                );
             }
 
             chatActionStore.sendServiceRequest(
@@ -198,8 +211,10 @@ export default defineComponent({
                 selectedExpertiseLabel.value,
                 providersToSend
             );
-
             emit('close');
+            setTimeout(() => {
+                resetComponent()
+            }, 300)
         };
 
 

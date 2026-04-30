@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { Contact } from "~/types/chat";
-import type { Service } from "~/types/service";
+import type { Provider, Service, Fellowship } from "~/types/service";
+import type { Clinic } from "~/types/clinic";
 
 export const useServiceStore = defineStore("service", () => {
   // --- State ---
@@ -15,24 +15,42 @@ export const useServiceStore = defineStore("service", () => {
 
   const services = ref<Service[]>([]);
 
-  // Initialize with "skeleton" objects at definition line using fill
-  const providers = ref<Contact[]>(
-    new Array(10).fill({
-      id: -1,
-      name: "...",
-      lastName: "...",
-      isOnline: false,
-      lastSeen: new Date(),
-      imageUrl: "",
-      phoneNumber: "",
-      isActive: false,
-      birthDate: new Date(),
-      serviceType: "chat",
-      unreadCount: 0,
-    } as Contact),
+  // Helper to create a skeleton Provider
+  const createSkeletonProvider = (): Provider => ({
+    id: -1,
+    name: "...",
+    lastName: "...",
+    isOnline: false,
+    lastSeen: new Date(),
+    imageUrl: "",
+    phoneNumber: "",
+    isActive: false,
+    birthDate: new Date(),
+    serviceType: "chat",
+    expertise: "...",
+    type: "public",
+    service: {} as Service,
+    clinics: [],
+    fellowships: [],
+  });
+
+  const providers = ref<Provider[]>(
+    new Array(10).fill(null).map(createSkeletonProvider),
   );
 
   // --- Mocks ---
+  const mockFellowships: Fellowship[] = [
+    { id: 101, title: "فلوشیپ اینترونشنال کاردیولوژی" },
+    { id: 102, title: "فلوشیپ اکوکاردیوگرافی" },
+    { id: 103, title: "فلوشیپ جراحی زانو" },
+    { id: 104, title: "فلوشیپ سم‌شناسی" },
+  ];
+
+  const mockClinics: Clinic[] = [
+    { id: 501, title: 120, latitude: 35.7219, longitude: 51.3347 }, // Title as number per your type
+    { id: 502, title: 130, latitude: 35.7, longitude: 51.4 },
+  ];
+
   const mockProviderBase = {
     firstNames: [
       "Amir",
@@ -61,81 +79,111 @@ export const useServiceStore = defineStore("service", () => {
       "https://i.pravatar.cc/150?u=5",
     ],
   };
-
   // --- Actions ---
 
-  /**
-   * Resets provider pagination and list
-   */
   const resetProviderData = () => {
-    // Restore the 10 skeletons so the Virtual List remains populated while loading
-    providers.value = new Array(10).fill({
-      id: -1,
-      name: "...",
-      lastName: "...",
-      isOnline: false,
-      lastSeen: new Date(),
-      imageUrl: "",
-      phoneNumber: "",
-      isActive: false,
-      birthDate: new Date(),
-      serviceType: "chat",
-      unreadCount: 0,
-    } as Contact);
-
+    providers.value = new Array(10).fill(null).map(createSkeletonProvider);
     currentResultPage.value = 1;
     hasProviderNextPage.value = true;
   };
 
-  /**
-   * Simulated Service Fetch
-   */
   const fetchServices = async () => {
     isLoadingServices.value = true;
-
-    // Simulate API Delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     services.value = [
-      { id: 1, label: "پزشک قلب" },
-      { id: 2, label: "پزشک متخصص ریه" },
-      { id: 3, label: "متخصص ارتوپدی" },
-      { id: 4, label: "متخصص مغز و اعصاب" },
-      { id: 5, label: "متخصص گوش، حلق و بینی" },
-      { id: 6, label: "چشم پزشک" },
+      {
+        id: 1,
+        label: "پزشک قلب",
+        expertiseLevel: "speciality",
+        fellowships: [mockFellowships[0]!, mockFellowships[1]!],
+        price: 100000,
+      },
+      {
+        id: 2,
+        label: "پزشک متخصص ریه",
+        expertiseLevel: "speciality",
+        fellowships: [],
+        price: 200000,
+      },
+      {
+        id: 3,
+        label: "متخصص ارتوپدی",
+        expertiseLevel: "sub-speciality",
+        fellowships: [mockFellowships[2]!],
+        price: 300000,
+      },
+      {
+        id: 4,
+        label: "متخصص مغز و اعصاب",
+        expertiseLevel: "speciality",
+        fellowships: [],
+        price: 100000,
+      },
+      {
+        id: 5,
+        label: "متخصص گوش، حلق و بینی",
+        expertiseLevel: "speciality",
+        fellowships: [],
+        price: 200000,
+      },
+      {
+        id: 6,
+        label: "چشم پزشک",
+        expertiseLevel: "speciality",
+        fellowships: [mockFellowships[3]!],
+        price: 400000,
+      },
     ];
 
     isLoadingServices.value = false;
   };
+
   /**
-   * Simulated Provider Fetch with Pagination and Search
+   * Updated Provider Fetch with specific Service ID and Search String
    */
-  const fetchProviders = async (isLoadMore = false) => {
+  const fetchProviders = async (
+    isLoadMore = false,
+    serviceId?: number,
+    searchString?: string,
+  ) => {
     if (isLoading.value || (!hasProviderNextPage.value && isLoadMore)) return;
 
     isLoading.value = true;
+    const effectiveServiceId = serviceId ?? selectedServiceId.value;
 
     if (!isLoadMore) {
       resetProviderData();
     }
 
-    // Simulate API Delay
     await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    // Mocking an API response limit (stop at page 5)
     if (currentResultPage.value >= 5) {
       hasProviderNextPage.value = false;
       isLoading.value = false;
       return;
     }
 
-    const newProviders: Contact[] = Array.from({
-      length: providersPerPage.value,
-    }).map((_, index) => {
-      const randomId = Math.floor(Math.random() * 10000);
-      const hasImage = Math.random() > 0.2; // 80% have images
+    // Fix: Ensure we have a valid service object even if the state is empty
+    let currentService = services.value.find(
+      (s) => s.id === effectiveServiceId,
+    );
 
-      const contact: Contact = {
+    if (!currentService) {
+      // Fallback to a default mock service so fellowships aren't empty during testing
+      currentService = {
+        id: 1,
+        label: "پزشک قلب",
+        expertiseLevel: "speciality",
+        fellowships: [mockFellowships[0]!, mockFellowships[1]!],
+      };
+    }
+
+    const newProviders: Provider[] = Array.from({
+      length: providersPerPage.value,
+    }).map(() => {
+      const randomId = Math.floor(Math.random() * 10000);
+      return {
         id: randomId,
         name: mockProviderBase.firstNames[
           Math.floor(Math.random() * mockProviderBase.firstNames.length)
@@ -146,26 +194,22 @@ export const useServiceStore = defineStore("service", () => {
           ],
         isOnline: Math.random() > 0.5,
         lastSeen: new Date(),
-        imageUrl: hasImage
-          ? mockProviderBase.images[
-              Math.floor(Math.random() * mockProviderBase.images.length)
-            ]
-          : "",
+        imageUrl:
+          mockProviderBase.images[
+            Math.floor(Math.random() * mockProviderBase.images.length)
+          ],
         phoneNumber: "0913" + Math.floor(1000000 + Math.random() * 9000000),
         isActive: true,
         birthDate: new Date(1990, 0, 1),
         unreadCount: 0,
-        serviceType: ["video-call", "voice-call", "chat"][
-          Math.floor(Math.random() * 3)
-        ] as any,
+        serviceType: "chat",
+        // Provider fields
+        expertise: currentService!.label,
+        type: "public",
+        service: currentService!,
+        clinics: [mockClinics[0]!],
+        fellowships: currentService!.fellowships, // This will no longer be empty
       };
-
-      // Randomly strip the imageUrl key entirely for some to test "missing key" logic
-      if (!hasImage && Math.random() > 0.5) {
-        delete (contact as any).imageUrl;
-      }
-
-      return contact;
     });
 
     if (currentResultPage.value === 1) {

@@ -65,6 +65,10 @@ export interface AccessRequest {
   status: status;
 }
 
+export interface RequestProvider extends Provider {
+  status: "pending" | "approved" | "payment" | "rejected" | "expired";
+}
+
 export interface ServiceRequest extends Service {
   status?:
     | "searching"
@@ -73,6 +77,7 @@ export interface ServiceRequest extends Service {
     | "payment"
     | "rejected"
     | "expired";
-  provider?: Provider[];
+  provider?: RequestProvider[];
+  service?: Service;
   invoice?: Invoice;
 }

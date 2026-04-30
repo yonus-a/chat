@@ -11,14 +11,18 @@
                     </div>
                 </div>
                 <div class=" flex-1 text-on-surface">
-                    <div class="text-label-md" v-loading="message.request?.request.status === 'searching'">{{
-                        attachedProvider !== null ? `${attachedProvider?.name}
+                    <div class="text-label-md"
+                        :class="[message.request?.request.status === 'searching' ? ' max-w-30' : '']"
+                        v-loading="message.request?.request.status === 'searching'">{{
+                            attachedProvider !== null ? `${attachedProvider?.name}
                         ${attachedProvider?.lastName}` : t('chat.requestCard.addMedic.title') }}</div>
                     <div class="text-body-sm opacity-50">{{ request?.request?.label }}
                     </div>
                 </div>
                 <div class=" shrink-0 select-none text-on-surface text-label-md flex items-center gap-x-2">
-                    <div v-if="invoiceDetails">{{ invoiceDetails.amount }}</div>
+                    <!-- 
+                        <div v-if="invoiceDetails">{{ invoiceDetails.amount }}</div>
+                        -->
                     <div v-loading="message.request?.request.status === 'searching'">{{ t('general.currency') }}</div>
                 </div>
             </div>
@@ -74,6 +78,10 @@ export default defineComponent({
             }
         })
 
+        onMounted(() => {
+            console.log(props.message.request)
+        })
+
         const cardSubText = computed(() => {
             let text = ''
             if (request.value?.type === 'add-person') {
@@ -100,20 +108,15 @@ export default defineComponent({
 
         onMounted(() => {
             nextTick(() => {
-                console.log('request', request.value)
-                console.log(attachedProvider.value)
-                if (request.value?.type === 'add-person') {
-                    console.log(request.value.request)
-                    console.log('invoice', invoiceDetails.value)
-                }
+                console.log(props.message)
             })
         })
 
-        const invoiceDetails = computed(() => {
-            if (request.value?.type !== 'add-person') return null
-            if (!request.value.request.invoice) return null
-            return request.value.request.invoice
-        })
+        //   const invoiceDetails = computed(() => {
+        //       if (request.value?.type !== 'add-person') return null
+        //       if (!request.value.request.invoice) return null
+        //       return request.value.request.invoice
+        //   })
 
         return {
             t,
@@ -121,7 +124,7 @@ export default defineComponent({
             isServiceRequest,
             attachedProvider,
             request,
-            invoiceDetails,
+            //  invoiceDetails,
         }
     }
 })

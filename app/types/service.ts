@@ -23,4 +23,5 @@ export interface Service {
   label: string;
   fellowships: Fellowship[];
   expertiseLevel: "speciality" | "sub-speciality";
+  price: number;
 }
