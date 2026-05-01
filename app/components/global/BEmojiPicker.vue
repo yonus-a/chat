@@ -1,91 +1,99 @@
 <template>
-  <ClientOnly>
-    <div class="b-emoji-picker relative" @click.stop>
-      <emoji-picker ref="picker" data-source="/data/emoji-data.json" class="light"
-        @emoji-click="$emit('select', $event.detail.unicode)"></emoji-picker>
+  <div class="w-[350px] bg-surface rounded-2xl flex flex-col shadow-floating border border-outline-variant" dir="rtl">
+    
+    <!-- Emoji Grid (Search Removed) -->
+    <!-- Added pt-3 so it doesn't look cramped at the top without the search bar -->
+    <div class="h-[280px] overflow-y-auto hide-scrollbar px-3 pt-3 pb-3 grid grid-cols-8 gap-x-1 gap-y-2 content-start">
+      <div
+        v-for="emoji in currentEmojis"
+        :key="emoji.hex"
+        @click="$emit('select', emoji.native)"
+        class="flex items-center justify-center w-8 h-8 cursor-pointer hover:bg-surface-variant rounded-md transition-colors"
+      >
+        <!-- Loads exactly from your specified WebP path -->
+        <img
+          :src="`/emojis/apple/webp/${emoji.hex}.webp`" 
+          :alt="emoji.native"
+          class="w-6 h-6 object-contain"
+          loading="lazy"
+        />
+      </div>
     </div>
 
-    <template #fallback>
-      <div class="w-[350px] h-[350px] bg-surface/50 animate-pulse rounded-2xl border border-outline-variant" />
-    </template>
-  </ClientOnly>
+    <!-- Bottom Navigation (With the exact purple border) -->
+    <div class="flex items-center justify-between px-2 py-2 border-t-[1.5px] border-[#8e8cd8]">
+      <button 
+        v-for="cat in categories" 
+        :key="cat.id" 
+        @click="activeCategory = cat.id"
+        class="p-1.5 rounded-md hover:bg-surface-variant transition-colors"
+      >
+        <BIcon 
+          :icon="cat.icon" 
+          class="w-6 h-6 cursor-pointer transition-colors" 
+          :class="activeCategory === cat.id ? 'fill-primary' : 'fill-on-surface/50'" 
+        />
+      </button>
+    </div>
+
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+// We only import the raw category and hex data from emoji-mart
+import data from '@emoji-mart/data';
 
 const emit = defineEmits(['select']);
-const picker = ref<HTMLElement | null>(null);
-let shadowHunter: ReturnType<typeof setInterval> | null = null;
+const activeCategory = ref('people'); // Default starting category
 
-onMounted(() => {
-  // Nuxt's ClientOnly delays the shadow root. We hunt for it every 50ms until it exists.
-  shadowHunter = setInterval(() => {
-    if (picker.value && picker.value.shadowRoot) {
-      clearInterval(shadowHunter!); // We found it, stop hunting.
+// Maps your bottom icons to the exact category IDs in the emoji-mart JSON
+const categories = [
+  { id: 'recent', icon: 'PhClock' }, // Note: We mock 'recent' below
+  { id: 'people', icon: 'PhSmiley' },
+  { id: 'nature', icon: 'PhPawPrint' },
+  { id: 'foods', icon: 'PhHamburger' },
+  { id: 'activity', icon: 'PhSoccerBall' },
+  { id: 'places', icon: 'PhBuildings' },
+  { id: 'objects', icon: 'PhLightbulb' },
+  { id: 'symbols', icon: 'PhMusicNotes' },
+  { id: 'flags', icon: 'PhFlag' }
+];
 
-      const style = document.createElement('style');
-      style.textContent = `
-        /* 1. ANNIHILATE THE SEARCH ROW AND NAV */
-        .search-row, 
-        [part="search"], 
-        nav, 
-        [part="nav"] {
-          display: none !important;
-          opacity: 0 !important;
-          visibility: hidden !important;
-          height: 0 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          pointer-events: none !important;
-          position: absolute !important;
-        }
+// Dynamically grab the emojis for the selected category
+const currentEmojis = computed(() => {
+  // Mock logic for "Recent" since we don't have a database saving them yet
+  if (activeCategory.value === 'recent') {
+    const peopleCat = data.categories.find(c => c.id === 'people');
+    return peopleCat.emojis.slice(0, 24).map(getEmojiData);
+  }
 
-        /* 2. STYLE THE SCROLLBAR EXACTLY AS REQUESTED */
-        .tabpanel::-webkit-scrollbar {
-          width: 2px !important;
-          height: 2px !important;
-        }
-
-        .tabpanel::-webkit-scrollbar-thumb {
-          background: var(--background-image-gradient-primary-secondary) !important;
-          border-radius: 10px !important;
-        }
-        
-        /* 3. ENSURE TRANSPARENCY */
-        section, .tabpanel {
-          background: transparent !important;
-        }
-      `;
-
-      picker.value.shadowRoot.appendChild(style);
-    }
-  }, 50);
-
-  // Safety clear just in case the element never renders
-  setTimeout(() => {
-    if (shadowHunter) clearInterval(shadowHunter);
-  }, 5000);
+  // Normal category loading
+  const cat = data.categories.find(c => c.id === activeCategory.value);
+  if (!cat) return [];
+  
+  return cat.emojis.map(getEmojiData);
 });
 
-onUnmounted(() => {
-  if (shadowHunter) clearInterval(shadowHunter);
-});
+// Helper to extract the hex code and native character from the raw JSON
+const getEmojiData = (emojiId: string) => {
+  const e = data.emojis[emojiId];
+  return {
+    // e.skins[0].unified is the hex code (e.g., '1f600')
+    hex: e.skins[0].unified,
+    // e.skins[0].native is the actual character (e.g., '😀')
+    native: e.skins[0].native 
+  };
+};
 </script>
 
 <style scoped>
-emoji-picker {
-  /* Nuke outer bounds and background */
-  --background: transparent;
-  --border-size: 0;
-  --border-color: transparent;
-  --input-border-size: 0;
-  --button-hover-background: transparent;
-  --button-active-background: transparent;
-  --indicator-color: var(--color-primary);
-  max-width: 350px;
-  height: 350px;
-  /* Adjust height since we removed the top bar */
-  border: none !important;
+/* Hides the ugly native scrollbar but allows scrolling */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

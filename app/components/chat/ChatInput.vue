@@ -69,7 +69,7 @@
                         <template #trigger>
                             <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent />
                         </template>
-                        <div class="mb-4">
+                        <div class="">
                             <BEmojiPicker @select="handleEmojiSelect" />
                         </div>
                     </BMenu>
