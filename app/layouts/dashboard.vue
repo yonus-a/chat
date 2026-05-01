@@ -33,12 +33,10 @@ const scrollThreshold = 10;
 
 const handleScroll = () => {
     const currentScrollY = pageContainer.value?.scrollTop;
-
     if (!currentScrollY) return
     if (currentScrollY > lastScrollY.value + scrollThreshold && storiesStore.isStoriesOpen) {
         storiesStore.isStoriesOpen = false;
     }
-
     lastScrollY.value = currentScrollY;
 };
 

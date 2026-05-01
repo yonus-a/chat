@@ -66,8 +66,8 @@
             :class="isStoriesOpen ? 'max-h-25 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'">
             <div class="flex items-center gap-x-2 px-4 overflow-x-auto hide-scrollbar pb-2 pt-1 w-full">
                 <!-- shrink-0 prevents flexbox from squishing them below 60px -->
-                <StoryDisplay v-for="story in stories" :key="'open-' + story.id" :story="story" size="lg"
-                    class="shrink-0" />
+                <StoryDisplay @click="openStory(story.id)" v-for="story in stories" :key="'open-' + story.id"
+                    :story="story" size="lg" class="shrink-0" />
             </div>
         </div>
 
@@ -125,6 +125,10 @@ export default defineComponent({
 
         useClickOutside(headerWrapper, closeStories);
 
+        const openStory = (id: number) => {
+            
+        }
+
 
         return {
             t,
@@ -137,6 +141,7 @@ export default defineComponent({
             toggleStories,
             stories,
             headerWrapper,
+            openStory,
             isStoriesOpen // Exposed to template
         }
     }
