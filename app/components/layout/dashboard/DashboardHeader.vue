@@ -99,7 +99,11 @@ export default defineComponent({
 
 
         const searchText = ref('')
-        const isStoriesOpen = ref(false) // Toggle State
+
+        const isStoriesOpen = computed({
+            get: () => storiesStore.isStoriesOpen,
+            set: (val) => storiesStore.isStoriesOpen = val
+        })
 
         const initSearch = () => { }
         const openSearch = () => { }

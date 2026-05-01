@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import type { Story } from "~/types/story";
 
 export const useStoriesStore = defineStore("stories", () => {
+  const isStoriesOpen = ref(false);
   const stories = ref<Story[]>([
     {
       id: 1,
@@ -54,5 +55,6 @@ export const useStoriesStore = defineStore("stories", () => {
     fetchStories,
     isLoadingStories,
     stories,
+    isStoriesOpen,
   };
 });
