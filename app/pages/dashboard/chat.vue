@@ -4,7 +4,6 @@
             <NuxtPage v-if="isInChat" />
             <div v-else class=" w-full h-full flex items-center justify-center ">
                 <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
-                <BEmojiPicker />
             </div>
         </div>
 
