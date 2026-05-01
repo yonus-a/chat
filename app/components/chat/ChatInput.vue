@@ -158,26 +158,6 @@ export default defineComponent({
             });
         }
 
-        // 2. REPLACE YOUR PREVIOUS WATCHERS WITH THESE
-        //     watch(() => chatActionStore.editingMessage, (msg) => {
-        //         if (msg) {
-        //             textMode.value = 'edit';
-        //             editingMessageData.value = msg;
-        //             messageText.value = msg.text || ''; // Inject text
-
-        //             nextTick(() => {
-        //                 inputRef.value?.focus();
-        //                 adjustHeight();
-        //             });
-        //         } else if (textMode.value === 'edit') {
-        //             // Only reset if we were actually in edit mode
-        //             textMode.value = 'normal';
-        //             editingMessageData.value = null;
-        //             messageText.value = '';
-        //             nextTick(() => adjustHeight());
-        //         }
-        //     });
-
         watch(() => chatActionStore.replyingTo, (msg) => {
             if (msg) {
                 textMode.value = 'reply';
