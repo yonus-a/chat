@@ -1,5 +1,5 @@
 <template>
-    <div class=" p-3 w-80  bg-surface rounded-2xl shadow-floating">
+    <div class=" p-3 w-80 flex flex-col gap-y-3 bg-surface rounded-2xl shadow-floating">
         <div class=" w-full flex flex-col gap-y-3 h-full" v-if="isServiceRequest">
             <div class=" transition-all duration-200 ease-in-out select-none text-label-sm"
                 :class="[isPending ? 'text-on-surface/50' : 'text-on-surface']">{{ t('chat.addMedic.title') }}</div>
@@ -21,13 +21,31 @@
             <div class=" w-full text-center select-none text-label-sm"
                 :class="[isCanceled ? 'text-error' : 'text-primary']">{{ cardSubText }}
             </div>
-            <div class=" w-full flex items-center gap-x-3">
-                <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
-                    :disabled="button.disabled" :color="button.color" :type="button.type" :text="button.text"
-                    @click="handleAction(button.key)" />
+
+        </div>
+        <div class=" w-full flex flex-col justify-center gap-y-3 items-center" v-else>
+            <div v-if="infoAccessContent && request?.request.status == 'pending'" class="w-full flex flex-col gap-y-2">
+                <div class="text-label-sm text-on-surface opacity-50 select-none">
+                    {{ infoAccessContent.title }}
+                </div>
+                <div class="text-body-sm text-on-surface leading-relaxed">
+                    {{ infoAccessContent.description }}
+                </div>
+            </div>
+            <div v-else-if="infoAccessContent"
+                class="w-full flex flex-col gap-y-3 items-center select-none justify-center py-2">
+                <BIcon weight="fill" :icon="infoAccessContent.icon" :class="[`fill-${infoAccessContent.color}`]"
+                    class="w-14 h-14" />
+                <div :class="[`text-${infoAccessContent.color}`]" class="text-label-md font-medium text-center">
+                    {{ infoAccessContent.text }}
+                </div>
             </div>
         </div>
-        <div v-else class=" w-full"></div>
+        <div class=" w-full flex items-center gap-x-3">
+            <BButton class=" shrink-0 flex-1 " v-for="button in requestButtonProps" :key="button.key"
+                :disabled="button.disabled" :color="button.color" :type="button.type" :text="button.text"
+                @click="handleAction(button.key)" />
+        </div>
     </div>
 </template>
 <script lang="ts">
@@ -81,7 +99,7 @@ export default defineComponent({
             console.log(props.message.request)
         })
 
-        const isMedic = computed(() => profileStore.userData.id == props.message.senderId)
+        const isMedic = computed(() => profileStore.userData.id == props.message.senderId && profileStore.chosenRole !== 'user')
 
         const cardSubText = computed(() => {
             let text = ''
@@ -121,39 +139,69 @@ export default defineComponent({
         })
 
         const requestButtonProps = computed(() => {
-            if (request.value?.type !== 'add-person') return null;
+            if (request.value?.type === 'add-person') {
 
-            const status = request.value.request.status;
-            const isSelf = isMedic.value;
-            const providersList = providers.value || [];
 
-            // 1. Handle Failed/Ended states
-            if (['expired', 'rejected'].includes(status)) {
-                return [{ type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.retry'), key: 'resend-request' }];
-            }
+                const status = request.value.request.status;
+                const isSelf = isMedic.value;
+                const providersList = providers.value || [];
 
-            // 2. Handle Active/Searching states
-            if (['pending', 'searching'].includes(status)) {
-                return isSelf
-                    ? [{ type: 'outline', color: 'error', text: t('chat.requestCard.addMedic.cancel'), key: 'cancel-request' }]
-                    : [
-                        { type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.confirmRequest'), key: 'approve-request-user' },
-                        { type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.reject'), key: 'reject-medic-request' }
+                // 1. Handle Failed/Ended states
+                if (['expired', 'rejected'].includes(status)) {
+                    return [{ type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.retry'), key: 'resend-request' }];
+                }
+
+                // 2. Handle Active/Searching states
+                if (['pending', 'searching'].includes(status)) {
+                    return isSelf
+                        ? [{ type: 'outline', color: 'error', text: t('chat.requestCard.addMedic.cancel'), key: 'cancel-request' }]
+                        : [
+                            { type: 'fill', color: 'primary', text: t('chat.requestCard.addMedic.confirmRequest'), key: 'approve-request-user' },
+                            { type: 'fill', color: 'secondary', text: t('chat.requestCard.addMedic.reject'), key: 'reject-medic-request' }
+                        ];
+                }
+
+                // 3. Handle Payment state (Only shown to the patient)
+                if (status === 'payment' && !isSelf) {
+                    // Condition: Disabled if NO provider has reached the 'payment' status
+                    const hasPaymentProvider = providersList.some(p => p.status === 'payment');
+
+                    return [{
+                        type: 'fill',
+                        color: 'primary',
+                        text: t('chat.requestCard.addMedic.pay'),
+                        key: 'pay-request',
+                        disabled: !hasPaymentProvider
+                    }];
+                }
+            } else {
+                const status = request.value?.request.status
+
+                if (status !== 'pending') return null;
+
+                if (isMedic.value) {
+                    return [{
+                        type: 'fill',
+                        color: 'secondary',
+                        text: t('chat.requestCard.infoAccess.cancelRequest'),
+                        key: 'cancel-request'
+                    }];
+                } else {
+                    return [
+                        {
+                            type: 'fill',
+                            color: 'primary',
+                            text: t('chat.requestCard.infoAccess.confirmAndShare'),
+                            key: 'confirm-access'
+                        },
+                        {
+                            type: 'fill',
+                            color: 'secondary',
+                            text: t('chat.requestCard.infoAccess.cancel'),
+                            key: 'reject-access'
+                        }
                     ];
-            }
-
-            // 3. Handle Payment state (Only shown to the patient)
-            if (status === 'payment' && !isSelf) {
-                // Condition: Disabled if NO provider has reached the 'payment' status
-                const hasPaymentProvider = providersList.some(p => p.status === 'payment');
-
-                return [{
-                    type: 'fill',
-                    color: 'primary',
-                    text: t('chat.requestCard.addMedic.pay'),
-                    key: 'pay-request',
-                    disabled: !hasPaymentProvider
-                }];
+                }
             }
 
             return null;
@@ -184,6 +232,50 @@ export default defineComponent({
             }
         };
 
+        const infoAccessContent = computed(() => {
+            const req = request.value;
+            if (req?.type !== 'personal-info') return null;
+
+            const status = req.request.status
+            const isSelf = isMedic.value;
+
+            if (status === 'pending') {
+                return {
+                    title: isSelf
+                        ? t('chat.requestCard.infoAccess.medicTitle')
+                        : t('chat.requestCard.infoAccess.patientTitle'),
+                    description: isSelf
+                        ? t('chat.requestCard.infoAccess.medicDescription')
+                        : t('chat.requestCard.infoAccess.patientDescription')
+                };
+            } else {
+                let icon = 'PhXSquare';
+                let color = 'error';
+                let text = '';
+
+                if (status === 'approved') {
+                    color = 'secondary'; 
+                    icon = 'PhCheckSquare';
+                }
+
+                switch (status) {
+                    case 'approved':
+                        text = isSelf
+                            ? t('chat.requestCard.infoAccess.medicSuccess')
+                            : t('chat.requestCard.infoAccess.patientSuccess');
+                        break;
+                    case 'expired':
+                        text = t('chat.requestCard.infoAccess.requestExpired');
+                        break;
+                    case 'rejected':
+                        text = t('chat.requestCard.infoAccess.medicReject');
+                        break;
+                }
+
+                return { icon, color, text };
+            }
+        });
+
 
         return {
             handleAction,
@@ -196,6 +288,7 @@ export default defineComponent({
             providers,
             requestButtonProps,
             isCanceled,
+            infoAccessContent,
         }
     }
 })
