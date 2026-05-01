@@ -1,38 +1,23 @@
 <template>
-  <div class="w-[350px] bg-surface rounded-2xl flex flex-col shadow-floating border border-outline-variant" dir="rtl">
-    
+  <div class="md:w-87.5 flex bg-surface md:rounded-2xl flex-col " dir="rtl">
+
     <!-- Emoji Grid (Search Removed) -->
     <!-- Added pt-3 so it doesn't look cramped at the top without the search bar -->
-    <div class="h-[280px] overflow-y-auto hide-scrollbar px-3 pt-3 pb-3 grid grid-cols-8 gap-x-1 gap-y-2 content-start">
-      <div
-        v-for="emoji in currentEmojis"
-        :key="emoji.hex"
-        @click="$emit('select', emoji.native)"
-        class="flex items-center justify-center w-8 h-8 cursor-pointer hover:bg-surface-variant rounded-md transition-colors"
-      >
+    <div class=" h-49.5 md:h-94.5 overflow-y-auto hide-scrollbar px-3 pt-3 pb-3 grid grid-cols-8 gap-x-1 gap-y-2 content-start">
+      <div v-for="emoji in currentEmojis" :key="emoji.hex" @click="$emit('select', emoji.native)"
+        class="flex items-center justify-center w-8 h-8 cursor-pointer hover:bg-surface-variant rounded-md transition-colors">
         <!-- Loads exactly from your specified WebP path -->
-        <img
-          :src="`/emojis/apple/webp/${emoji.hex}.webp`" 
-          :alt="emoji.native"
-          class="w-6 h-6 object-contain"
-          loading="lazy"
-        />
+        <img :src="`/emojis/apple/webp/${emoji.hex}.webp`" :alt="emoji.native" class="w-6 h-6 object-contain"
+          loading="lazy" />
       </div>
     </div>
 
     <!-- Bottom Navigation (With the exact purple border) -->
-    <div class="flex items-center justify-between px-2 py-2 border-t-[1.5px] border-[#8e8cd8]">
-      <button 
-        v-for="cat in categories" 
-        :key="cat.id" 
-        @click="activeCategory = cat.id"
-        class="p-1.5 rounded-md hover:bg-surface-variant transition-colors"
-      >
-        <BIcon 
-          :icon="cat.icon" 
-          class="w-6 h-6 cursor-pointer transition-colors" 
-          :class="activeCategory === cat.id ? 'fill-primary' : 'fill-on-surface/50'" 
-        />
+    <div class="flex items-center justify-between px-2 py-2  bg-surface-variant">
+      <button v-for="cat in categories" :key="cat.id" @click="activeCategory = cat.id"
+        class="p-1.5 rounded-md hover:bg-surface-variant transition-colors">
+        <BIcon :icon="cat.icon" class="w-6 h-6 cursor-pointer transition-colors"
+          :class="activeCategory === cat.id ? 'fill-primary' : 'fill-on-surface/50'" />
       </button>
     </div>
 
@@ -71,7 +56,7 @@ const currentEmojis = computed(() => {
   // Normal category loading
   const cat = data.categories.find(c => c.id === activeCategory.value);
   if (!cat) return [];
-  
+
   return cat.emojis.map(getEmojiData);
 });
 
@@ -82,7 +67,7 @@ const getEmojiData = (emojiId: string) => {
     // e.skins[0].unified is the hex code (e.g., '1f600')
     hex: e.skins[0].unified,
     // e.skins[0].native is the actual character (e.g., '😀')
-    native: e.skins[0].native 
+    native: e.skins[0].native
   };
 };
 </script>
@@ -92,6 +77,7 @@ const getEmojiData = (emojiId: string) => {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

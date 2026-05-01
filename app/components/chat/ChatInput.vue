@@ -60,19 +60,27 @@
                 <div class=" min-h-11 flex items-center w-full">
                     <textarea @keydown.esc.exact.prevent="cancelAction" @keydown.enter.exact.prevent="sendMessage"
                         @input="adjustHeight" ref="inputRef" v-model="messageText" :disabled="inputDisabled" rows="1"
-                        :placeholder="inputPlaceholder"
+                        @focus="onInputFocus" @blur="saveCursorPosition" @keyup="saveCursorPosition"
+                        @mouseup="saveCursorPosition" :placeholder="inputPlaceholder"
                         class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 resize-none  max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1"></textarea>
 
                 </div>
                 <div class="shrink-0 flex items-center gap-x-8 z-10  h-11" :class="[iconClass]">
-                    <BMenu ref="menuRef">
-                        <template #trigger>
-                            <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent />
-                        </template>
-                        <div class="">
-                            <BEmojiPicker @select="handleEmojiSelect" />
-                        </div>
-                    </BMenu>
+                    <div class="hidden md:block">
+                        <BMenu ref="menuRef">
+                            <template #trigger>
+                                <BIcon icon="PhSmiley" class="cursor-pointer w-6 h-6 fill-on-surface"
+                                    @mousedown.prevent />
+                            </template>
+                            <div class="">
+                                <BEmojiPicker @select="handleEmojiSelect" />
+                            </div>
+                        </BMenu>
+                    </div>
+
+                    <!-- MOBILE: Toggle Button -->
+                    <BIcon icon="PhSmiley" class="md:hidden cursor-pointer w-6 h-6 fill-on-surface" @mousedown.prevent
+                        @click="toggleMobileEmoji" />
                     <InputAttachement :initial-caption="messageText" @send-attachments="handleAttachments" />
                 </div>
             </div>
@@ -97,6 +105,10 @@
                 </div>
             </div>
             <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
+        </div>
+        <div class="md:hidden w-full transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] overflow-hidden"
+            :class="showMobileEmojiPicker ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'">
+            <BEmojiPicker @select="handleEmojiSelect" />
         </div>
     </div>
 </template>
@@ -345,19 +357,7 @@ export default defineComponent({
             nextTick(() => adjustHeight());
         };
 
-        const handleEmojiSelect = (emoji: string) => {
-            if (!inputRef.value) return;
-            const start = inputRef.value.selectionStart ?? messageText.value.length;
-            const end = inputRef.value.selectionEnd ?? messageText.value.length;
-            messageText.value = messageText.value.substring(0, start) + emoji + messageText.value.substring(end);
 
-            nextTick(() => {
-                const newPos = start + emoji.length;
-                inputRef.value?.setSelectionRange(newPos, newPos);
-                inputRef.value?.focus();
-                adjustHeight();
-            });
-        };
 
         const handlePointerDown = (event: PointerEvent) => {
             if (messageText.value.trim().length > 0) {
@@ -410,6 +410,61 @@ export default defineComponent({
             return `${replyingToMessageData.value?.contact?.name}`
         })
 
+        // --- Add these new refs ---
+        const showMobileEmojiPicker = ref(false);
+        const lastCursorPos = ref({ start: 0, end: 0 });
+
+        // --- Add these new methods ---
+        const saveCursorPosition = () => {
+            if (inputRef.value) {
+                lastCursorPos.value = {
+                    start: inputRef.value.selectionStart || 0,
+                    end: inputRef.value.selectionEnd || 0
+                };
+            }
+        };
+
+        const onInputFocus = () => {
+            // When user taps the input field, keyboard pops up, so hide the emoji picker
+            showMobileEmojiPicker.value = false;
+        };
+
+        const toggleMobileEmoji = () => {
+            showMobileEmojiPicker.value = !showMobileEmojiPicker.value;
+            if (showMobileEmojiPicker.value) {
+                saveCursorPosition(); // Save where we were typing
+                inputRef.value?.blur(); // Telegram UX: Blur input to hide the mobile keyboard
+            }
+        };
+
+        // --- REPLACE your existing handleEmojiSelect with this one ---
+        const handleEmojiSelect = (emoji: string) => {
+            if (!inputRef.value) return;
+
+            // If typing on desktop, ensure we have the absolute latest position before inserting
+            if (document.activeElement === inputRef.value) saveCursorPosition();
+
+            const start = lastCursorPos.value.start;
+            const end = lastCursorPos.value.end;
+
+            // Insert emoji at the tracked cursor position
+            messageText.value = messageText.value.substring(0, start) + emoji + messageText.value.substring(end);
+
+            const newPos = start + emoji.length;
+
+            // Update tracked position so the next emoji goes after this one
+            lastCursorPos.value = { start: newPos, end: newPos };
+
+            nextTick(() => {
+                // Telegram UX: Only refocus the input if we are NOT using the mobile picker.
+                // If we focus on mobile, the software keyboard will aggressively pop back up and cover the picker.
+                if (!showMobileEmojiPicker.value) {
+                    inputRef.value?.setSelectionRange(newPos, newPos);
+                    inputRef.value?.focus();
+                }
+                adjustHeight();
+            });
+        };
 
 
         return {
@@ -430,6 +485,10 @@ export default defineComponent({
             displayedActionText,
             displayActionName,
             handleAttachments,
+            showMobileEmojiPicker,
+            onInputFocus,
+            saveCursorPosition,
+            toggleMobileEmoji,
 
             ...recording // Spreads all the recording refs (isRecording, dragOffset, formattedTime, etc.) to the template
         };
