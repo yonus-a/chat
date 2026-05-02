@@ -27,7 +27,7 @@
 
 
                         <div class=" w-6 h-6 overflow-visible">
-                            <MedicSelector :options="options">
+                            <MedicSelector @select="handleMenuAction" :options="options">
                                 <template #trigger>
                                     <BIcon icon="PhDotsThreeVertical"
                                         class="w-6 h-6 fill-on-surface/50 cursor-pointer" />
@@ -57,6 +57,7 @@ import type { Contact } from '~/types/chat';
 import ContactAvatar from './contact/ContactAvatar.vue';
 import type { MenuOption } from '~/types/components/menu-options';
 import MedicSelector from './medic-features/MedicSelector.vue';
+import { useEventBus } from '@vueuse/core';
 
 export default defineComponent({
     name: 'PageBar',
@@ -81,9 +82,12 @@ export default defineComponent({
         const { formatRelativeDate } = useDate();
         const chatStore = useChatStore();
         const route = useRoute();
-        const currentConversationId = computed(() => parseInt(route.params.id as string))
         const router = useRouter()
         const { t } = useI18n();
+        const referBus = useEventBus('open-referral');
+
+
+        const currentConversationId = computed(() => parseInt(route.params.id as string))
         const menuRef = ref<Menu | null>(null)
         const selectedChat = computed(() => props.contact)
         const menuMode = ref<'medic' | 'options'>('options')
@@ -127,7 +131,7 @@ export default defineComponent({
 
                     break;
                 case 'refer':
-
+                    referBus.emit();
                     break;
                 case 'prescribe-meds':
                     if (currentConversationId.value) {

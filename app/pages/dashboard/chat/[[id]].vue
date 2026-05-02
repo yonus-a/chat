@@ -137,9 +137,7 @@ export default defineComponent({
             },
         ])
 
-        onMounted(() => {
-            patientRefferal.value?.open()
-        })
+
 
         return {
             medicOptions,

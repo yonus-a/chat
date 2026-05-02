@@ -124,6 +124,7 @@ import type { Modal } from '~/types/components/modal';
 import type { MenuOption } from '~/types/components/menu-options';
 import MedicSelector from './medic-features/MedicSelector.vue';
 import type { Menu } from '~/types/components/menu';
+import { useEventBus } from '@vueuse/core';
 import PatientReferral from './PatientReferral.vue';
 export default defineComponent({
     name: 'ChatMessages',
@@ -152,6 +153,7 @@ export default defineComponent({
 
 
 
+        const referBus = useEventBus('open-referral');
         const scrollContainer = ref<HTMLElement | null>(null);
         const loaderRef = ref<HTMLElement | null>(null);
         let observer: IntersectionObserver | null = null;
@@ -544,6 +546,8 @@ export default defineComponent({
                     if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) return
                     chatActionStore.triggerPersonalInfoRequest(chatId.value);
                     break;
+                case 'refer':
+                    referBus.emit();
             }
         }
 

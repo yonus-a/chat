@@ -4,7 +4,7 @@
             :class="[isOpen ? ' bg-on-surface/10 backdrop-blur-lg' : ' bg-on-surface/0 pointer-events-none backdrop-blur-none']"
             @click.self="closeStory" @contextmenu.prevent>
 
-            <div class="sm:gap-x-6 h-full sm:h-164 flex items-center">
+            <div class="sm:gap-x-6 overflow-hidden flex items-center transition-all duration-200 ease-in-out" :class="[isOpen ? 'h-full sm:h-164' : 'h-0']">
                 <div @click="prevStory"
                     :class="[isOpen ? 'scale-100 pointer-events-auto opacity-100' : 'scale-0 opacity-0 pointer-events-none']"
                     class="rounded-full aspect-square h-11 hidden sm:flex items-center justify-center cursor-pointer bg-surface transition-all duration-200 ease-in-out">

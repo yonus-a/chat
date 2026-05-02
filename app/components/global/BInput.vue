@@ -66,7 +66,7 @@
             {{ caption }}
         </div>
 
-        <div class="b-input-message-wrapper overflow-hidden h-6">
+        <div class="b-input-message-wrapper -translate-y-1 overflow-hidden h-4">
             <div class="flex items-center gap-x-1.5 transition-all duration-200 ease-in-out"
                 :class="[showMessage ? `${!newPassword ? 'translate-y-0' : 'translate-y-1'} opacity-100` : '-translate-y-4 opacity-0']"
                 :style="{ color: messageColor }">
@@ -98,7 +98,7 @@ const uniqueId = useId();
 const INPUT_CONFIG = {
     sizing: {
         height: '44px',
-        textareaHeight: '160px',
+        textareaHeight: '94px',
         radius: '10px',
         borderWidth: '1px',
         paddingInternal: '12px',

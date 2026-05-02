@@ -3,8 +3,8 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <BToast ref="toastComponent" />
   </div>
+  <BToast ref="toastComponent" />
 </template>
 <script setup lang="ts">
 const { toastRef } = useAppToast()
