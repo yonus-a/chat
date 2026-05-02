@@ -5,7 +5,7 @@
             sizeClasses.wrapper,
             isPressed ? 'scale-90' : 'scale-100'
         ]" @mousedown="isPressed = true" @mouseup="isPressed = false" @mouseleave="isPressed = false"
-        @touchstart="isPressed = true" @touchend="isPressed = false">
+        @touchstart="isPressed = true" @touchend="isPressed = false" @click="handleStoryClick">
         <!-- The inner white/surface ring to separate the image from the colorful border -->
         <div class="overflow-hidden rounded-full border-surface" :class="sizeClasses.inner">
             <div class=" bg-diamond-surface rounded-full overflow-hidden w-full aspect-square">
@@ -19,7 +19,7 @@
 <script lang="ts">
 import { defineComponent, type PropType, ref, computed } from 'vue';
 import type { Story } from '~/types/story';
-
+import { useEventBus } from '@vueuse/core';
 export default defineComponent({
     name: 'StoryDisplay',
     props: {
@@ -30,27 +30,35 @@ export default defineComponent({
         size: {
             type: String as PropType<'sm' | 'md' | 'lg'>,
             default: 'md'
+        },
+        canOpen: {
+            type: Boolean,
+            default: true
         }
     },
     setup(props) {
         const isPressed = ref(false);
+        const storyBus = useEventBus<number>('open-story');
 
         const sizeClasses = computed(() => {
             if (props.size === 'sm') {
-                // Made slightly larger (24px) to accommodate the thicker 2px border
                 return { wrapper: 'w-6 h-6 border-2', inner: 'w-full h-full border-[1.5px]' };
             } else if (props.size === 'lg') {
-                // Expanded mobile size with 3px thick border
                 return { wrapper: 'w-[60px] h-[60px] border-[2px]', inner: 'w-full h-full border-2' };
             } else {
-                // Desktop size with 3px thick border
                 return { wrapper: 'w-[52px] h-[52px] border-[2px]', inner: 'w-full h-full border-2' };
             }
         });
 
+        const handleStoryClick = () => {
+            if (props.canOpen) {
+                storyBus.emit(props.story.id); 
+            }
+        };
         return {
             isPressed,
-            sizeClasses
+            sizeClasses,
+            handleStoryClick,
         };
     }
 })

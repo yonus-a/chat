@@ -15,14 +15,17 @@
             <div class=" h-16 w-full" v-if="shouldShowBottomNav"></div>
         </div>
         <MobileNavigation v-if="shouldShowBottomNav" />
+        <StoryOverlay />
     </div>
 </template>
 <script lang="ts" setup>
 import SideBar from '~/components/layout/dashboard/SideBar.vue';
 import DashboardHeader from '~/components/layout/dashboard/DashboardHeader.vue';
 import MobileNavigation from '~/components/layout/dashboard/MobileNavigation.vue';
+import StoryOverlay from '~/components/layout/dashboard/story/StoryOverlay.vue';
 const profileStore = useProfileStore()
 const storiesStore = useStoriesStore()
+const chatStore = useChatStore()
 const route = useRoute()
 const { shouldShowBottomNav } = useNavigation()
 const hasHeader = computed(() => !route.path.startsWith('/dashboard/chat'))
@@ -41,7 +44,10 @@ const handleScroll = () => {
 };
 
 
+
 onBeforeMount(() => {
+    chatStore.fetchConversations('', 1)
     profileStore.loadUserProfile()
+    storiesStore.fetchStories()
 })
 </script>

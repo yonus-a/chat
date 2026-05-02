@@ -1,5 +1,5 @@
 <template>
-    <div ref="headerWrapper" class="border-b border-b-outline/50 md:py-0 py-3 transition-all duration-300">
+    <div  class="border-b border-b-outline/50 md:py-0 py-3 transition-all duration-300">
         <div :class="[isStoriesOpen ? 'pb-0 pt-3' : 'py-3']"
             class=" w-full px-4 md:py-0 md:px-8 md:h-17.25 flex items-center justify-between md:justify-end gap-x-3 md:gap-x-4">
 
@@ -26,7 +26,7 @@
                     :class="isStoriesOpen ? 'max-w-0 opacity-0 mr-0 ml-2' : 'max-w-25 opacity-100 mr-2 ml-2'">
                     <div class="flex items-center">
                         <StoryDisplay v-for="(story, index) in stories.slice(0, 3)" :key="'closed-' + story.id"
-                            :story="story" size="sm" class="relative" :style="{ zIndex: 10 - index }"
+                            :story="story" size="sm" :can-open="false" class="relative" :style="{ zIndex: 10 - index }"
                             :class="index !== 0 ? '-mr-2.5' : ''" />
                     </div>
                 </div>
@@ -66,8 +66,8 @@
             :class="isStoriesOpen ? 'max-h-25 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'">
             <div class="flex items-center gap-x-2 px-4 overflow-x-auto hide-scrollbar pb-2 pt-1 w-full">
                 <!-- shrink-0 prevents flexbox from squishing them below 60px -->
-                <StoryDisplay @click="openStory(story.id)" v-for="story in stories" :key="'open-' + story.id"
-                    :story="story" size="lg" class="shrink-0" />
+                <StoryDisplay v-for="story in stories" :key="'open-' + story.id" :story="story" size="lg"
+                    class="shrink-0" />
             </div>
         </div>
 
@@ -76,11 +76,10 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue'; // Added ref
-import { useProfileStore, useStoriesStore, useI18n, useRoute, useClickOutside } from '#imports';
+import { useProfileStore, useStoriesStore, useI18n, useRoute } from '#imports';
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import DashboardNotifications from './header/DashboardNotifications.vue';
-import StoryDisplay from '~/components/dashboard/list-items/StoryDisplay.vue';
-
+import StoryDisplay from './story/StoryDisplay.vue';
 export default defineComponent({
     name: 'DashboardHeader',
     components: {
@@ -94,7 +93,7 @@ export default defineComponent({
         const storiesStore = useStoriesStore()
         const stories = computed(() => storiesStore.stories)
         const { t } = useI18n()
-        const headerWrapper = ref<HTMLElement | null>(null)
+
 
 
 
@@ -123,11 +122,7 @@ export default defineComponent({
             }
         }
 
-        useClickOutside(headerWrapper, closeStories);
 
-        const openStory = (id: number) => {
-            
-        }
 
 
         return {
@@ -140,8 +135,6 @@ export default defineComponent({
             openSearch,
             toggleStories,
             stories,
-            headerWrapper,
-            openStory,
             isStoriesOpen // Exposed to template
         }
     }

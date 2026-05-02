@@ -24,7 +24,7 @@
                 </div>
             </div>
         </div>
-        <div class=" md:flex shrink-0 h-full flex-row-reverse hidden items-center gap-x-2">
+        <div class=" md:flex shrink-0 h-full hidden items-center gap-x-2">
             <StoryDisplay v-for="story in allStories" :key="story.id" :story="story" />
         </div>
     </div>
@@ -35,7 +35,7 @@ import { useProfileStore } from '~/stores/profileStore';
 import greetingsImage from '/images/dashboard/greetings.webp'
 import { useI18n } from '#imports';
 import { useStoriesStore } from '#imports';
-import StoryDisplay from './list-items/StoryDisplay.vue';
+import StoryDisplay from '../layout/dashboard/story/StoryDisplay.vue';
 export default defineComponent({
     name: 'DashboardGreetings',
     components: {
