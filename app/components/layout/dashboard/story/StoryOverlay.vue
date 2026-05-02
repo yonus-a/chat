@@ -8,7 +8,7 @@
                 <div @click="prevStory"
                     :class="[isOpen ? 'scale-100 pointer-events-auto opacity-100' : 'scale-0 opacity-0 pointer-events-none']"
                     class="rounded-full aspect-square h-11 hidden sm:flex items-center justify-center cursor-pointer bg-surface transition-all duration-200 ease-in-out">
-                    <BIcon icon="PhCaretLeft" class="w-6 rtl:rotate-180 ltr:rotate-0 h-6 fill-on-surface" />
+                    <BIcon v-if="isOpen" icon="PhCaretLeft" class="w-6 rtl:rotate-180 ltr:rotate-0 h-6 fill-on-surface" />
                 </div>
 
                 <div class="relative w-dvw sm:w-94 h-full sm:rounded-2xl bg-diamond-black dark:bg-diamond-gray overflow-hidden transition-all duration-200 ease-in-out"
@@ -26,7 +26,7 @@
                             </div>
                         </div>
                         <div class="flex justify-end w-full px-1 pt-1">
-                            <BIcon class="cursor-pointer w-6 h-6 fill-white drop-shadow-md" @click.stop="closeStory"
+                            <BIcon v-if="isOpen" class="cursor-pointer w-6 h-6 fill-white drop-shadow-md" @click.stop="closeStory"
                                 icon="PhX" />
                         </div>
                     </div>
@@ -49,7 +49,7 @@
                 <div @click="nextStory"
                     :class="[isOpen ? 'scale-100 pointer-events-auto opacity-100' : 'scale-0 opacity-0 pointer-events-none']"
                     class="rounded-full aspect-square h-11 hidden sm:flex items-center justify-center cursor-pointer bg-surface transition-all duration-200 ease-in-out">
-                    <BIcon icon="PhCaretRight" class="w-6 rtl:rotate-180 ltr:rotate-0 h-6 fill-on-surface" />
+                    <BIcon v-if="isOpen" icon="PhCaretRight" class="w-6 rtl:rotate-180 ltr:rotate-0 h-6 fill-on-surface" />
                 </div>
             </div>
         </div>
