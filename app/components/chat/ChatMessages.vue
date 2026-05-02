@@ -124,10 +124,10 @@ import type { Modal } from '~/types/components/modal';
 import type { MenuOption } from '~/types/components/menu-options';
 import MedicSelector from './medic-features/MedicSelector.vue';
 import type { Menu } from '~/types/components/menu';
-
+import PatientReferral from './PatientReferral.vue';
 export default defineComponent({
     name: 'ChatMessages',
-    components: { ChatBubble, NoDataDisplay, MedicSelector },
+    components: { ChatBubble, NoDataDisplay, MedicSelector, PatientReferral },
     props: {
         contact: {
             type: Object as PropType<Contact | null>,

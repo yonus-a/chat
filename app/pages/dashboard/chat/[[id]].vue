@@ -15,10 +15,11 @@
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>
         </div>
+        <PatientReferral ref="patientRefferal" :contact="selectedChat" />
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, useTemplateRef } from 'vue';
 import { useI18n, useSeoMeta } from '#imports';
 import ChatPageBar from '~/components/chat/ChatPageBar.vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -30,7 +31,8 @@ import ChatMessages from '~/components/chat/ChatMessages.vue';
 import { useWindowSize } from '#imports';
 import ChatList from '~/components/chat/contact/ChatList.vue';
 import { type MenuOption } from '~/types/components/menu-options';
-
+import PatientReferral from '~/components/chat/PatientReferral.vue';
+import type { PatientRefferalExposed } from '~/components/chat/PatientReferral.vue';
 definePageMeta({
     layout: 'dashboard',
     hideBottomNav: true
@@ -44,6 +46,7 @@ export default defineComponent({
         ChatInput,
         ChatProfileOverview,
         ChatMessages,
+        PatientReferral,
     },
     setup() {
         const chatStore = useChatStore()
@@ -54,7 +57,7 @@ export default defineComponent({
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
         const chatMessagesRef = ref<any>(null);
-
+        const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
         const chatId = computed(() => {
             const id = route.params.id;
             return id ? parseInt(id as string) : null;
@@ -134,6 +137,9 @@ export default defineComponent({
             },
         ])
 
+        onMounted(() => {
+            patientRefferal.value?.open()
+        })
 
         return {
             medicOptions,
@@ -141,6 +147,7 @@ export default defineComponent({
             chatId,
             chatInput,
             openProfile,
+            patientRefferal,
             chatMessagesRef,
             selectedChat,
             canShowMessagingSection,

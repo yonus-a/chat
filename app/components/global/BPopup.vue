@@ -31,10 +31,10 @@
                         class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
                         <div v-if="hasClose" @click="close"
                             class="w-7 h-7 flex items-center justify-center cursor-pointer transition-colors">
-                            <BIcon icon="PhX" class="w-4 h-4 fill-text-light-high dark:fill-text-dark-high" />
+                            <BIcon icon="PhX" class="w-4 h-4 fill-on-surface" />
                         </div>
                         <div v-if="title.trim().length > 0"
-                            class="text-sm font-medium text-text-light-high dark:text-text-dark-high select-none">
+                            class=" text-label-sm text-on-surface select-none">
                             {{ title }}
                         </div>
                     </div>
