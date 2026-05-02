@@ -17,7 +17,7 @@
                 <BIcon icon="PhX" class=" cursor-pointer w-5 shrink-0 h-5 fill-on-surface/50" @click="cancelAction" />
             </div>
         </div>
-        <div ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
+        <div @contextmenu.prevent ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
             class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
 
             <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
@@ -86,16 +86,16 @@
                 </div>
             </div>
 
-            <div v-show="isRecording" class="flex-1 -translate-y-2 flex items-center ">
+            <div v-show="isRecording" class="flex-1 flex items-center ">
                 <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
                     :style="{ opacity: cancelOpacity }">
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
-                    <span v-else class="text-primary cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
+                    <span v-else class="text-primary basis-1/2 cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
                         t('chat.cancel')
                         }}</span>
                 </div>
 
-                <div class="absolute left-6 flex items-center gap-x-2 shrink-0 z-10">
+                <div class="absolute left-6 flex items-center basis-1/2 gap-x-2 shrink-0 z-10">
                     <div class="w-2.5 h-2.5 relative">
                         <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-error animate-ping absolute top-0 left-0 inset-0"></div>

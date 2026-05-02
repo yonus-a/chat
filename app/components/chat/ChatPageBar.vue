@@ -26,15 +26,17 @@
                         </div>
 
 
-                        <MedicSelector :options="options">
-                            <template #trigger>
-                                <BIcon icon="PhDotsThreeVertical"
-                                    class="w-6 h-6 fill-on-surface/50 cursor-pointer" />
-                            </template>
-                        </MedicSelector>
+                        <div class=" w-6 h-6 overflow-visible">
+                            <MedicSelector :options="options">
+                                <template #trigger>
+                                    <BIcon icon="PhDotsThreeVertical"
+                                        class="w-6 h-6 fill-on-surface/50 cursor-pointer" />
+                                </template>
+                            </MedicSelector>
+                        </div>
                     </div>
                     <div :class="[!isSelectMode ? ' pointer-events-none opacity-0' : ' opacity-100 pointer-events-auto']"
-                        class=" flex items-center gap-x-4 ">
+                        class=" hidden md:flex items-center  gap-x-4 ">
                         <BIcon @click="deleteMessages" icon="PhTrash" class=" w-6 h-6 "
                             :class="[canDelete ? 'fill-error cursor-pointer' : 'cursor-not-allowed fill-on-surface/50']" />
                         <BIcon @click="copy" icon="PhCopy" class=" w-6 h-6 cursor-pointer fill-on-surface" />

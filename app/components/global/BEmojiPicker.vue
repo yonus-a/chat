@@ -13,14 +13,13 @@
     </div>
 
     <!-- Bottom Navigation (With the exact purple border) -->
-    <div class="flex items-center justify-between px-2 py-2  bg-surface-variant">
+    <div class="flex h-10 items-center justify-between px-2  bg-surface-variant">
       <button v-for="cat in categories" :key="cat.id" @click="activeCategory = cat.id"
         class="p-1.5 rounded-md hover:bg-surface-variant transition-colors">
         <BIcon :icon="cat.icon" class="w-6 h-6 cursor-pointer transition-colors"
           :class="activeCategory === cat.id ? 'fill-primary' : 'fill-on-surface/50'" />
       </button>
     </div>
-
   </div>
 </template>
 

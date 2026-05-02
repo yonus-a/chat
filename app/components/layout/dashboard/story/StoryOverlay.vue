@@ -17,7 +17,8 @@
                     @mouseleave="!isMobile ? null : handlePressEnd()" @touchstart="handlePressStart"
                     @touchend="handlePressEnd" @click="handleDesktopClick">
 
-                    <div class="flex flex-col gap-y-1 w-full py-3 px-2 absolute top-0 z-50 ">
+                    <div
+                        class="flex flex-col gap-y-1 w-full py-3 px-2 absolute top-0 z-50 ">
                         <div class="w-full flex gap-x-1 items-center">
                             <div v-for="(story, index) in stories" :key="story.id"
                                 :style="{ width: `${100 / stories.length}%` }"
@@ -87,7 +88,7 @@ export default defineComponent({
         const { width } = useWindowSize();
         const isMobile = computed(() => width.value < 640);
         const stories = computed<Story[]>(() => storiesStore.stories);
-        const currentStory = computed(() => stories.value[activeIndex.value]);
+        const currentStory = computed<Story | undefined>(() => stories.value[activeIndex.value]);
 
         const storyBus = useEventBus<number>('open-story');
         storyBus.on((id) => openStory(id));

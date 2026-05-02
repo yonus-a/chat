@@ -1,5 +1,5 @@
 <template>
-    <div class="flex w-full max-h-dvh h-dvh overflow-hidden">
+    <div class="flex w-full h-full max-h-full overflow-hidden">
         <div v-if="showMessagingSection" class="h-full flex-1 relative">
             <NuxtPage v-if="isInChat" />
             <div v-else class=" w-full h-full flex items-center justify-center ">

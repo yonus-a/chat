@@ -1,6 +1,6 @@
 <template>
-    <div class="bg-surface flex flex-col border border-outline-variant w-full h-full">
-        <ChatListSearch v-model="searchText" />
+    <div class="bg-surface flex flex-col border border-outline-variant w-full h-full overflow-hidden">
+        <ChatListSearch class=" shrink-0" v-model="searchText" />
 
         <div class="flex-1 w-full flex flex-col overflow-hidden">
 

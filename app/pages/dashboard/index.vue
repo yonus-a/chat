@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-y-3.5 md:gap-y-6 w-full">
+    <div class="flex flex-col max-h-full h-full gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
 
         <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2 lg:grid-cols-4 w-full gap-3 md:gap-4">
