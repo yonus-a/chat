@@ -222,6 +222,8 @@ export default defineComponent({
         };
 
         const handleOptions = async (key: string) => {
+            const button = optionButtons.value.find(btn => btn.key === key);
+            if (button?.hasErrors) return;
             switch (key) {
                 case 'minimize-call':
                     router.push(`/dashboard/chat/${chatContact.value?.id}`);
