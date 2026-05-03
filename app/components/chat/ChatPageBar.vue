@@ -25,7 +25,7 @@
                             <div class="  hidden md:block">
                                 <BIcon @click="initCall" icon="PhPhone" v-if="selectedChat.serviceType !== 'chat'"
                                     class="w-6 h-6  cursor-pointer"
-                                    :class="[contact?.isActive ? 'cursor-pointer fill-on-surface/50' : 'fill-on-surface/25 cursor-not-allowed']" />
+                                    :class="[contact?.isActive || isInCall ? 'cursor-pointer fill-on-surface/50' : 'fill-on-surface/25 cursor-not-allowed']" />
                             </div>
 
 
@@ -56,7 +56,8 @@
                     :class="[callData.show ? 'opacity-100' : 'opacity-0']">
                     <BIcon class=" fill-white  w-5 shrink-0 h-5" icon="PhPhoneCall" />
                     <div class=" flex-1 text-white select-none text-label-md">{{ callData.duration }}</div>
-                    <BIcon class=" fill-white cursor-pointer w-5 shrink-0 h-5" @click="backToCall" icon="PhFrameCorners" />
+                    <BIcon class=" fill-white cursor-pointer w-5 shrink-0 h-5" @click="backToCall"
+                        icon="PhFrameCorners" />
                 </div>
             </div>
         </div>
@@ -219,6 +220,8 @@ export default defineComponent({
             }
         }
 
+        const isInCall = computed(() => callStore.isActive)
+
         const backToCall = () => {
             router.push(`/dashboard/chat/${callStore.chatContact?.id}/call`);
         }
@@ -228,6 +231,7 @@ export default defineComponent({
             copy,
             selectedChat,
             callData,
+            isInCall,
             backToCall,
             formatRelativeDate,
             deleteMessages,

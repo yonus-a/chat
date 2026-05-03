@@ -207,30 +207,32 @@ export default defineComponent({
             console.log('mount')
         })
 
+        const isInCall = computed(() => callStore.isActive)
+
         const actionButtons = computed((): Action[] => [
             {
                 title: t('chat.options.end'),
                 icon: 'PhX',
-                active: localProfile.value == undefined ? false : localProfile.value?.isActive,
+                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive,
                 key: 'end',
                 color: 'error'
             },
             {
                 title: t('chat.options.refer'),
                 icon: 'PhTreeStructure',
-                active: localProfile.value == undefined ? false : localProfile.value?.isActive,
+                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive,
                 key: 'refer'
             },
             {
                 title: t('chat.options.voiceCall'),
                 icon: 'PhPhoneCall',
-                active: localProfile.value == undefined ? false : localProfile.value?.isActive && (localProfile.value.serviceType !== 'chat'),
+                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive && (localProfile.value.serviceType !== 'chat'),
                 key: 'voice-call'
             },
             {
                 title: t('chat.options.videoCall'),
                 icon: 'PhVideoCamera',
-                active: localProfile.value == undefined ? false : localProfile.value?.isActive && localProfile.value.serviceType === 'video-call',
+                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive && localProfile.value.serviceType === 'video-call',
                 key: 'video-call'
             },
         ])
