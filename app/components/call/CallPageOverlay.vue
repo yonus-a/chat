@@ -42,7 +42,7 @@
 import { type PropType, defineComponent, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useI18n, useCallStore, useWindowSize } from '#imports';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { useAppPermissions } from '#imports';
 import { formatDuration } from '@/utils/format'
@@ -170,10 +170,19 @@ export default defineComponent({
         }
 
         onMounted(() => {
+            callStore.isPiP = false;
             if (chatContact.value) {
                 initPermissions()
             }
         })
+
+        onBeforeRouteLeave((to, from) => {
+            console.log('fuck')
+            if (callStore.isActive) {
+                console.log('fuck its active')
+                callStore.isPiP = true;
+            }
+        });
 
         watch(() => chatContact.value, () => {
             console.log(chatContact.value)
@@ -210,7 +219,7 @@ export default defineComponent({
         const handleOptions = async (key: string) => {
             switch (key) {
                 case 'minimize-call':
-
+                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
                     break;
                 case 'share-screen':
                     if (callStore.isSharingScreen) {
@@ -240,10 +249,15 @@ export default defineComponent({
                     router.push(`/dashboard/chat/${chatId.value}`);
                     break;
                 case 'flip-camera':
-
+                    if (isMobile.value) {
+                        await callStore.toggleCamera();
+                    }
                     break;
-                case 'toggle-flash':
 
+                case 'toggle-flash':
+                    if (isMobile.value && callStore.currentFacingMode === 'environment') {
+                        await callStore.toggleFlash();
+                    }
                     break;
             }
         }

@@ -13,6 +13,9 @@ export const useCallStore = defineStore("call", () => {
   const localStream = ref<MediaStream | null>(null);
   const remoteStream = ref<MediaStream | null>(null);
 
+  const currentFacingMode = ref<"user" | "environment">("user");
+  const isFlashOn = ref(false);
+
   const isSharingScreen = ref(false);
   const screenStream = ref<MediaStream | null>(null);
 
@@ -182,7 +185,7 @@ export const useCallStore = defineStore("call", () => {
     localStream.value = null;
 
     stopScreenShare();
-
+    isPiP.value = false;
     isActive.value = false;
     elapsedTime.value = 0;
   };
@@ -193,6 +196,57 @@ export const useCallStore = defineStore("call", () => {
       screenStream.value = null;
     }
     isSharingScreen.value = false;
+  };
+
+  const toggleCamera = async () => {
+    if (!localStream.value) return;
+
+    // 1. Toggle the state
+    currentFacingMode.value =
+      currentFacingMode.value === "user" ? "environment" : "user";
+
+    // 2. Stop the current video tracks to release the hardware
+    const videoTracks = localStream.value.getVideoTracks();
+    videoTracks.forEach((track) => track.stop());
+
+    try {
+      // 3. Request a new stream with the updated facing mode
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: currentFacingMode.value },
+        audio: true, // Keep audio active
+      });
+
+      // 4. Update the localStream reference (CallMemberDisplay watches this)
+      localStream.value = newStream;
+
+      // Reset flash if switching to front camera
+      if (currentFacingMode.value === "user") isFlashOn.value = false;
+    } catch (err) {
+      console.error("Failed to flip camera:", err);
+    }
+  };
+
+  /**
+   * Toggles the device flashlight (Torch).
+   * Only works on 'environment' (back) camera.
+   */
+  const toggleFlash = async () => {
+    const videoTrack = localStream.value?.getVideoTracks()[0];
+    if (!videoTrack || currentFacingMode.value !== "environment") return;
+
+    try {
+      const capabilities = videoTrack.getCapabilities() as any;
+
+      // Check if the hardware actually supports torch
+      if (capabilities.torch) {
+        isFlashOn.value = !isFlashOn.value;
+        await videoTrack.applyConstraints({
+          advanced: [{ torch: isFlashOn.value }],
+        } as any);
+      }
+    } catch (err) {
+      console.error("Flash toggle failed:", err);
+    }
   };
 
   return {
@@ -208,11 +262,16 @@ export const useCallStore = defineStore("call", () => {
     isMicMuted,
     isCamDisabled,
     isSoundMuted,
+    isPiP,
     toggleMic,
     toggleCam,
     toggleSound,
     stopScreenShare,
     isSharingScreen,
     screenStream,
+    currentFacingMode,
+    isFlashOn,
+    toggleCamera,
+    toggleFlash,
   };
 });

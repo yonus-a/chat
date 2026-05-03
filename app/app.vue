@@ -6,11 +6,12 @@
   </div>
   <BToast ref="toastComponent" />
   <Teleport to="body">
-    <CallOverlay v-if="callStore.isVisible" />
+    <CallPipOverlay />
   </Teleport>
 </template>
 <script setup lang="ts">
 const { toastRef } = useAppToast()
+import CallPipOverlay from './components/call/CallPipOverlay.vue';
 const toastComponent = ref(null);
 const callStore = useCallStore()
 const { dir, locale } = useLocale();
