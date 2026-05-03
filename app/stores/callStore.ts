@@ -165,7 +165,7 @@ export const useCallStore = defineStore("call", () => {
         .getVideoTracks()
         .forEach((t) => (t.enabled = !isCamDisabled.value));
 
-      startTimer();
+      //
     } catch (err) {
       console.error("Init call failed", err);
     }
@@ -256,10 +256,10 @@ export const useCallStore = defineStore("call", () => {
     serviceType: "voice-call" | "video-call",
   ) => {
     chatContact.value = contact;
+    isActive.value = true;
+    startTimer()
     await syncMediaSettings(serviceType);
     await router.push(`/dashboard/chat/${contact.id}/call`);
-    const withVideo = serviceType === "video-call";
-    await initCall(withVideo);
   };
 
   return {

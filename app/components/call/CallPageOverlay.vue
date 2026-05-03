@@ -174,12 +174,7 @@ export default defineComponent({
             router.go(-1)
         }
 
-        onMounted(() => {
-            callStore.isPiP = false;
-            if (chatContact.value) {
-                initPermissions()
-            }
-        })
+
 
         onBeforeRouteLeave((to, from) => {
             if (callStore.isActive) {
@@ -195,28 +190,57 @@ export default defineComponent({
         })
 
 
+
+        onMounted(async () => {
+            callStore.isPiP = false;
+
+            if (!callStore.isActive) {
+                const rawId = route.params.id;
+                const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
+
+                const fallbackId = actualId || chatContact.value?.id || '';
+
+                router.push(`/dashboard/chat/${fallbackId}`);
+                return;
+            }
+
+            if (chatContact.value) {
+                await initPermissions();
+            }
+        });
+
+        // --- REPLACEMENT FOR initPermissions ---
         const initPermissions = async () => {
             if (!callStore.chatContact) return;
             const service = callStore.chatContact.serviceType;
             const isVideo = service === 'video-call';
 
             await callStore.syncMediaSettings(service);
+
+            // Query browser natively without triggering prompts
             const status = await checkMediaStatus();
 
-            // if ((isVideo && status.mic === 'granted' && status.cam === 'granted') ||
-            //     (!isVideo && status.mic === 'granted')) {
-            //     await callStore.initCall(isVideo);
-            //     return;
-            // }
+            const needsMic = status.mic !== 'granted';
+            const needsCam = isVideo && status.cam !== 'granted';
 
-            const state = isVideo ? 'permission' : 'mic-permission';
-            const granted = await requestWithPopup(state);
+            // If we are missing permissions, trigger the CUSTOM popup
+            if (needsMic || needsCam) {
+                const state = isVideo ? 'permission' : 'mic-permission';
 
-            if (granted) {
-                //  await callStore.initCall(isVideo);
-            } else {
-                router.back();
+                // WAIT for the user to interact with PermissionPopup.vue
+                const granted = await requestWithPopup(state);
+
+                // If user clicks "Not Now" or denies it, kick them back safely
+                if (!granted) {
+                    callStore.isActive = false;
+                    const safeId = route.params.id || callStore.chatContact?.id || '';
+                    router.push(`/dashboard/chat/${safeId}`);
+                    return; // Stop execution
+                }
             }
+
+            // CRITICAL FIX: The popup has been cleared. WE NOW safely start the hardware.
+            await callStore.initCall(isVideo);
         };
 
         const handleOptions = async (key: string) => {
@@ -252,7 +276,7 @@ export default defineComponent({
                     break;
                 case 'leave-call':
                     callStore.stopCall();
-                    router.push(`/dashboard/chat/${chatId.value}`);
+                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
                     break;
                 case 'flip-camera':
                     if (isMobile.value) {
