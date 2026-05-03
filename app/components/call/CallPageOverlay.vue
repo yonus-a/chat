@@ -182,7 +182,6 @@ export default defineComponent({
         })
 
         onBeforeRouteLeave((to, from) => {
-            console.log('fuck')
             if (callStore.isActive) {
                 console.log('fuck its active')
                 callStore.isPiP = true;

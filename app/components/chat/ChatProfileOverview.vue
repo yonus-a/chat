@@ -213,14 +213,14 @@ export default defineComponent({
             {
                 title: t('chat.options.end'),
                 icon: 'PhX',
-                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive,
+                active: localProfile.value == undefined ? false : localProfile.value?.isActive,
                 key: 'end',
                 color: 'error'
             },
             {
                 title: t('chat.options.refer'),
                 icon: 'PhTreeStructure',
-                active: localProfile.value == undefined || isInCall.value ? false : localProfile.value?.isActive,
+                active: localProfile.value == undefined ? false : localProfile.value?.isActive,
                 key: 'refer'
             },
             {
