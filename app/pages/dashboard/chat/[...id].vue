@@ -16,6 +16,7 @@
         </div>
         <CallPageOverlay v-else-if="isCallMode" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
+        <<PermissionPopup />
     </div>
 </template>
 <script lang="ts">
@@ -34,6 +35,7 @@ import { type MenuOption } from '~/types/components/menu-options';
 import PatientReferral from '~/components/chat/PatientReferral.vue';
 import type { PatientRefferalExposed } from '~/components/chat/PatientReferral.vue';
 import CallPageOverlay from '~/components/call/CallPageOverlay.vue';
+import PermissionPopup from '~/components/chat/chat-input/PermissionPopup.vue';
 definePageMeta({
     layout: 'dashboard',
     hideBottomNav: true
@@ -48,6 +50,7 @@ export default defineComponent({
         ChatInput,
         ChatProfileOverview,
         ChatMessages,
+        PermissionPopup,
         PatientReferral,
     },
     setup() {
@@ -64,7 +67,7 @@ export default defineComponent({
             return Array.isArray(params) && params.includes('call');
         });
         onMounted(() => {
-            startCall()
+            //   startCall()
             nextTick(() => {
                 console.log(isCallMode.value)
             })

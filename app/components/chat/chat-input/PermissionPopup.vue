@@ -19,16 +19,27 @@
 import { defineComponent, nextTick } from 'vue';
 import { useI18n } from '#imports';
 import type { Popup } from '~/types/components/popup';
-type popupStates = 'permission' | 'mic-error' | 'cam-error' | 'mic-permission' | 'cam-permission'
-
+import { useAppPermissions, type PopupState } from '~/composables/useAppPermissions';
+import { useEventBus } from '@vueuse/core';
 export default defineComponent({
     name: 'PermissionPopup',
     emits: ['action', 'cancel'],
     setup(_, { expose, emit }) {
         const popup = ref<Popup | null>(null)
         const { t } = useI18n()
-        const popupMode = ref<popupStates>('permission')
+        const { requestMediaAccess } = useAppPermissions();
+        const popupMode = ref<PopupState>('mic-permission');
+        const bus = useEventBus<any>('global-permission-popup');
         const isLoading = ref(false)
+        const currentResolver = ref<((v: boolean) => void) | null>(null);
+
+
+        bus.on((payload) => {
+            popupMode.value = payload.state;
+            currentResolver.value = payload.resolve;
+            isLoading.value = false;
+            popup.value?.open();
+        });
 
 
 
@@ -43,11 +54,11 @@ export default defineComponent({
 
         const popupContent = computed(() => {
             switch (popupMode.value) {
-                case 'permission':
-                    return {
-                        title: t('chat.permissions.permissionTitle'),
-                        description: t('chat.permissions.description')
-                    }
+                //  case 'mic-permission':
+                //      return {
+                //          title: t('chat.permissions.permissionTitle'),
+                //          description: t('chat.permissions.description')
+                //      }
                 case 'cam-error':
                     return {
                         title: t('chat.permissions.camError.title'),
@@ -71,7 +82,7 @@ export default defineComponent({
             }
         })
 
-        const openPopup = (state: popupStates) => {
+        const openPopup = (state: PopupState) => {
             popupMode.value = state;
             isLoading.value = false;
             nextTick(() => {
@@ -80,20 +91,31 @@ export default defineComponent({
         }
 
         expose({
-            open: (state: popupStates) => { openPopup(state) },
+            open: (state: PopupState) => { openPopup(state) },
             close: () => { closePopup() },
             setLoading: (state: boolean) => { isLoading.value = state; }
         });
 
         const closePopup = () => {
             popup.value?.close();
-            emit('cancel');
-        }
+            currentResolver.value?.(false);
+            currentResolver.value = null;
+        };
 
-        const handleAction = () => {
+        const handleAction = async () => {
             isLoading.value = true;
-            emit('action', popupMode.value);
-        }
+            const isVideo = popupMode.value.startsWith('cam');
+            const result = await requestMediaAccess(isVideo ? 'video' : 'audio');
+
+            isLoading.value = false;
+            if (result.success) {
+                popup.value?.close();
+                currentResolver.value?.(true);
+            } else {
+                // If native prompt fails, switch to error state
+                popupMode.value = isVideo ? 'cam-error' : 'mic-error';
+            }
+        };
 
         return {
             actionButtonText,

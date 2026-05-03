@@ -132,7 +132,7 @@ export default defineComponent({
         const optionButtons = computed(() => [
             {
                 icon: 'PhX',
-                key: 'end-call'
+                key: 'minimize-call'
             },
             {
                 icon: 'PhMonitorArrowUp',
@@ -162,6 +162,33 @@ export default defineComponent({
 
         const handleOptions = (key: string) => {
             switch (key) {
+                case 'minimize-call':
+
+                    break;
+                case 'share-screen':
+
+                    break;
+                case 'add-user':
+
+                    break;
+                case 'toggle-sound':
+
+                    break;
+                case 'toggle-mic':
+
+                    break;
+                case 'toggle-video':
+
+                    break;
+                case 'leave-call':
+
+                    break;
+                case 'flip-camera':
+
+                    break;
+                case 'toggle-flash':
+
+                    break;
             }
         }
 

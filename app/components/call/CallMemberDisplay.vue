@@ -46,8 +46,8 @@ export default defineComponent({
     setup(props, { emit }) {
         const profileStore = useProfileStore()
         const isSpeaking = ref(false)
-
         const isMine = computed(() => profileStore.userData.id === props.contact.id)
+        
 
         const toggleFullScreen = () => {
             if (isMine.value) return

@@ -17,7 +17,8 @@
                 <BIcon icon="PhX" class=" cursor-pointer w-5 shrink-0 h-5 fill-on-surface/50" @click="cancelAction" />
             </div>
         </div>
-        <div @contextmenu.prevent ref="rootElements" :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
+        <div @contextmenu.prevent ref="rootElements"
+            :class="[(isRecording && !isLocked) || messageText.trim().length > 0 ? 'px-4' : 'px-4']"
             class=" transition-all duration-200 ease-in-out min-h-19 py-4 w-full bg-surface flex items-end border-t border-t-outline-variant gap-x-5 relative overflow-visible select-none ">
 
             <div class="relative flex items-center justify-center shrink-0 z-30 mb-0.5" :style="{
@@ -86,26 +87,27 @@
                 </div>
             </div>
 
-            <div v-show="isRecording" class="flex-1 flex items-center ">
-                <div class="flex-1 flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
+            <div v-show="isRecording" class="flex-1 justify-between -translate-y-2 flex items-center ">
+                <div></div>
+                <div class=" flex justify-center items-center text-body-md text-on-surface/70 transition-opacity"
                     :style="{ opacity: cancelOpacity }">
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
-                    <span v-else class="text-primary basis-1/2 cursor-pointer px-4 py-2 z-20" @click="cancelRecording">{{
-                        t('chat.cancel')
+                    <span v-else class="text-primary  cursor-pointer px-4  z-20"
+                        @click="cancelRecording">{{
+                            t('chat.cancel')
                         }}</span>
                 </div>
 
-                <div class="absolute left-6 flex items-center basis-1/2 gap-x-2 shrink-0 z-10">
+                <div class=" left-6 flex items-center  gap-x-2 shrink-0 z-10">
                     <div class="w-2.5 h-2.5 relative">
                         <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-error animate-ping absolute top-0 left-0 inset-0"></div>
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                        }}</span>
+                    }}</span>
                 </div>
             </div>
-            <PermissionPopup ref="permissionPopup" @action="handlePopupAction" @cancel="handlePopupCancel" />
         </div>
         <div class="md:hidden w-full transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] overflow-hidden"
             :class="showMobileEmojiPicker ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'">
@@ -119,7 +121,6 @@ import { defineComponent, ref, computed, nextTick, watch, onMounted, onUnmounted
 import { useI18n, useChatActionStore, useProfileStore } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
-import PermissionPopup from './chat-input/PermissionPopup.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
 import { useRoute } from 'vue-router';
@@ -128,11 +129,12 @@ import SafeEmojiText from '../general/SafeEmojiText.vue';
 import { parseEmojiArray } from '~/utils/emojiParser';
 export default defineComponent({
     name: 'ChatInput',
-    components: { InputAttachement, PermissionPopup, SafeEmojiText },
+    components: { InputAttachement, SafeEmojiText },
     props: { isActive: { type: Boolean, default: false } },
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
+        const { requestWithPopup, checkMediaStatus } = useAppPermissions();
         const chatActionStore = useChatActionStore();
         const profileStore = useProfileStore()
         const route = useRoute()
@@ -185,17 +187,13 @@ export default defineComponent({
         const rootElements = ref<HTMLElement | null>(null);
         const inputRef = ref<HTMLElement | null>(null);
         const menuRef = ref<Menu | null>(null);
-        const permissionPopup = ref<InstanceType<typeof PermissionPopup> | null>(null);
-
-        const micPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
-        const cameraPermissionStatus = ref<PermissionState | 'unknown'>('unknown');
 
         // State
         const messageText = ref('');
         const secondaryMessageType = ref<'video' | 'voice'>('voice');
         const inputWidth = computed(() => rootElements.value?.clientWidth);
 
-        const { requestMediaAccess, checkMediaStatus } = useAppPermissions();
+        //const { requestMediaAccess, checkMediaStatus } = useAppPermissions();
 
 
         const recording = useChatRecording(inputWidth, {
@@ -220,62 +218,22 @@ export default defineComponent({
 
         const ensurePermissions = async () => {
             const isVideo = secondaryMessageType.value === 'video';
-
-            // Check native browser status to see if it changed externally
             const currentStatus = await checkMediaStatus();
-            if (currentStatus.mic !== 'unknown') micPermissionStatus.value = currentStatus.mic;
-            if (currentStatus.cam !== 'unknown') cameraPermissionStatus.value = currentStatus.cam;
 
-            // 1. Instantly approve if already granted (Starts recording immediately on hold)
-            if (isVideo && cameraPermissionStatus.value === 'granted') return true;
-            if (!isVideo && micPermissionStatus.value === 'granted') return true;
+            const status = isVideo ? currentStatus.cam : currentStatus.mic;
 
-            // 2. Instantly reject if explicitly denied previously (e.g. Mac mini missing cam)
-            if (isVideo && cameraPermissionStatus.value === 'denied') {
-                permissionPopup.value?.open('cam-error');
-                return false;
-            }
-            if (!isVideo && micPermissionStatus.value === 'denied') {
-                permissionPopup.value?.open('mic-error');
-                return false;
-            }
+            // 1. If already granted, proceed immediately
+            if (status === 'granted') return true;
 
-            // 3. Open prompt and pause execution
-            permissionPopup.value?.open(isVideo ? 'cam-permission' : 'mic-permission');
-            return new Promise<boolean>((resolve) => {
-                permissionResolver = resolve;
-            });
+            // 2. If denied or unknown, trigger the modular popup via the bus
+            const state: PopupState = isVideo
+                ? (status === 'denied' ? 'cam-error' : 'cam-permission')
+                : (status === 'denied' ? 'mic-error' : 'mic-permission');
+
+            // This waits for the popup to resolve (user clicks allow + browser prompt success)
+            return await requestWithPopup(state);
         };
 
-        const handlePopupAction = async () => {
-            const isVideo = secondaryMessageType.value === 'video';
-            const fallbackNeed = isVideo ? 'video' : 'audio';
-
-            // Fire native browser prompt using the composable
-            const result = await requestMediaAccess(fallbackNeed);
-
-            permissionPopup.value?.setLoading(false);
-            permissionPopup.value?.close();
-
-            if (result.success) {
-                if (isVideo) cameraPermissionStatus.value = 'granted';
-                micPermissionStatus.value = 'granted';
-
-                if (permissionResolver) permissionResolver(true);
-            } else {
-                // Mark as denied so we don't spam the browser prompt again
-                if (isVideo) cameraPermissionStatus.value = 'denied';
-                micPermissionStatus.value = 'denied';
-
-                // Wait for close animation, then open specific error
-                setTimeout(() => {
-                    permissionPopup.value?.open(isVideo ? 'cam-error' : 'mic-error');
-                }, 300);
-
-                if (permissionResolver) permissionResolver(false);
-            }
-            permissionResolver = null;
-        };
         const handlePopupCancel = () => {
             if (permissionResolver) permissionResolver(false);
             permissionResolver = null;
@@ -522,7 +480,7 @@ export default defineComponent({
 
 
         return {
-            t, rootElements, inputRef, menuRef, permissionPopup, messageText, handlePopupAction, handlePopupCancel,
+            t, rootElements, inputRef, menuRef, messageText, handlePopupCancel,
             secondaryMessageIcon: computed(() => secondaryMessageType.value === 'voice' ? 'PhMicrophone' : 'PhCamera'),
             inputDisabled: computed(() => !props.isActive),
             inputPlaceholder: computed(() => props.isActive ? t('chat.placeholder') : t('chat.chatLocked')),
