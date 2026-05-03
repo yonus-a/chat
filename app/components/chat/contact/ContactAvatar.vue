@@ -1,7 +1,7 @@
 <template>
     <div class=" w-full h-full relative ">
-        <BImage :src="contact.imageUrl" v-if="hasImage"
-            class=" w-full h-full min-w-full rounded-full overflow-hidden min-h-full max-w-full max-h-full" />
+        <BImage draggable="false" :src="contact.imageUrl" @click.stop @mousedown.stop v-if="hasImage"
+            class=" pointer-events-none select-none w-full h-full min-w-full rounded-full overflow-hidden min-h-full max-w-full max-h-full" />
         <div v-else class=" w-full h-full bg-primary/10 flex items-center justify-center rounded-full overflow-hidden ">
             <div class=" select-none text-primary text-sm font-semibold">{{ initials }}</div>
         </div>

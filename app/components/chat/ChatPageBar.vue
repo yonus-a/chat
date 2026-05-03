@@ -1,5 +1,5 @@
 <template>
-    <div class=" relative z-10 w-full">
+    <div class=" relative z-20 w-full">
         <div v-if="selectedChat"
             class=" h-16 w-full z-50 md:h-20 gap-x-4 relative bg-surface border-b border-b-outline-variant flex items-center justify-between py-4 px-5">
             <div
@@ -49,7 +49,7 @@
             </div>
             <BIcon @click="goBack" icon="PhArrowLeft" class=" md:hidden fill-on-surface/50 w-6 h-6 cursor-pointer" />
         </div>
-        <div class=" w-full  absolute bottom-0 z-200 h-0 overflow-visible">
+        <div class=" w-full  absolute bottom-0 z-1000 h-0 overflow-visible">
             <div class=" w-full flex items-center  transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap text-wrap px-2 bg-diamond-primary-secondary"
                 :class="[callData.show ? ' h-11' : 'h-0']">
                 <div class=" w-full flex items-center gap-x-3 transition-all duration-200 ease-in-out"

@@ -183,7 +183,6 @@ export default defineComponent({
 
         onBeforeRouteLeave((to, from) => {
             if (callStore.isActive) {
-                console.log('fuck its active')
                 callStore.isPiP = true;
             }
         });
@@ -204,17 +203,17 @@ export default defineComponent({
             await callStore.syncMediaSettings(service);
             const status = await checkMediaStatus();
 
-            if ((isVideo && status.mic === 'granted' && status.cam === 'granted') ||
-                (!isVideo && status.mic === 'granted')) {
-                await callStore.initCall(isVideo);
-                return;
-            }
+            // if ((isVideo && status.mic === 'granted' && status.cam === 'granted') ||
+            //     (!isVideo && status.mic === 'granted')) {
+            //     await callStore.initCall(isVideo);
+            //     return;
+            // }
 
             const state = isVideo ? 'permission' : 'mic-permission';
             const granted = await requestWithPopup(state);
 
             if (granted) {
-                await callStore.initCall(isVideo);
+                //  await callStore.initCall(isVideo);
             } else {
                 router.back();
             }
@@ -225,6 +224,7 @@ export default defineComponent({
             if (button?.hasErrors) return;
             switch (key) {
                 case 'minimize-call':
+                    callStore.isPiP = true;
                     router.push(`/dashboard/chat/${chatContact.value?.id}`);
                     break;
                 case 'share-screen':

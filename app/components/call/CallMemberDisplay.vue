@@ -23,7 +23,7 @@
 
         <!-- Avatar Fallback Logic -->
         <div v-if="!hasActiveStream" class=" w-18 h-18">
-            <ContactAvatar :contact="contact" />
+            <ContactAvatar :showOnline="false" :contact="contact" />
         </div>
 
         <!-- Name Label (Z-index ensures visibility over video) -->

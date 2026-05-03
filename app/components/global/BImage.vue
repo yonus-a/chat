@@ -107,7 +107,7 @@ export default defineComponent({
         })
 
         const autoAspectContainerClasses = computed(() => [
-            'overflow-hidden relative pointer-events-auto flex justify-center items-center transition-all duration-500',
+            'overflow-hidden relative  flex justify-center items-center transition-all duration-500',
             showImage.value ? 'bg-transparent' : !props.noLoading ? 'bg-black/20 animate-pulse' : ''
         ])
 
@@ -119,7 +119,7 @@ export default defineComponent({
         ])
 
         const standardContainerClasses = computed(() => [
-            'w-full h-full relative transition-all duration-500 pointer-events-auto overflow-hidden',
+            'w-full h-full relative transition-all duration-500  overflow-hidden',
             showImage.value ? 'bg-transparent' : !props.noLoading ? 'bg-black/20 animate-pulse' : ''
         ])
 

@@ -1,76 +1,43 @@
 <template>
-  <!-- 
-    1. Bind the dynamic 'style' from clamped coordinates.
-    2. touch-none prevents page scrolling while dragging on mobile.
-    3. cursor-move indicates it's draggable.
-    4. Transition class is ONLY applied when NOT dragging for snap animation.
-  -->
-  <div 
-    v-if="callStore.isActive && callStore.isPiP"
-    ref="pipContainer"
-    :style="clampedStyle"
-    class="fixed w-48 h-64 sm:w-56 sm:h-72 bg-black-600 rounded-2xl shadow-2xl z-[9999] overflow-hidden border border-white/10 flex flex-col cursor-move touch-none"
-    :class="[
-        !isDragging ? 'transition-all duration-300 ease-out' : ''
-    ]"
-  >
-    <!-- Video Stream Container -->
-    <div class="relative flex-1 bg-black overflow-hidden pointer-events-none">
-        <video 
-            ref="pipVideo"
-            autoplay 
-            playsinline 
-            muted
-            class="w-full h-full object-cover"
-            :class="{ 'scale-x-[-1]': !callStore.isSharingScreen }"
-        ></video>
-        
-        <!-- Controls Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-3 flex flex-col justify-between">
-            <div class="flex justify-end gap-x-2 pointer-events-auto">
-                <!-- Native Browser PiP Button (Pop out of app entirely) -->
-                <button v-if="supportsNativePiP" @click.stop="toggleNativePiP" class="bg-black/50 hover:bg-black/80 p-2 rounded-full transition-colors backdrop-blur-md" title="Pop out of browser">
-                    <BIcon icon="PhCopySimple" class="w-4 h-4 fill-white" />
-                </button>
+    <div v-if="callStore.isActive && callStore.isPiP" ref="pipContainer" :style="clampedStyle"
+        class="fixed max-w-[80vw] w-99 h-57.5 bg-black-600 rounded-2xl shadow-floating z-9999 overflow-hidden border border-white/10 flex flex-col items-center justify-center cursor-move touch-none"
+        :class="[!isDragging ? 'transition-all duration-300 ease-out' : '']">
 
-                <!-- Maximize back to full Nuxt route -->
-                <button @click.stop="maximizeCall" class="bg-black/50 hover:bg-black/80 p-2 rounded-full transition-colors backdrop-blur-md" title="Return to call">
-                    <BIcon icon="PhCornersOut" class="w-4 h-4 fill-white" />
-                </button>
+        <!-- Video Background Layer -->
+        <video v-show="showVideo" ref="pipVideo" autoplay playsinline muted
+            class="absolute inset-0 w-full h-full object-cover z-0"
+            :class="{ 'scale-x-[-1]': !callStore.isSharingScreen && targetMember.id === profileStore.userData.id }"></video>
+
+        <!-- UI Content Layer -->
+        <div v-if="!showVideo" class="relative pointer-events-none select-none z-10 w-full h-full flex flex-col items-center justify-center gap-y-4 bg-black/20">
+            <!-- Avatar Fallback (Hidden if video is playing) -->
+            <div  class="w-18 h-18">
+                <ContactAvatar :showOnline="false" :contact="targetMember" />
             </div>
-            
-            <div class="flex flex-col">
-                <div class="text-white text-xs font-medium truncate drop-shadow-md">
-                    {{ callStore.chatContact?.name }} {{ callStore.chatContact?.lastName }}
-                </div>
-                <div class="text-primary text-[10px] font-mono drop-shadow-md">{{ formattedTime }}</div>
+
+            <!-- Name Label (Always visible, styled for overlay) -->
+            <div  class="text-center text-white select-none text-label-md drop-shadow-md">
+                {{ targetMember?.name }} {{ targetMember?.lastName }}
+            </div>
+        </div>
+
+        <!-- Action Layer -->
+        <div class="p-2 w-full absolute h-full z-[10000] flex items-end pointer-events-none">
+            <div @click="maximizeCall"
+                class="bg-black/50 backdrop-blur-md rounded-full flex cursor-pointer items-center justify-center w-10 aspect-square pointer-events-auto hover:bg-black/80 transition-colors">
+                <BIcon icon="PhResize" class="w-4 h-4 fill-white" />
             </div>
         </div>
     </div>
-
-    <!-- Quick Toolbelt -->
-    <!-- pointer-events-auto ensures buttons work, @mousedown.stop prevents dragging when clicking buttons -->
-    <div class="h-12 bg-black-500 flex items-center justify-around px-2 border-t border-white/5 pointer-events-auto" @mousedown.stop @touchstart.stop>
-        <BIcon 
-            :icon="callStore.isMicMuted ? 'PhMicrophoneSlash' : 'PhMicrophone'" 
-            @click.stop="callStore.toggleMic"
-            class="w-5 h-5 fill-white cursor-pointer hover:fill-primary transition-colors" 
-        />
-        <div @click.stop="callStore.stopCall" class="bg-diamond-error rounded-full p-2 cursor-pointer hover:scale-110 transition-transform">
-            <BIcon icon="PhPhoneX" class="w-4 h-4 fill-white" />
-        </div>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useDraggable, useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
-// Make sure to import your store and format utility correctly based on your project structure
-// import { useCallStore } from '~/stores/useCallStore';
-// import { formatDuration } from '~/utils/formatters';
+import ContactAvatar from '../chat/contact/ContactAvatar.vue';
 
+const profileStore = useProfileStore();
 const callStore = useCallStore();
 const router = useRouter();
 
@@ -82,15 +49,15 @@ const { width: windowWidth, height: windowHeight } = useWindowSize();
 
 // --- DRAG LOGIC WITH BOUNDARIES & CORNER SNAPPING ---
 // Using the larger dimensions (sm breakpoints) to ensure it never clips off-screen
-const PIP_WIDTH = 224; 
-const PIP_HEIGHT = 288; 
-const PADDING = 24;
+const PIP_WIDTH = 396;
+const PIP_HEIGHT = 250;
+const PADDING = 16;
 
 // 1. Initialize Draggable
 const { x, y, isDragging } = useDraggable(pipContainer, {
-    initialValue: { 
-        x: typeof window !== 'undefined' ? window.innerWidth - PIP_WIDTH - PADDING : 0, 
-        y: typeof window !== 'undefined' ? window.innerHeight - PIP_HEIGHT - PADDING : 0 
+    initialValue: {
+        x: typeof window !== 'undefined' ? window.innerWidth - PIP_WIDTH - PADDING : 0,
+        y: typeof window !== 'undefined' ? window.innerHeight - PIP_HEIGHT - PADDING : 0
     },
 });
 
@@ -113,7 +80,7 @@ watch(isDragging, (dragging) => {
 const clampedStyle = computed(() => {
     const maxX = windowWidth.value - PIP_WIDTH - PADDING;
     const maxY = windowHeight.value - PIP_HEIGHT - PADDING;
-    
+
     const safeX = Math.max(PADDING, Math.min(x.value, maxX));
     const safeY = Math.max(PADDING, Math.min(y.value, maxY));
 
@@ -123,17 +90,6 @@ const clampedStyle = computed(() => {
     };
 });
 
-// --- TIME FORMATTING ---
-const formattedTime = computed(() => {
-    const s = callStore.elapsedTime;
-    const hours = Math.floor(s / 3600);
-    const minutes = Math.floor((s % 3600) / 60);
-    const seconds = s % 60;
-
-    const padded = (val: number) => val.toString().padStart(2, "0");
-    if (hours > 0) return `${padded(hours)}:${padded(minutes)}:${padded(seconds)}`;
-    return `${padded(minutes)}:${padded(seconds)}`;
-});
 
 // --- ACTIONS ---
 const maximizeCall = async () => {
@@ -158,21 +114,50 @@ const toggleNativePiP = async () => {
     }
 };
 
-// Check for native browser PiP support
 onMounted(() => {
     supportsNativePiP.value = typeof document !== 'undefined' && 'pictureInPictureEnabled' in document;
 });
 
-// --- STREAM BINDING ---
+const targetMember = computed(() => {
+    const others = callStore.callMembers.filter(m => m.id !== profileStore.userData.id);
+    return others.length > 0 ? others[0] : callStore.callMembers[0];
+});
+/**
+ * Stream Priority Logic:
+ * 1. Other end's video/screen stream
+ * 2. My Screen Sharing stream
+ * 3. My Local Camera stream (if enabled)
+ */
+const activeStream = computed(() => {
+    const others = callStore.callMembers.filter(m => m.id !== profileStore.userData.id);
+    const otherStream = others.find(m => m.stream)?.stream;
+
+    if (otherStream) return otherStream;
+    return callStore.isSharingScreen ? callStore.screenStream : callStore.localStream;
+});
+
+const showVideo = computed(() => {
+    // Show if others have a stream OR if I am sharing/streaming cam
+    const otherStreaming = callStore.callMembers.some(m => m.id !== profileStore.userData.id && m.stream);
+    if (otherStreaming) return true;
+
+    return callStore.isSharingScreen || !callStore.isCamDisabled;
+});
+
+// Update the updateStream function to use activeStream
 const updateStream = () => {
-    if (pipVideo.value && callStore.localStream) {
-        pipVideo.value.srcObject = callStore.isSharingScreen 
-            ? callStore.screenStream 
-            : callStore.localStream;
+    if (pipVideo.value && activeStream.value) {
+        pipVideo.value.srcObject = activeStream.value;
     }
 };
 
-// Re-bind the video stream automatically when PiP opens or screen sharing toggles
+// Ensure the watch tracks the new computed activeStream
+watch(() => [callStore.isPiP, activeStream.value, showVideo.value], () => {
+    if (callStore.isPiP) {
+        nextTick(() => updateStream());
+    }
+}, { immediate: true });
+
 watch(() => [callStore.isPiP, callStore.localStream, callStore.isSharingScreen], () => {
     if (callStore.isPiP) {
         nextTick(() => updateStream());
