@@ -11,7 +11,7 @@
             <div class=" flex items-center gap-x-4.5">
                 <div
                     class=" h-6 flex items-center justify-center bg-diamond-error rounded-full px-2 text-white select-none">
-                    <div class=" text-body-sm">00:20</div>
+                    <div class=" text-body-sm">{{ callTimeDisplay }}</div>
                 </div>
                 <BIcon icon="PhArrowLeft" @click="goBack" class=" w-5 h-5 fill-white cursor-pointer" />
             </div>
@@ -45,7 +45,7 @@ import { useI18n, useCallStore, useWindowSize } from '#imports';
 import { useRouter, useRoute } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { useAppPermissions } from '#imports';
-import { v } from 'vue-router/dist/index-D_VEAp3P.js';
+import { formatDuration } from '@/utils/format'
 export default defineComponent({
     name: 'CallPageOverlay',
     props: {
@@ -69,6 +69,8 @@ export default defineComponent({
         const chatContact = computed(() => {
             return callStore.chatContact
         })
+
+        const callTimeDisplay = computed(() => formatDuration(callStore.elapsedTime))
 
 
         const isMobile = computed(() => width.value < 768);
@@ -256,6 +258,7 @@ export default defineComponent({
             getMemberClass,
             isMobile,
             fullScreenId,
+            callTimeDisplay,
             toggleFullScreen,
         }
     }

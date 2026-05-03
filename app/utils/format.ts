@@ -129,5 +129,9 @@ export const formatDuration = (totalSeconds: number): string => {
 
   const padded = (val: number) => val.toString().padStart(2, "0");
 
-  return `${padded(hours)}:${padded(minutes)}:${padded(seconds)}`;
+  if (hours > 0) {
+    return `${padded(hours)}:${padded(minutes)}:${padded(seconds)}`;
+  }
+
+  return `${padded(minutes)}:${padded(seconds)}`;
 };
