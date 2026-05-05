@@ -97,8 +97,6 @@ export default defineComponent({
         const patientRefferal = useTemplateRef<PatientRefferalExposed>('patientRefferal');
 
 
-
-
         const canShowMessagingSection = computed(() => {
             if (isCallMode.value) return false;
             if (isMobile.value) {

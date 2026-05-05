@@ -37,8 +37,8 @@
                 <div class=" opacity-50">{{ t('dashboard.wallet.insuranceType') }}</div>
                 <div>{{ insuranceType }}</div>
             </div>
-            <BButton @click="openToast('Hello', 'success')" left-icon="PhPlus" class=" md:min-w-auto min-w-full" :text="t('dashboard.wallet.deposit')" />
             <NuxtLinkLocale class=" w-full md:basis-1/2 flex justify-end" to="/dashboard/financial/wallet">
+                <BButton  left-icon="PhPlus" class=" md:min-w-auto min-w-full" :text="t('dashboard.wallet.deposit')" />
             </NuxtLinkLocale>
         </div>
     </div>
@@ -51,11 +51,9 @@ import walletImage from '/images/dashboard/wallet-icon.svg'
 import { formatCurrency } from '#imports';
 import { useProfileStore } from '#imports';
 import { useNumberLerp } from '~/composables/useNumberLerp';
-import { useAppToast } from '#imports';
 export default defineComponent({
     name: 'WalletDisplay',
     setup() {
-        const { openToast } = useAppToast()
         const { t } = useI18n()
         const profileStore = useProfileStore()
 
@@ -104,7 +102,6 @@ export default defineComponent({
             walletCardRef,
             isLoading,
             coverageItems,
-            openToast
         }
     }
 })
