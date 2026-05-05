@@ -1,6 +1,6 @@
 <template>
-    <div class=" pointer-events-none fixed top-0 left-0 md:w-full w-dvw md:absolute h-dvh md:backdrop-blur-none md:bg-transparent bg-on-surface/10 backdrop-blur-lg md:h-0 overflow-visible z-20"
-        :class="[isOpen ? 'backdrop-blur-lg' : ' backdrop-blur-none']">
+    <div class=" pointer-events-none fixed top-0 left-0 md:w-full w-dvw md:absolute h-dvh md:backdrop-blur-none  md:h-0 overflow-visible z-20"
+        :class="[isOpen ? 'backdrop-blur-lg md:bg-transparent bg-on-surface/10' : ' backdrop-blur-none']">
         <div
             class=" md:-translate-y-full pointer-events-none md:pb-4 md:block flex flex-col justify-between md:py-0 py-26 items-center md:h-auto h-full md:pr-4">
             <div class=" md:hidden"></div>
