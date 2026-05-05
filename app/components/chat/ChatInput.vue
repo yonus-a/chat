@@ -62,10 +62,9 @@
 
             <div v-show="!isRecording" class="flex-1 flex items-end gap-x-5">
                 <div class=" min-h-11 flex items-center w-full">
-                    <div ref="inputRef" contenteditable="true" @keydown.esc.exact.prevent="cancelAction"
-                        @keydown.enter.exact.prevent="handleEnterKey" @input="handleContentInput" @focus="onInputFocus"
-                        @blur="saveCursorPosition" @keyup="saveCursorPosition" @mouseup="saveCursorPosition"
-                        :data-placeholder="inputPlaceholder"
+                    <div ref="inputRef" contenteditable="true" @keydown.enter.exact.prevent="handleEnterKey"
+                        @input="handleContentInput" @focus="onInputFocus" @blur="saveCursorPosition"
+                        @keyup="saveCursorPosition" @mouseup="saveCursorPosition" :data-placeholder="inputPlaceholder"
                         class="text-body-md text-on-surface outline-none flex-1 bg-transparent z-10 max-h-[144px] overflow-y-auto hide-scrollbar leading-6 py-1 cursor-text whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-on-surface/50 pointer-events-auto">
                     </div>
                 </div>
@@ -96,7 +95,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary  cursor-pointer px-4  z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                    }}</span>
+                        }}</span>
                 </div>
 
                 <div class=" left-6 flex items-center  gap-x-2 shrink-0 z-10">
@@ -106,7 +105,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                        }}</span>
+                    }}</span>
                 </div>
             </div>
         </div>
@@ -124,7 +123,7 @@ import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import type { ExtendedMessage, Message } from '~/types/chat';
 import SafeEmojiText from '../general/SafeEmojiText.vue';
 import { parseEmojiArray } from '~/utils/emojiParser';
@@ -136,6 +135,7 @@ export default defineComponent({
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
+        const router = useRouter()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions();
         const chatActionStore = useChatActionStore();
         const profileStore = useProfileStore()
@@ -218,11 +218,12 @@ export default defineComponent({
 
         // 3. ADD THE CANCEL FUNCTION
         const cancelAction = () => {
-            if (textMode.value !== 'normal') {
-                // This clears the store, which automatically triggers the watchers above to reset the UI
-                chatActionStore.clearActions();
-            }
+            chatActionStore.clearActions();
         };
+
+        watch(() => textMode.value, () => {
+            console.log(textMode.value)
+        })
 
         // Refs
         const rootElements = ref<HTMLElement | null>(null);
@@ -347,7 +348,29 @@ export default defineComponent({
 
         const handleGlobalKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                cancelAction();
+                console.log('text mode before cancel action:', textMode.value)
+                if (textMode.value !== 'normal') {
+                    cancelAction();
+                } else {
+                    handleEscapeNavigation()
+                }
+            }
+        };
+
+        const handleEscapeNavigation = () => {
+            const params = route.params.id;
+            const baseId = Array.isArray(params) ? params[0] : params;
+
+            // Check if we are in a sub-state (Call or Profile View)
+            const isCallMode = Array.isArray(params) && params.includes('call');
+            const isProfileView = !!route.query.view;
+
+            if (isCallMode || isProfileView) {
+                // If in a sub-state, go back to the base chat page
+                router.push(`/dashboard/chat/${baseId}`);
+            } else {
+                // If already on the base chat page, go back to the chat list
+                router.push('/dashboard/chat');
             }
         };
 

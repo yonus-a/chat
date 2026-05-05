@@ -154,23 +154,6 @@ export default defineComponent({
         const chatId = computed(() => parseInt(route.params.id as string))
         const hasCall = computed(() => callStore.isActive)
 
-        const handleGlobalKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                back();
-            }
-        };
-
-        const back = () => {
-            router.push('/dashboard/chat')
-        }
-
-        onMounted(() => {
-            window.addEventListener('keydown', handleGlobalKeyDown);
-        });
-
-        onUnmounted(() => {
-            window.removeEventListener('keydown', handleGlobalKeyDown);
-        });
 
 
         const referBus = useEventBus('open-referral');

@@ -7,7 +7,7 @@
             </div>
 
             <!-- CANVAS WRAPPER -->
-            <div
+            <div @mousedown="console.log('fuck')" @mouseup="console.log('fuck again')"
                 class="flex-1 shrink-0 min-h-117 w-full border-2 rounded-2xl border-primary mt-4 relative overflow-hidden bg-white">
                 <canvas ref="canvasRef" class="w-full h-full absolute top-0 left-0 touch-none"></canvas>
             </div>

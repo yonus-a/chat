@@ -1,5 +1,5 @@
 <template>
-    <div @click.self="close" class=" top-0 left-0 absolute z-20 w-full h-full"
+    <div @click.self.stop="close" class=" top-0 left-0 absolute z-20 w-full h-full"
         :class="[isOpen ? ' pointer-events-auto' : 'pointer-events-none']">
         <div ref="colorPickerWrapper"
             :class="[isOpen ? ' shadow-medium pointer-events-auto bg-surface' : ' pointer-events-none bg-surface/0 shadow-none']"
