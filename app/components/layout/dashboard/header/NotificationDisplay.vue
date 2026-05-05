@@ -6,13 +6,14 @@
                 <BIcon v-loading="isLoading" class=" w-4.5 h-4.5" icon="PhClock" />
                 <div v-loading="isLoading">{{ getAbsoluteDateTime(notification.date) }}</div>
             </div>
-            <div class=" flex items-center gap-x-1">
-                <BIcon v-loading="isLoading" class=" w-4.5 h-4.5" :icon="tagIcon" />
-                <div v-loading="isLoading">{{ tagText }}</div>
+            <div class=" flex items-center gap-x-1" :class="[tagColoring.text]">
+                <BIcon v-loading="isLoading" class=" w-4.5 h-4.5"  :icon="tagIcon" />
+                <div v-loading="isLoading" >{{ tagText }}</div>
             </div>
         </div>
         <div v-loading="isLoading" class=" text-label-lg text-on-surface shrink-0">{{ notification.title }}</div>
-        <p v-loading="isLoading" class=" w-full line-clamp-3 overflow-hidden text-ellipsis text-on-surface text-body-sm shrink-0 text-justify select-none">
+        <p v-loading="isLoading"
+            class=" w-full line-clamp-3 overflow-hidden text-ellipsis text-on-surface text-body-sm shrink-0 text-justify select-none">
             {{ notification.description }}
         </p>
         <div v-show="notification.isRead" class=" w-full flex justify-end items-end flex-1">
@@ -76,11 +77,38 @@ export default defineComponent({
             }
         })
 
+        const tagColoring = computed(() => {
+            let type = props.notification.tag
+            switch (type) {
+                case 'announcement':
+                    return {
+                        text: 'text-on-surface/50',
+                        icon: 'text-on-surface/50' // Change fill- to text-
+                    }
+                case 'reminder':
+                    return {
+                        text: 'text-error',
+                        icon: 'text-error' // 'fill-color' was likely a typo anyway
+                    }
+                case 'request':
+                    return {
+                        text: 'text-primary',
+                        icon: 'text-primary' // Change fill- to text-
+                    }
+                case 'wallet':
+                    return {
+                        text: 'text-[#45A3EB]',
+                        icon: 'text-[#45A3EB]' // Change fill- to text-
+                    }
+            }
+        })
+
         return {
             t,
             tagIcon,
             getAbsoluteDateTime,
             tagText,
+            tagColoring,
             isLoading,
         }
     }
