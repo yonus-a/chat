@@ -1,10 +1,10 @@
 <template>
-    <div class=" w-full h-full relative rounded-2xl p-2 flex flex-col bg-black-600 gap-y-2 items-center border justify-center transition-all duration-200 ease-in-out"
+    <div class=" w-full h-full relative rounded-2xl p-2 flex flex-col bg-black-600 gap-y-2 items-center border-2 overflow-hidden justify-center transition-all duration-200 ease-in-out"
         :class="[contact.isSpeaking ? ' border-primary' : ' border-primary/0']">
 
         <!-- Video Background Feature -->
         <video v-show="hasActiveStream" ref="videoRef" autoplay playsinline :muted="isMine"
-            class="absolute inset-0 w-full h-full object-cover rounded-2xl"></video>
+            class="absolute inset-0 w-full h-full object-cover "></video>
 
         <div class=" absolute p-2 w-full h-full z-10 top-0 left-0  flex flex-col justify-between" @click.self.stop>
             <div class=" w-full flex justify-end items-center">
