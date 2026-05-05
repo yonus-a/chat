@@ -1,6 +1,6 @@
 <template>
     <div class=" shadow-floating relative z-10 h-full shrink-0 flex ">
-        <div class=" h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col"
+        <div class=" relative h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col"
            >
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
                 <div class=" w-10 h-10">
@@ -9,12 +9,12 @@
                     </NuxtLinkLocale>
                 </div>
             </div>
-            <div class=" flex-1 flex items-center  p-4 flex-col justify-between">
+            <div class=" flex-1 relative flex items-center  p-4 flex-col justify-between">
                 <div class=" flex flex-col gap-y-2 items-center">
                     <CategoryItem :is-active="isRouteActive(category)" @click="setActiveCategory(category)"
                         :route-item="category" v-for="category in getCategories" :key="category.key" />
                 </div>
-                <div class=" flex flex-col items-center gap-y-2">
+                <div class=" relative flex flex-col items-center gap-y-2">
                     <div class=" w-10 h-10 flex justify-center items-center">
                         <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" :icon="themeButtonIcon"
                             @click="toggleTheme" />

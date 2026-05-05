@@ -6,7 +6,7 @@
         <video v-show="hasActiveStream" ref="videoRef" autoplay playsinline :muted="isMine"
             class="absolute inset-0 w-full h-full object-cover "></video>
 
-        <div class=" absolute p-2 w-full h-full z-10 top-0 left-0  flex flex-col justify-between" @click.self.stop>
+        <div class=" absolute p-2 w-full h-full z-0 top-0 left-0  flex flex-col justify-between" @click.self.stop>
             <div class=" w-full flex justify-end items-center">
                 <div :class="[contact.isSpeaking ? 'opacity-100' : 'opacity-0']"
                     class="cursor-pointer rounded-full bg-black-500 transition-all duration-200 ease-in-out w-10 h-10 flex items-center justify-center">

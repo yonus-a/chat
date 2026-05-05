@@ -203,9 +203,6 @@ export default defineComponent({
             mockProfile.value
         )
 
-        onMounted(() => {
-            console.log('mount')
-        })
 
         const isInCall = computed(() => callStore.isActive)
 
@@ -367,7 +364,6 @@ export default defineComponent({
             hasFileNextPage.value = true;
             fetchMoreMedia();
             fetchMoreFiles()
-            console.log('page', currentFilePage.value)
         });
 
         const displayedInfo = computed(() => {

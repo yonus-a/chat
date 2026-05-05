@@ -58,9 +58,6 @@ export default defineComponent({
             return props.medic.fellowships.map(f => f.title).join(', ');
         });
 
-        onMounted(() => {
-            console.log('medic', props.medic)
-        })
 
         return {
             fellowshipString

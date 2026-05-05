@@ -69,9 +69,7 @@ export default defineComponent({
         const activeFilter = ref('')
         const autoSelect = ref(true)
 
-        watch(() => autoSelect.value, () => {
-            console.log(autoSelect.value)
-        })
+
         const { openToast } = useAppToast()
 
         const currentConversationId = computed(() => Number(route.params.id) || 0);
@@ -89,9 +87,6 @@ export default defineComponent({
         const isLoading = computed(() => serviceStore.isLoading)
         const providers = computed(() => serviceStore.providers)
 
-        onMounted(() => {
-            console.log(serviceStore.providers)
-        })
 
         const selectedExpertiseLabel = computed(() => {
             const selected = serviceStore.services.find(s => s.id === field.value);
@@ -133,7 +128,6 @@ export default defineComponent({
                 field.value = serviceStore.services[0].id;
             }
             await serviceStore.fetchProviders(false);
-            console.log(providers.value)
         });
 
         // 2. Watcher: When filters, search, or expertise changes, reset and fetch providers

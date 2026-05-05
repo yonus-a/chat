@@ -1,7 +1,8 @@
 <template>
     <div v-if="contact" class="relative w-full h-full overflow-hidden">
 
-        <div class="absolute top-4 left-0 right-0 z-20 flex justify-center pointer-events-none transition-opacity duration-200"
+        <div :class="[hasCall ? 'top-12' : 'top-4']"
+            class="absolute  left-0 right-0 z-20 flex justify-center pointer-events-none transition-opacity duration-200"
             :style="{ opacity: headerOpacity }">
             <div v-if="floatingHeader"
                 class="rounded-full bg-on-surface/10 flex items-center justify-center px-4 py-0.5">
@@ -113,7 +114,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useI18n, useChatActionStore, useChatStore, useDate, useProfileStore } from '#imports';
+import { useI18n, useChatActionStore, useChatStore, useCallStore, useDate, useProfileStore } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
 import type { Message, MessageType, Contact, ExtendedMessage } from '~/types/chat';
@@ -146,10 +147,12 @@ export default defineComponent({
         const route = useRoute();
         const router = useRouter()
         const chatStore = useChatStore();
+        const callStore = useCallStore()
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const { formatDateShort } = useDate();
         const chatId = computed(() => parseInt(route.params.id as string))
+        const hasCall = computed(() => callStore.isActive)
 
         const handleGlobalKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -157,7 +160,7 @@ export default defineComponent({
             }
         };
 
-        const back = ()=>{
+        const back = () => {
             router.push('/dashboard/chat')
         }
 
@@ -197,6 +200,7 @@ export default defineComponent({
 
         onMounted(() => {
 
+            console.log('id')
             if (chatId.value) chatStore.markAsRead(chatId.value);
             fetchMessages(1);
 
@@ -348,7 +352,6 @@ export default defineComponent({
         };
 
         const fetchMessages = async (page: number) => {
-            console.log('fuck')
 
             if (isLoading.value || page > maxPages) return;
             isLoading.value = true;
@@ -393,8 +396,14 @@ export default defineComponent({
 
             const items = virtualizer.value.getVirtualItems();
             if (items.length > 0) {
-                const visualTopPhysical = el.scrollTop + el.clientHeight;
-                let closestIndex = items.index;
+                // CHANGE: Calculate dynamic offset based on call state
+                // Base offset is 44px (top-4). If call is active (top-12), we add 44px.
+                const targetOffset = hasCall.value ? 88 : 44;
+
+                // We look for the message at the viewport bottom minus the dynamic header offset
+                const visualTopPhysical = el.scrollTop + el.clientHeight - targetOffset;
+
+                let closestIndex = items[0].index;
                 let minDiff = Infinity;
 
                 for (const item of items) {
@@ -539,17 +548,24 @@ export default defineComponent({
             return formatDateShort(msg.date);
         });
 
-        watch(() => route.params.id, (newId) => {
-            if (newId) {
+        watch(
+            () => chatId.value,
+            (newId, oldId) => {
+                if (newId && newId !== oldId) {
+                    chatStore.markAsRead(chatId.value);
 
-                chatStore.markAsRead(chatId.value);
+                    messages.value = [];
+                    currentPage.value = 1;
 
-                messages.value = [];
-                currentPage.value = 1;
-                if (scrollContainer.value) scrollContainer.value.scrollTop = 0;
-                fetchMessages(1);
+                    if (scrollContainer.value) {
+                        scrollContainer.value.scrollTop = 0;
+                    }
+
+                    console.log('fetch new page for fucks sake')
+                    fetchMessages(1);
+                }
             }
-        });
+        );
 
         const closeMenu = (key: string) => {
             switch (key) {
@@ -576,7 +592,7 @@ export default defineComponent({
             getSpacingClass, handleScroll, firstUnreadId, headerOpacity, addMessages,
             animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
             canScroll, resetScroll, showOptionsBar, mappedOptions, closeMenu,
-            menuRef, handleModalConfirm, handleOption,
+            menuRef, handleModalConfirm, handleOption, hasCall,
         };
     }
 });

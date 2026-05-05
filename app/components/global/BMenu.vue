@@ -1,11 +1,11 @@
 <template>
-    <div ref="menuWrapper" class="relative z-10">
-        <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-90' : '']">
+    <div ref="menuWrapper" class="relative">
+        <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-10001' : '']">
             <slot name="trigger" :isOpen="isOpen" />
         </div>
 
         <div v-if="overlay" @click="closeMenu"
-            class="w-dvw h-dvh fixed top-0 left-0 transition-all duration-300 ease-in-out z-80"
+            class="w-dvw h-dvh fixed top-0 left-0 transition-all duration-300 ease-in-out z-10000"
             :class="[isOpen ? 'bg-on-background/20 backdrop-blur-sm pointer-events-auto' : 'backdrop-blur-none bg-on-background/0 pointer-events-none']">
         </div>
 
@@ -198,8 +198,9 @@ export default defineComponent({
         };
 
         const handleContentClick = () => {
-            if (!props.autoClose) return
-            closeMenu()
+            if (!hasCustomContent.value || props.autoClose) {
+                closeMenu()
+            }
         }
 
         expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });

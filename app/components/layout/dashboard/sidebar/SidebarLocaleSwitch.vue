@@ -1,5 +1,5 @@
 <template>
-    <div class=" flex w-10 h-10 items-center justify-center">
+    <div class=" flex w-10 h-10 relative z-1000 items-center justify-center">
         <BMenu :overlay="false">
             <template #trigger="{ isOpen }">
                 <div class="w-full aspect-square flex items-center justify-center">

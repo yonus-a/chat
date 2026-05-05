@@ -1,5 +1,5 @@
 <template>
-    <div class=" flex flex-col w-full h-full bg-diamond-black ">
+    <div v-show="isReady" class=" flex flex-col w-full h-full bg-diamond-black ">
         <div class=" h-16 sm:h-20 flex items-center justify-between px-4">
             <div class="md:block hidden text-white select-none text-label-lg">{{ t('chat.call.title') }}</div>
             <div class=" bg-black-500 md:hidden rounded-full flex items-center gap-x-4 h-10 px-3">
@@ -37,6 +37,15 @@
                     </div>
                 </template>
             </CallBoard>
+            <MedicSelector mode="medic">
+                <template #trigger="{ isOpen }">
+                    <div class="w-9 sm:w-12 transition-all duration-200 aspect-square rounded-full flex items-center justify-center"
+                        :class="[isOpen ? 'bg-white' : 'bg-black-500']">
+                        <BIcon :icon="isOpen ? 'PhX' : 'PhUserPlus'" class="sm:w-6 sm:h-6 w-4 h-4"
+                            :class="[isOpen ? 'fill-black-500' : 'fill-white']" />
+                    </div>
+                </template>
+            </MedicSelector>
             <div class="  w-9 sm:w-12  transition-all duration-200 ease-in-out aspect-square rounded-full flex items-center justify-center"
                 :class="[option.isActive ? ' bg-white cursor-pointer' : (option.hasErrors ? 'bg-error-900 cursor-not-allowed' : 'cursor-pointer bg-black-500')]"
                 @click="handleOptions(option.key)" v-for="option in optionButtons" :key="option.key">
@@ -51,13 +60,14 @@
     </div>
 </template>
 <script lang="ts">
-import { type PropType, defineComponent, onMounted, computed } from 'vue';
+import { type PropType, defineComponent, onBeforeMount, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useI18n, useCallStore, useWindowSize, useAppPermissions, useDevice } from '#imports';
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
 import CallBoard from './CallBoard.vue';
+import MedicSelector from '../chat/medic-features/MedicSelector.vue';
 export default defineComponent({
     name: 'CallPageOverlay',
     props: {
@@ -70,11 +80,13 @@ export default defineComponent({
     components: {
         CallMemberDisplay,
         CallBoard,
+        MedicSelector,
     },
     setup(props) {
         const router = useRouter()
         const route = useRoute()
         const { t } = useI18n()
+        const isReady = ref(false)
         const callStore = useCallStore()
         const { width } = useWindowSize()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
@@ -95,7 +107,7 @@ export default defineComponent({
         const fullScreenId = ref<number | null>(null);
 
         const toggleFullScreen = (id: number) => {
-           fullScreenId.value = fullScreenId.value === id ? null : id;
+            fullScreenId.value = fullScreenId.value === id ? null : id;
         };
 
         // Replace gridLayoutClasses with wrapperClasses
@@ -234,7 +246,6 @@ export default defineComponent({
 
         onBeforeMount(() => {
             callStore.isPiP = false;
-
             if (!callStore.isActive) {
                 const rawId = route.params.id;
                 const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -244,6 +255,7 @@ export default defineComponent({
                 router.push(`/dashboard/chat/${fallbackId}`);
                 return;
             }
+            isReady.value = true;
         })
 
         onMounted(async () => {
@@ -349,6 +361,7 @@ export default defineComponent({
             toggleFullScreen,
             isBoardOpen,
             boardIcon,
+            isReady,
         }
     }
 })

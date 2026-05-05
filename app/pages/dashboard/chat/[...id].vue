@@ -1,20 +1,20 @@
 <template>
     <div class="  w-full bg-surface-variant h-full">
-        <div v-if="canShowMessagingSection" class=" h-full w-full flex">
+        <div v-show="canShowMessagingSection" class=" h-full w-full flex">
             <ChatProfileOverview :profile="selectedChat" />
             <div class=" flex flex-1 flex-col justify-between items-center h-full" v-show="chatId">
                 <div class=" w-full bg-surface h-16 md:h-20">
                     <ChatPageBar :options="medicOptions" @open-profile="openProfile" :contact="selectedChat" />
                 </div>
                 <div class="flex-1 w-full min-h-0 overflow-hidden">
-                    <ChatMessages :options="medicOptions" v-if="selectedChat" :contact="selectedChat" />
+                    <ChatMessages :options="medicOptions" v-show="selectedChat" :contact="selectedChat" />
                 </div>
                 <ChatInput ref="chatInput" :is-active="selectedChat?.isActive" />
             </div>
             <div v-show="!chatId" class=" w-full h-full flex items-center justify-center">
             </div>
         </div>
-        <CallPageOverlay v-else-if="isCallMode && selectedChat" :contact="selectedChat" />
+        <CallPageOverlay v-show="isCallMode && selectedChat" :contact="selectedChat" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
         <PermissionPopup />
     </div>
@@ -36,7 +36,11 @@ import CallPageOverlay from '~/components/call/CallPageOverlay.vue';
 import PermissionPopup from '~/components/chat/chat-input/PermissionPopup.vue';
 definePageMeta({
     layout: 'dashboard',
-    hideBottomNav: true
+    hideBottomNav: true,
+    key: (route) => {
+        const id = route.params.id;
+        return Array.isArray(id) ? id[0] : id;
+    }
 })
 
 export default defineComponent({

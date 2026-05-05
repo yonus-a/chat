@@ -17,7 +17,7 @@
                     </div>
                 </div>
 
-                <div class=" relative h-6">
+                <div class=" z-1001 relative h-6">
                     <div class="relative transition-all duration-200 ease-in-out"
                         :class="[isSelectMode ? '-translate-y-6' : 'translate-y-0']">
                         <div class="flex relative items-center gap-x-4 transition-all duration-200 ease-in-out"
@@ -27,8 +27,6 @@
                                     class="w-6 h-6  cursor-pointer"
                                     :class="[contact?.isActive || isInCall ? 'cursor-pointer fill-on-surface/50' : 'fill-on-surface/25 cursor-not-allowed']" />
                             </div>
-
-
                             <div class=" w-6 h-6 overflow-visible">
                                 <MedicSelector @select="handleMenuAction" :options="options">
                                     <template #trigger>
@@ -49,7 +47,7 @@
             </div>
             <BIcon @click="goBack" icon="PhArrowLeft" class=" md:hidden fill-on-surface/50 w-6 h-6 cursor-pointer" />
         </div>
-        <div class=" w-full  absolute bottom-0 z-1000 h-0 overflow-visible">
+        <div class=" w-full  absolute bottom-0 z-20 h-0 overflow-visible">
             <div class=" w-full flex items-center  transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap text-wrap px-2 bg-diamond-primary-secondary"
                 :class="[callData.show ? ' h-11' : 'h-0']">
                 <div class=" w-full flex items-center gap-x-3 transition-all duration-200 ease-in-out"
