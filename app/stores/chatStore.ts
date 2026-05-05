@@ -320,6 +320,26 @@ export const useChatStore = defineStore("chat", () => {
     }
   };
 
+  const unreadCount = computed(() => {
+    // 1. Create a Set or Map to store unique contact IDs to avoid double-counting
+    // across different filters (e.g., a contact appearing in both "All" and "Online")
+    const uniqueContacts = new Map<number, Contact>();
+
+    for (const key in conversationStates.value) {
+      const state = conversationStates.value[key as FilterKeys];
+      state.data.forEach((contact) => {
+        if (!uniqueContacts.has(contact.id)) {
+          uniqueContacts.set(contact.id, contact);
+        }
+      });
+    }
+
+    // 2. Filter the unique list for conversations where the last message is unread
+    return Array.from(uniqueContacts.values()).filter((contact) => {
+      return contact.lastMessage && contact.lastMessage.isRead === false;
+    }).length;
+  });
+
   return {
     conversationStates,
     activeConversationId,
@@ -327,6 +347,7 @@ export const useChatStore = defineStore("chat", () => {
     loadNextPage,
     getDisplayedContacts,
     chatsPerPage,
+    unreadCount,
     getContactById,
     messagesMap,
     markAsRead,

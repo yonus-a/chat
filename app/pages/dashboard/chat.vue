@@ -36,11 +36,8 @@ export default defineComponent({
         const { width } = useWindowSize()
         const { t } = useI18n()
         const route = useRoute()
-        const chatStore = useChatStore()
 
-        onMounted(() => {
-            chatStore.fetchConversations('', 1);
-        });
+
 
         const isMobile = computed(() => width.value < 768)
         const isInChat = computed(() => {

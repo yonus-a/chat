@@ -1,5 +1,5 @@
 <template>
-    <div  class="border-b border-b-outline/50 md:py-0 py-3 transition-all duration-300">
+    <div class="border-b border-b-outline/50 md:py-0 py-3 transition-all duration-300">
         <div :class="[isStoriesOpen ? 'pb-0 pt-3' : 'py-3']"
             class=" w-full px-4 md:py-0 md:px-8 md:h-17.25 flex items-center justify-between md:justify-end gap-x-3 md:gap-x-4">
 
@@ -42,7 +42,15 @@
 
             <!-- MOBILE LEFT GROUP (Notifications, Search) & Desktop Right -->
             <div class=" flex items-center gap-x-3 md:gap-x-4 shrink-0">
-                <NuxtLinkLocale class=" md:block hidden" to="/dashboard/chat">
+                <NuxtLinkLocale class=" md:block hidden">
+
+                </NuxtLinkLocale>
+                <NuxtLinkLocale to="/dashboard/chat"
+                    class="w-10 h-10  md:flex hidden  items-center justify-center cursor-pointer relative">
+                    <div v-if="unreadMessages > 0"
+                        class="rounded-full min-w-6 h-4.5 px-1 text-white select-none bg-gradient-error flex justify-center items-center absolute z-10 ltr:left-0 rtl:right-0 top-0 border-2 border-surface">
+                        <div class="text-[10px] font-bold">{{ unreadMessages }}</div>
+                    </div>
                     <BButton type="ghost" icon="PhChatText" />
                 </NuxtLinkLocale>
                 <NuxtLinkLocale class=" md:block hidden" to="/dashboard/calendar">
@@ -76,7 +84,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue'; // Added ref
-import { useProfileStore, useStoriesStore, useI18n, useRoute } from '#imports';
+import { useProfileStore, useChatStore, useStoriesStore, useI18n, useRoute } from '#imports';
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import DashboardNotifications from './header/DashboardNotifications.vue';
 import StoryDisplay from './story/StoryDisplay.vue';
@@ -91,8 +99,10 @@ export default defineComponent({
         const route = useRoute()
         const profileStore = useProfileStore()
         const storiesStore = useStoriesStore()
+        const chatStore = useChatStore()
         const stories = computed(() => storiesStore.stories)
         const { t } = useI18n()
+        const unreadMessages = computed(() => chatStore.unreadCount)
 
 
 
@@ -132,6 +142,7 @@ export default defineComponent({
             initSearch,
             routeTitle,
             profileStore,
+            unreadMessages,
             openSearch,
             toggleStories,
             stories,

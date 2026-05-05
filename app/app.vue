@@ -14,6 +14,7 @@ const { toastRef } = useAppToast()
 import CallPipOverlay from './components/call/CallPipOverlay.vue';
 const toastComponent = ref(null);
 const callStore = useCallStore()
+const chatStore = useChatStore()
 const { dir, locale } = useLocale();
 const { colorMode } = useTheme();
 const { t } = useI18n()
@@ -28,6 +29,7 @@ useHead({
   }
 });
 onMounted(() => {
+  chatStore.fetchConversations('', 1)
   toastRef.value = toastComponent.value;
 });
 </script>

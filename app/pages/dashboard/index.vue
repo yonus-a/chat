@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col max-h-full h-full gap-y-3.5 md:gap-y-6 w-full">
+    <div class="flex flex-col max-h-fullh-full gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
         <ReferralNoticeDisplay v-if="profileStore.userData.referral" />
         <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2  md:grid-cols-3 w-full gap-3 md:gap-4">
@@ -18,6 +18,7 @@
                 <HealthScore />
             </div>
         </div>
+        <div class=" w-full pb-4 md:pb-0"></div>
     </div>
 </template>
 <script lang="ts" setup>
