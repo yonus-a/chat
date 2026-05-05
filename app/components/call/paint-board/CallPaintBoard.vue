@@ -70,10 +70,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useI18n, useCallStore } from '#imports';
+import { useI18n, useCallStore, useAppToast } from '#imports';
 import BrushSizeSlider from './BrushSizeSlider.vue';
 import BoardColorPicker from './BoardColorPicker.vue';
 import type { BoardColorPickerExposed } from './BoardColorPicker.vue';
+import { storeToRefs } from 'pinia';
 export default defineComponent({
     name: 'CallPaintBoard',
     emits: ['close'],
@@ -90,23 +91,28 @@ export default defineComponent({
     setup(props) {
         const { t } = useI18n();
         const callStore = useCallStore();
+        const { openToast } = useAppToast()
         const boardColorPicker = useTemplateRef<BoardColorPickerExposed>('boardColorPicker');
-        const pages = ref<{ data: any[], history: any[], redo: any[] }[]>([
-            { data: [], history: [], redo: [] }
-        ]);
-        const selectedPage = ref(0);
+        const {
+            boardPages: pages,
+            boardSelectedPage: selectedPage,
+            boardSelectedColor: selectedColor,
+            boardBrushSize: brushSize,
+            boardHistory: history,
+            boardRedoHistory: redoHistory
+        } = storeToRefs(callStore);
 
 
         // State
         const canvasRef = ref<HTMLCanvasElement | null>(null);
         let signaturePadInstance: any = null;
 
-        const selectedColor = ref('#2C2727');
-        const brushSize = ref(3);
+        //const selectedColor = ref('#2C2727');
+        //const brushSize = ref(3);
 
         // History for Undo/Redo
-        const history = ref<any[]>([]);
-        const redoHistory = ref<any[]>([]);
+        //const history = ref<any[]>([]);
+        //const redoHistory = ref<any[]>([]);
 
         // Handle Canvas Resizing correctly to prevent stretching
         const resizeCanvas = () => {
@@ -187,6 +193,7 @@ export default defineComponent({
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            openToast(t('chat.board.savedSuccessfully'),'success')
         };
 
         const handleAction = (action: string) => {

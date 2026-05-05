@@ -9,6 +9,16 @@ export const useCallStore = defineStore("call", () => {
   const router = useRouter();
   const { checkMediaStatus, requestWithPopup } = useAppPermissions();
 
+  //props for the painting board
+  const boardPages = ref<{ data: any[]; history: any[]; redo: any[] }[]>([
+    { data: [], history: [], redo: [] },
+  ]);
+  const boardSelectedPage = ref(0);
+  const boardSelectedColor = ref("#2C2727");
+  const boardBrushSize = ref(3);
+  const boardHistory = ref<any[]>([]);
+  const boardRedoHistory = ref<any[]>([]);
+
   const isPiP = ref(false);
 
   const isActive = ref(false);
@@ -190,6 +200,13 @@ export const useCallStore = defineStore("call", () => {
     isPiP.value = false;
     isActive.value = false;
     elapsedTime.value = 0;
+
+    boardPages.value = [{ data: [], history: [], redo: [] }];
+    boardSelectedPage.value = 0;
+    boardSelectedColor.value = "#2C2727";
+    boardBrushSize.value = 3;
+    boardHistory.value = [];
+    boardRedoHistory.value = [];
   };
 
   const stopScreenShare = () => {
@@ -293,5 +310,11 @@ export const useCallStore = defineStore("call", () => {
     isFlashOn,
     toggleCamera,
     toggleFlash,
+    boardPages,
+    boardSelectedPage,
+    boardSelectedColor,
+    boardBrushSize,
+    boardHistory,
+    boardRedoHistory,
   };
 });

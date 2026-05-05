@@ -3,10 +3,14 @@
         <div class=" h-16 sm:h-20 flex items-center justify-between px-4">
             <div class="md:block hidden text-white select-none text-label-lg">{{ t('chat.call.title') }}</div>
             <div class=" bg-black-500 md:hidden rounded-full flex items-center gap-x-4 h-10 px-3">
-                <BIcon icon="PhLightning" @click="handleOptions('toggle-flash')"
+                <!--<BIcon icon="PhLightning" @click="handleOptions('toggle-flash')"
                     class=" cursor-pointer fill-white w-6 h-6" />
                 <BIcon icon="PhArrowsClockwise" @click="handleOptions('flip-camera')"
-                    class=" cursor-pointer fill-white w-6 h-6" />
+                    class=" cursor-pointer fill-white w-6 h-6" />-->
+                <div v-for="option in mobileOptions" :key="option.key">
+                    <BIcon :icon="option.icon" @click="handleOptions(option.key)" class=" fill-white w-6 h-6"
+                        :class="[option.disabled === true ? ' cursor-not-allowed opacity-50' : ' opacity-100 cursor-pointer']" />
+                </div>
             </div>
             <div class=" flex items-center gap-x-4.5">
                 <div
@@ -62,7 +66,7 @@
 <script lang="ts">
 import { type PropType, defineComponent, onBeforeMount, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useI18n, useCallStore, useWindowSize, useAppPermissions, useDevice } from '#imports';
+import { useI18n, useCallStore, useAppToast, useWindowSize, useAppPermissions, useDevice } from '#imports';
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
@@ -87,12 +91,18 @@ export default defineComponent({
         const route = useRoute()
         const { t } = useI18n()
         const isReady = ref(false)
+        const { openToast } = useAppToast()
         const callStore = useCallStore()
         const { width } = useWindowSize()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
         const chatId = computed(() => Number(route.params.id))
         const { hardware } = useDevice();
+        const isFlashOn = ref(false);
         const isBoardOpen = ref(false)
+        const hasMultipleCameras = ref(false);
+        const supportsTorch = ref(false);
+
+        const flashIcon = computed(() => isFlashOn.value ? 'PhLightningSlash' : 'PhLightning')
         const boardIcon = computed(() => isBoardOpen.value ? 'PhX' : 'PhPencilCircle')
 
         const chatContact = computed(() => {
@@ -109,6 +119,33 @@ export default defineComponent({
         const toggleFullScreen = (id: number) => {
             fullScreenId.value = fullScreenId.value === id ? null : id;
         };
+
+        const mobileOptions = computed(() => [
+            {
+                icon: 'PhArrowsClockwise',
+                key: 'flip-camera',
+                disabled: !hasMultipleCameras.value,
+            },
+            {
+                icon: flashIcon.value,
+                key: 'toggle-flash',
+                disabled: !supportsTorch.value,
+            }
+        ]);
+
+        const getNativeDeviceRequirements = async () => {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoInputs = devices.filter(d => d.kind === 'videoinput');
+                hasMultipleCameras.value = videoInputs.length > 1;
+
+            } catch (err) {
+                console.error("Failed to enumerate devices for camera count", err);
+            } finally {
+                console.log(supportsTorch.value, hasMultipleCameras.value)
+            }
+        }
+
 
         // Replace gridLayoutClasses with wrapperClasses
         const wrapperClasses = computed(() => {
@@ -265,6 +302,7 @@ export default defineComponent({
         })
 
         onMounted(async () => {
+            getNativeDeviceRequirements()
             if (chatContact.value) {
                 await initPermissions();
             }
@@ -305,6 +343,13 @@ export default defineComponent({
         };
 
         const handleOptions = async (key: string) => {
+
+            const option = mobileOptions.value.find(o => o.key === key);
+            if (option?.disabled) {
+                openToast(t('chat.call.deviceDoesntSupport'), 'error')
+                return
+            };
+
             const button = optionButtons.value.find(btn => btn.key === key);
             if (button?.hasErrors) return;
             switch (key) {
@@ -367,6 +412,7 @@ export default defineComponent({
             toggleFullScreen,
             isBoardOpen,
             boardIcon,
+            mobileOptions,
             isReady,
         }
     }
