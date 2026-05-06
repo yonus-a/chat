@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full h-full flex items-stretch center gap-x-6">
+    <div class=" px-3 md:px-8  py-6 w-full h-full flex items-stretch center gap-x-6">
         <div v-if="!isMobile || !hasNotificationToDisplay" class="flex flex-col h-full basis-full md:basis-1/2 min-w-0">
             <div class="w-full flex-1 flex flex-col overflow-hidden md:border md:rounded-xl md:border-outline-variant">
 

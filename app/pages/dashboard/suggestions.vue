@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full h-full md:h-auto flex md:justify-between justify-center items-stretch gap-x-6">
+    <div class=" px-3 md:px-8 md:py-0 py-6 w-full h-full md:h-auto flex md:justify-between justify-center items-stretch gap-x-6">
         <div
             class=" max-w-99 w-full md:w-99 flex flex-col justify-between md:justify-start md:h-auto h-fullF  shrink-0 pt-4 p-6 md:bg-surface-variant rounded-3xl">
             <div class=" w-full">

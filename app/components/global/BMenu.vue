@@ -18,12 +18,12 @@
                 <slot :isOpen="isOpen" :close="closeMenu" />
             </div>
 
-            <div v-else-if="options && options.length > 0" key="menu-list" class="flex p-3 flex-col gap-y-1">
+            <div v-else-if="options && options.length > 0" key="menu-list" class="flex p-3 max-h-75 overflow-y-auto flex-col gap-y-1">
                 <template v-for="(opt, idx) in options" :key="opt.key">
                     <div class="pointer-events-auto">
                         <div @click="handleSelect(opt.key)"
                             class="bg-surface-variant-2/0 hover:bg-surface-variant-2 transition-all duration-200 ease-in-out h-11 flex items-center cursor-pointer rounded-lg px-2 gap-x-2 w-full">
-                            <BIcon :icon="opt.icon" class="w-5 h-5"
+                            <BIcon v-if="opt.icon" :icon="opt.icon" class="w-5 h-5"
                                 :class="[opt.color ? `fill-${opt.color}` : 'fill-on-surface/50']" />
                             <div class="select-none text-label-sm"
                                 :class="[opt.color ? `text-${opt.color}` : 'text-on-surface/50']">
@@ -48,7 +48,7 @@ const globalActiveMenuId = ref<string | null>(null);
 export interface Option {
     key: string;
     label: string;
-    icon: string;
+    icon?: string;
     color?: string;
 }
 
@@ -148,7 +148,6 @@ export default defineComponent({
                 styles.transform = isVisible ? 'translateY(-12px)' : 'translateY(0px)';
             }
 
-            // Horizontal Positioning
             if (h === 'left') {
                 styles.left = '0';
                 styles.right = 'auto';

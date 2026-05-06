@@ -1,0 +1,10 @@
+{
+  "calendar": {
+    "modes": {
+      "weekly": "هفتگی",
+      "daily": "روزانه",
+      "monthly": "ماهانه"
+    },
+    "addEvent":"افزودن رویداد"
+  }
+}

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col max-h-fullh-full gap-y-3.5 md:gap-y-6 w-full">
+    <div class="flex px-3 md:px-8 md:py-0 py-6 flex-col max-h-fullh-full gap-y-3.5 md:gap-y-6 w-full">
         <DashboardGreetings class=" md:flex hidden" />
         <ReferralNoticeDisplay v-if="profileStore.userData.referral" />
         <div v-if="hasData || isLoadingHealthData" class="grid grid-cols-2  md:grid-cols-3 w-full gap-3 md:gap-4">
