@@ -283,15 +283,18 @@ export const useCalendarDate = () => {
     start.setHours(0, 0, 0, 0);
 
     if (mode === "monthly") {
-      // Monthly: We just need 7 sequential days to represent the week columns
-      const weekStart = getStartOfWeek(start);
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(weekStart);
-        d.setDate(d.getDate() + i);
-        days.push(getDayDetails(d));
+      const gridStart = getStartOfWeek(start);
+      const monthEnd = new Date(range.end);
+
+      let d = new Date(gridStart);
+
+      while (d <= monthEnd || days.length % 7 !== 0) {
+        days.push(getDayDetails(new Date(d)));
+        d.setDate(d.getDate() + 1);
+
+        if (days.length >= 42) break;
       }
     } else if (mode === "weekly") {
-      // Weekly: Exact 7 days of the provided range
       for (let i = 0; i < 7; i++) {
         const d = new Date(start);
         d.setDate(d.getDate() + i);
