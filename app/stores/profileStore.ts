@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import { useI18n, useCookie } from "#imports";
 import blankProfile from "/images/dashboard/blank-profile.webp";
 import type { UserRoleKey, Profile, RoleDetail } from "~/types/profile";
+import type { Contact } from "~/types/chat";
 
 export const useProfileStore = defineStore("profile", () => {
   const { t } = useI18n();
@@ -16,6 +17,7 @@ export const useProfileStore = defineStore("profile", () => {
 
   // --- State ---
   const isLoading = ref(true);
+  const isLoadingFamilyMembers = ref(false);
   const isLoaded = ref(false);
   const userRoles = ref<UserRoleKey[]>(["user"]);
   const insuranceCoverage = ref(300000);
@@ -48,6 +50,37 @@ export const useProfileStore = defineStore("profile", () => {
       },
     },
   });
+
+  const familyMembers = ref<Contact[]>([
+    {
+      id: 1,
+      name: "امیر",
+      lastName: "سعیدی",
+      isOnline: true,
+      lastSeen: new Date(),
+      imageUrl: "https://i.pravatar.cc/150?u=1",
+      isActive: false,
+      unreadCount: 2,
+      serviceType: "chat",
+      birthDate: new Date(),
+      phoneNumber: "09134168227",
+      nationalCode: "1235678901",
+    },
+    {
+      id: 1,
+      name: "امیر",
+      lastName: "سعیدی",
+      isOnline: true,
+      lastSeen: new Date(),
+      imageUrl: "https://i.pravatar.cc/150?u=1",
+      isActive: false,
+      unreadCount: 2,
+      serviceType: "chat",
+      birthDate: new Date(),
+      phoneNumber: "09134168227",
+      nationalCode: "1235678901",
+    },
+  ]);
 
   // --- Static Metadata ---
   const allRoleDetails = computed<RoleDetail[]>(() => [
@@ -155,8 +188,10 @@ export const useProfileStore = defineStore("profile", () => {
     insuranceCoverage,
     isLoaded,
     availableRoles,
+    isLoadingFamilyMembers,
     currentRole,
     otherRoles,
+    familyMembers,
     loadUserProfile,
     switchRole,
   };

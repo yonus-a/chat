@@ -8,7 +8,7 @@
                     : 'pointer-events-none bg-[#0A0A0A]/0 dark:bg-white/0 backdrop-blur-none invisible']">
 
                 <div ref="tabContent" :style="isMobile ? { transform: `translateY(${translateY}px)` } : {}" :class="[
-                    'relative bg-surface overflow-hidden rounded-t-xl md:rounded-xl',
+                    'relative bg-surface  rounded-t-xl md:rounded-xl',
                     isMobile ? 'w-full' : 'max-w-[90vw] lg:max-w-max',
                     isDragging ? 'transition-none' : 'transition-all duration-300 ease-in-out',
 
@@ -143,9 +143,11 @@ export default defineComponent({
             if (process.server) return;
             const html = document.documentElement;
             if (val) {
-                html.style.overflow = 'hidden';
+                setTimeout(()=>{
+                    html.style.overflow = 'visible';
+                },300)
             } else {
-                html.style.overflow = '';
+                html.style.overflow = 'hidden';
             }
         });
 

@@ -51,7 +51,7 @@ import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 
 export default defineComponent({
     name: 'CalendarHeader',
-    emits: ['update:range', 'update:mode'],
+    emits: ['update:range', 'update:mode', 'share'],
     setup(_, { emit }) {
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
@@ -93,16 +93,16 @@ export default defineComponent({
                 key: 'sync',
                 icon: 'PhArrowsClockwise'
             },
-            {
-                key: 'settings',
-                icon: 'PhGear'
-            },
+            //   {
+            //       key: 'settings',
+            //       icon: 'PhGear'
+            //   },
         ])
 
         const handleOption = (key: string) => {
             switch (key) {
                 case 'share':
-
+                    emit('share')
                     break;
                 case 'sync':
 

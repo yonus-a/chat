@@ -3,7 +3,7 @@
         @keydown.down.prevent="highlightNext" @keydown.up.prevent="highlightPrev"
         @keydown.enter.prevent="selectHighlighted" @keydown.esc.prevent="closeDropdown">
 
-        <span v-if="title" class=" text-label-md mb-1.5 select-none text-on-surface">
+        <span v-if="title" class=" pointer-events-none text-label-md mb-1.5 select-none text-on-surface">
             {{ title }}
         </span>
 

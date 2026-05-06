@@ -1,7 +1,7 @@
 <template>
     <Teleport to="body">
         <ClientOnly>
-            <div class="w-full bg-transparent pointer-events-none md:max-w-203 max-w-dvw p-5 fixed bottom-0 z-100 ">
+            <div class="w-full bg-transparent pointer-events-none md:max-w-203 max-w-dvw p-5 fixed bottom-0 z-10000 ">
                 <!-- 
                 OUTER DIV: Preserves your exact original positioning and mount animation.
                 This prevents the drag logic from breaking Tailwind's coordinate system.
