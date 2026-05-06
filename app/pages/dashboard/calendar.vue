@@ -1,7 +1,7 @@
 <template>
     <div class=" w-full h-full max-h-full flex flex-col">
         <CalendarHeader @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
-        <div class=" w-full flex-1 ">
+        <div class=" w-full overflow-hidden flex-1 ">
             <CalendarGrid :range="currentRange" :mode="currentMode" />
         </div>
     </div>

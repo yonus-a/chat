@@ -5,8 +5,12 @@
       "daily": "روزانه",
       "monthly": "ماهانه"
     },
-    "addEvent":"افزودن رویداد"
+    "addEvent": "افزودن رویداد",
+    "dayTimes": {
+      "morning": "صبح",
+      "noon": "ظهر",
+      "afternoon": "عصر",
+      "night": "شب"
+    }
   }
 }
-
-

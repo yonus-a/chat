@@ -1,8 +1,8 @@
 <template>
     <div class=" w-full items-stretch flex justify-between">
-        <div :style="{ width: itemWidths }" v-if="mode === 'weekly'" class="border border-outline-variant"></div>
-        <div class=" border border-outline-variant py-4 flex-col gap-y-2.5 flex items-center justify-center"
-            v-for="day in days" :key="day.name" :style="{ width: itemWidths }">
+        <div :style="{ width: itemWidths }" v-if="mode !== 'monthly'" class="border  max-w-25 border-outline-variant"></div>
+        <div class=" border-y rtl:border-l ltr:border-r border-outline-variant py-4 flex-col flex-1 gap-y-2.5 flex items-center justify-center"
+            v-for="day in days" :key="day.name" :style="{ minWidth: itemWidths }">
             <div v-if="mode !== 'monthly'" class=" flex flex-col  items-center">
                 <div class=" w-9 h-9 select-none border flex flex-col justify-center items-center rounded-full"
                     :class="[getDayItemColor(day).fill, getDayItemColor(day).text]">
@@ -35,7 +35,7 @@ export default defineComponent({
     setup(props) {
 
 
-        const itemWidths = computed(() => `${100 / (props.days.length + (props.mode !== 'weekly' ? 0 : 1))}%`)
+        const itemWidths = computed(() => `${100 / (props.days.length + (props.mode == 'monthly' ? 0 : 1))}%`)
         const getDayItemColor = (day: CalendarDay) => {
             let fillStyle = 'border-outline-variant bg-surface'
             let textStyle = 'text-on-surface/50'
