@@ -1,6 +1,6 @@
 <template>
     <BPopup @closed="onPopupClose" ref="popup" no-padding>
-        <div class=" w-dvw max-w-98 py-4 px-6">
+        <div class=" w-dvw max-w-98 pb-18 md:pb-4 py-4 px-6">
             <div class=" select-none flex items-center gap-x-3">
                 <BIcon icon="PhX" class=" w-6 h-6 cursor-pointer fill-on-surface/50" />
                 <div class=" text-label-sm text-on-surface">{{ t('calendar.share.title') }}</div>

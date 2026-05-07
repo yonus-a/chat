@@ -1,8 +1,12 @@
 import { defineStore } from "pinia";
 import type { SharedUserCalendar, ShareTypes } from "~/types/calendar";
 import type { Contact } from "~/types/chat";
+import { useAppToast, useI18n } from "#imports";
 
 export const useCalendarStore = defineStore("calendar", () => {
+  const { t } = useI18n();
+  const { openToast } = useAppToast();
+
   const isLoadingShared = ref(true);
   const hasLoadedShared = ref(false);
   const errorLoadingShared = ref(false);
@@ -78,40 +82,56 @@ export const useCalendarStore = defineStore("calendar", () => {
       processingIds.value = updated;
     }
   };
+
   const addSharedUser = async (
     contact: Contact,
     access: ShareTypes = "viewer",
   ) => {
-    // 1. Prevent duplicates immediately
     if (sharedUsers.value.some((u) => u.id === contact.id)) return;
 
-    // 2. Push immediately so the UI renders the component
+    // Optimistic Push
     sharedUsers.value.push({ ...contact, accessType: access });
 
-    // 3. Track loading for this specific ID during the "API call"
-    await withLoading(contact.id, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // In a real app, if the request fails, you would filter them back out here
-    });
+    try {
+      await withLoading(contact.id, async () => {
+        // Simulate API
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      });
+      openToast(t("calendar.share.api.success.add"), "success");
+    } catch (error) {
+      // Revert optimistic add if necessary
+      sharedUsers.value = sharedUsers.value.filter((u) => u.id !== contact.id);
+      openToast(t("calendar.share.api.error"), "error");
+    }
   };
 
   const updateAccessType = async (userId: number, newAccess: ShareTypes) => {
-    await withLoading(userId, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      // Ensure we find the user in the store's reactive array
-      const user = sharedUsers.value.find((u) => u.id === userId);
-      if (user) {
-        user.accessType = newAccess;
-      }
-    });
+    try {
+      await withLoading(userId, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const user = sharedUsers.value.find((u) => u.id === userId);
+        if (user) {
+          user.accessType = newAccess;
+        }
+      });
+      openToast(t("calendar.share.api.success.edit"), "success");
+    } catch (error) {
+      openToast(t("calendar.share.api.error"), "error");
+    }
   };
 
   const removeSharedUser = async (userId: number) => {
-    await withLoading(userId, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      sharedUsers.value = sharedUsers.value.filter((u) => u.id !== userId);
-    });
+    try {
+      await withLoading(userId, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        sharedUsers.value = sharedUsers.value.filter((u) => u.id !== userId);
+      });
+      openToast(t("calendar.share.api.success.delete"), "success");
+    } catch (error) {
+      openToast(t("calendar.share.api.error"), "error");
+    }
   };
+
   return {
     isSending,
     errorLoadingShared,

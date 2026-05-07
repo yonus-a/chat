@@ -87,6 +87,7 @@ export default defineComponent({
             if (key === 'delete') {
                 await calendarStore.removeSharedUser(props.user.id);
             } else if (key === 'viewer' || key === 'editor') {
+                if (key === props.user.accessType) return
                 await calendarStore.updateAccessType(props.user.id, key as ShareTypes);
             }
         };
