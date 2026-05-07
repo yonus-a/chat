@@ -3,7 +3,7 @@
         <div class="w-dvw flex justify-center md:max-w-98 max-w-full">
             <div class=" w-dvw max-w-98 pb-18 md:pb-4 py-4 px-6">
                 <div class=" select-none flex items-center gap-x-3">
-                    <BIcon icon="PhX" class=" w-6 h-6 cursor-pointer fill-on-surface/50" />
+                    <BIcon icon="PhX" @click="close" class=" w-4 h-4 cursor-pointer fill-on-surface/50" />
                     <div class=" text-label-sm text-on-surface">{{ t('calendar.share.title') }}</div>
                 </div>
                 <div class=" mt-4 w-full">
@@ -184,6 +184,7 @@ export default defineComponent({
         })
 
         return {
+            close,
             familyOptions,
             copy,
             selectedUsers,
