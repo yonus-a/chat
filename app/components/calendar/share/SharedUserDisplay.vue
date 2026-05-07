@@ -13,17 +13,25 @@
                 <div class=" select-none text-label-md text-on-surface" v-loading="isLoading">{{ user.name }} {{
                     user.lastName }}</div>
             </div>
-            <BMenu @select="handleMenuClick" :options="menuOptions" v-show="!inProgress">
-                <template #trigger="{ isOpen }">
-                    <div v-loading="isLoading" class=" flex items-center gap-x-2 cursor-pointer select-none">
-                        <div class=" text-body-sm text-on-surface/50">{{ currentType }}</div>
-                        <BIcon icon="PhCaretDown"
-                            class=" transition-all duration-200 ease-in-out fill-on-surface/50 w-4.5 h-4.5"
-                            :class="[isOpen ? ' rotate-180' : ' rotate-0']" />
-                    </div>
-                </template>
-            </BMenu>
-            <BIcon icon="PhCircleNotch" class=" fill-on-surface/50 w-5 h-5 animate-spin" v-if="inProgress" />
+            <div class=" flex items-center gap-x-2 justify-end">
+                <BMenu @select="handleMenuClick" :options="menuOptions" v-show="!inProgress">
+                    <template #trigger="{ isOpen }">
+                        <div v-loading="isLoading" class=" flex items-center gap-x-2 cursor-pointer select-none">
+                            <div class=" text-body-sm text-on-surface/50">{{ currentType }}</div>
+                            <BIcon icon="PhCaretDown"
+                                class=" transition-all duration-200 ease-in-out fill-on-surface/50 w-4.5 h-4.5"
+                                :class="[isOpen ? ' rotate-180' : ' rotate-0']" />
+                        </div>
+                    </template>
+                </BMenu>
+                <BIcon icon="PhCircleNotch" class=" fill-on-surface/50 w-5 h-5 animate-spin" v-if="inProgress" />
+                <BMenu @select="handleMenuClick" :options="secondMenuOptions" v-show="!inProgress">
+                    <template #trigger>
+                        <BIcon icon="PhDotsThreeVertical" 
+                            class=" fill-on-surface/50 w-4.5 cursor-pointer h-4.5" />
+                    </template>
+                </BMenu>
+            </div>
         </div>
     </div>
 </template>
@@ -75,6 +83,9 @@ export default defineComponent({
                 label: t('calendar.share.types.editor'),
                 icon: 'PhPencilSimpleLine'
             },
+        ])
+
+        const secondMenuOptions = computed<MenuOption[]>(() => [
             {
                 key: 'delete',
                 label: t('calendar.share.types.delete'),
@@ -98,6 +109,7 @@ export default defineComponent({
         return {
             getAccessTypeTitles,
             menuOptions,
+            secondMenuOptions,
             currentType,
             handleMenuClick,
             isSending,
