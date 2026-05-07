@@ -68,15 +68,18 @@ export default defineComponent({
             {
                 key: 'viewer',
                 label: t('calendar.share.types.viewer'),
+                icon: 'PhEye'
             },
             {
                 key: 'editor',
                 label: t('calendar.share.types.editor'),
+                icon: 'PhPencilSimpleLine'
             },
             {
                 key: 'delete',
                 label: t('calendar.share.types.delete'),
-                color: 'error'
+                color: 'error',
+                icon: 'PhTrash'
             },
         ])
 

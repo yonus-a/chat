@@ -18,11 +18,23 @@
       "addUser": "افزودن فرد",
       "copySuccess": "لینک دعوت با موفقیت الصاق شد.",
       "noUsers": "کاربری یافت نشد.",
-      "loading":"در حال بارگذاری",
+      "loading": "در حال بارگذاری",
       "types": {
         "viewer": "بیننده",
         "editor": "ویرایش کننده",
         "delete": "حذف"
+      },
+      "edits": {
+        "edit": {
+          "delete": "",
+          "edit": "",
+          "add": ""
+        },
+        "success": {
+          "delete": "",
+          "edit": "",
+          "add": ""
+        }
       }
     }
   }
