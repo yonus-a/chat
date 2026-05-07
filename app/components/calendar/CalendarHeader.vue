@@ -56,6 +56,7 @@ export default defineComponent({
         const { t, locale } = useI18n()
         const calendar = useCalendarDate()
 
+
         // Source of truth. Start at today.
         const currentDate = ref(new Date())
         const currentDisplayMode = ref(2)

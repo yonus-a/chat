@@ -1,5 +1,6 @@
 <template>
-    <div class=" w-full max-w-90 flex flex-col outline-none" ref="dropdownRef" :tabindex="tabindex" @keyup.tab="openOnTab"
+    <div :class="[disabled ? 'opacity-50 cursor-not-allowed' : 'opacity-100 ']"
+        class=" w-full max-w-90 flex flex-col outline-none" :tabindex="tabindex" @keyup.tab="openOnTab"
         @keydown.down.prevent="highlightNext" @keydown.up.prevent="highlightPrev"
         @keydown.enter.prevent="selectHighlighted" @keydown.esc.prevent="closeDropdown">
 
@@ -7,7 +8,7 @@
             {{ title }}
         </span>
 
-        <div class="relative w-full">
+        <div ref="dropdownRef" class="relative w-full">
 
             <div @click="toggleDropdown"
                 class="h-12 w-full px-3 py-2.5 rounded-[10px] border flex items-center gap-x-1.5 transition-all duration-300 cursor-pointer "
@@ -21,12 +22,13 @@
                         <div v-for="item in selectedItems" :key="item.value" @click.stop
                             class="flex items-center gap-x-2 h-7 bg-surface-variant-3 px-2 rounded-lg  shrink-0">
                             <span class="text-sm font-medium text-on-surface whitespace-nowrap">{{ item.label
-                            }}</span>
+                                }}</span>
                             <BIcon @click.stop="removeItem(item)" icon="PhX"
                                 class="w-3.5 h-3.5 cursor-pointer fill-on-surface opacity-50 transition-opacity hover:opacity-100" />
                         </div>
                     </template>
-
+                    <BImage class=" max-w-6 max-h-6 min-w-6 min-h-6 w-6 h-6 rounded-full overflow-hidden"
+                        v-if="!multiple && selectedItem?.image && selectedItem" :src="selectedItem.image" />
                     <span v-if="!multiple && selectedItem && (!searchable || !isOpen)"
                         class="text-sm font-medium select-none truncate text-on-surface opacity-100 shrink-0">
                         {{ selectedItem.label }}
@@ -70,7 +72,8 @@
 
                         <div v-if="filteredOptions.length === 0 && (!allowCreate || !searchQuery)"
                             class="flex items-center justify-center gap-x-2 py-6 text-on-surface/50">
-                            <span class="text-sm font-medium">{{ noResultText || t('addresses.noResults') || `No
+                            <span class="text-sm select-none font-medium">{{ noResultText || t('addresses.noResults') ||
+                                `No
                                 results found!` }}</span>
                         </div>
 
@@ -130,13 +133,7 @@
 import { defineComponent, ref, computed, watch, onMounted, onUnmounted, type PropType, nextTick } from 'vue';
 import { useI18n } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
-
-export interface DropdownOption {
-    label: string;
-    value: string | number;
-    icon?: string;
-    image?: string;
-}
+import type { DropdownOption } from '~/types/components/select';
 
 export default defineComponent({
     name: 'DopeDropDown',

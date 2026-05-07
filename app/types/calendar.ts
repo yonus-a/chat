@@ -1,6 +1,11 @@
 import type { CalendarEvent } from "./components/calendar";
 import type { Contact } from "./chat";
 import type { Service } from "./service";
+export type ShareTypes = "viewer" | "editor";
+
+export interface SharedUserCalendar extends Contact {
+  accessType: ShareTypes;
+}
 
 export enum WeekDays {
   Saturday,
