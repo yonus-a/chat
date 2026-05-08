@@ -1,16 +1,13 @@
 <template>
     <BPopup no-padding ref="popup" @closed="onClosed">
-        
-        <CreateEvent 
-            v-if="mode === 'create' && step === 1" 
-            :initial-data="eventData"
-            @close="close"
-            @submit="handleStep1Submit"
-        />
+
+        <CreateEvent v-if="mode === 'create' && step === 1" :initial-data="eventData" @close="close"
+            @submit="handleStep1Submit" />
+        <EventTiming v-if="mode === 'timing'" />
 
         <div v-if="mode === 'create' && step === 2" class="w-full max-w-99 px-6 py-4 bg-surface rounded-xl">
             <div class="text-label-md mb-4">{{ t('calendar.form.step2Title') || 'Step 2 Details' }}</div>
-            
+
             <div class="text-body-sm text-on-surface/70 mb-6">
                 Event Type Selected: <strong>{{ eventData?.eventType }}</strong>
             </div>
@@ -29,17 +26,18 @@ import { defineComponent, ref } from 'vue';
 import type { Popup } from '~/types/components/popup';
 import CreateEvent from './CreateEvent.vue';
 import { useI18n } from '#imports';
+import EventTiming from './EventTiming.vue';
 
-type EventPopupModes = 'create' | '';
+type EventPopupModes = 'create' | '' | 'timing';
 
 export default defineComponent({
     name: 'EventPopup',
-    components: { CreateEvent },
+    components: { CreateEvent, EventTiming },
     setup(_, { expose }) {
         const { t } = useI18n();
         const popup = ref<Popup | null>(null);
         const mode = ref<EventPopupModes>('create');
-        
+
         // Multi-step form state
         const step = ref(1);
         const eventData = ref<Record<string, any> | null>(null);
@@ -47,7 +45,11 @@ export default defineComponent({
         const handleStep1Submit = (payload: Record<string, any>) => {
             // Save the data locally and move to the next step
             eventData.value = payload;
-            step.value = 2;
+            popup.value?.close()
+            setTimeout(() => {
+                step.value = 2;
+                popup.value?.open()
+            }, 300);
         };
 
         const finalSubmit = () => {
