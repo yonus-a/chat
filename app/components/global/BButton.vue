@@ -2,7 +2,7 @@
 <button
     @click="handleClick"
     class="b-btn"
-    :class="[`b-btn--${type}`, { 'is-disabled': disabled , 'is-loading': loading }]"
+    :class="[`b-btn--${type}`,'select-none', { 'is-disabled': disabled , 'is-loading': loading }]"
     :style="buttonStyle"
   >
 

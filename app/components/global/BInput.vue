@@ -3,6 +3,19 @@
 
         <div class=" text-label-sm mb-1.5 select-none text-on-surface">{{ title }}</div>
         <div :style="inputStyle" class="w-full relative">
+            <div v-if="options.length > 0"
+                class="   flex items-center justify-center ltr:rtl:rounded-r-(--i-radius) rtl:rounded-l-(--i-radius) h-full absolute z-10 w-20 rtl:left-0 ltr:right-0">
+                <BMenu @select="handleOptionSelect" :options="options">
+                    <template #trigger="{ isOpen }">
+                        <div class="flex rtl:pl-4 ltr:pr-4 cursor-pointer text-on-surface/50 items-center gap-x-3">
+                            <div class=" border h-5 border-outline"></div>
+                            <div class=" text-body-md select-none">{{ selectedOption }}</div>
+                            <BIcon class="  transition-all duration-200 ease-in-out "
+                                :class="[isOpen ? 'rotate-180' : 'rotate-0']" icon="PhCaretDown" />
+                        </div>
+                    </template>
+                </BMenu>
+            </div>
             <input v-if="!textarea && preset !== 'time'" ref="inputField" :id="`b-input-${uniqueId}`"
                 :name="`field-${uniqueId}`" :readonly="readonly || (type === 'password' && !isFocus)"
                 :maxlength="maxlength" :type="finalInputType" v-model="inputValue" class="b-input" :class="[
@@ -102,13 +115,7 @@ import { useTemplateRef, type PropType, watch, computed, ref, onMounted, onUnmou
 import defaultCountries from '~/assets/data/countries.json';
 import PasswordQuality from '../auth/PasswordQuality.vue';
 import { useId } from 'vue';
-interface MenuOption {
-    title: string;
-    key: string;
-    color?: 'success' | 'error' | 'primary' | 'warning' | 'neutral';
-    icon?: string;
-    imageUrl?: string;
-}
+import type { MenuOption } from '~/types/components/menu-options';
 const uniqueId = useId();
 
 
@@ -207,11 +214,15 @@ const props = defineProps({
     prefix: { type: String, default: '' },
     passfix: { type: String, default: '' },
     caption: { type: String, default: '' },
+    options: {
+        type: Array as PropType<MenuOption[]>,
+        default: () => []
+    },
     align: { type: String as PropType<'' | 'left' | 'right' | 'center'>, default: '' },
     preset: { type: String as PropType<'' | 'time'>, default: '' }
 });
 
-const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste', 'action']);
+const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'submit', 'paste', 'action', 'select']);
 const textAlign = computed(() => `text-${props.align}`)
 /* --- STATE --- */
 const showPassword = ref(false);
@@ -227,6 +238,16 @@ const endSlotRef = ref<HTMLElement | null>(null);
 const startSlotWidth = ref(0);
 const endSlotWidth = ref(0);
 let resizeObserver: ResizeObserver | null = null;
+const selectedOptionIndex = ref(0)
+const selectedOption = computed(() => {
+    if (props.options.length === 0) return ''
+    return props.options[selectedOptionIndex.value]?.label
+})
+
+const handleOptionSelect = (key: string) => {
+    selectedOptionIndex.value = props.options.findIndex((option) => option.key === key)
+    emit('select', key)
+}
 
 onMounted(() => {
     if (process.client) {
@@ -539,6 +560,10 @@ defineExpose({ focus: () => inputField.value?.focus(), blur: () => inputField.va
 
 .b-input-required {
     color: var(--color-error, red);
+}
+
+.b-rounded {
+    border-radius: var(--i-radius);
 }
 
 .b-input {

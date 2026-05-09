@@ -19,13 +19,7 @@
             </div>
 
         </div>
-        <div class="  overflow-hidden h-5">
-            <div class="flex items-center gap-x-1.5 transition-all duration-200 ease-in-out"
-                :class="[localError ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0']">
-                <BIcon icon="PhWarningCircle" class="w-5 h-5 fill-error shrink-0" />
-                <span class="text-xs text-error select-none">{{ localError }}</span>
-            </div>
-        </div>
+        <ErrorDisplay :error="localError" />
     </div>
 </template>
 
@@ -33,6 +27,7 @@
 import { defineComponent, ref, watch, useTemplateRef, nextTick, onMounted, type PropType } from 'vue';
 import type { EventCheckList } from '~/types/calendar';
 import { useI18n } from '#imports';
+import ErrorDisplay from '~/components/general/ErrorDisplay.vue';
 export interface CheckListExposed {
     clear: () => void;
     validate: () => boolean;
@@ -44,6 +39,9 @@ export default defineComponent({
             type: Array as PropType<EventCheckList[]>,
             default: () => []
         },
+    },
+    components: {
+        ErrorDisplay,
     },
     emits: ['update:modelValue'],
     setup(props, { emit, expose }) {

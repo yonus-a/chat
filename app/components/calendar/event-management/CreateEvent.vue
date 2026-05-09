@@ -1,53 +1,41 @@
 <template>
-    <div class=" w-dvw flex justify-center max-w-dvw md:max-w-98">
-        <div class=" w-full flex justify-center">
-            <div class=" w-full px-6 py-4 max-w-99">
-                <div class=" flex items-center gap-x-3 select-none text-on-surface ">
-                    <BIcon class=" opacity-50 cursor-pointer w-5 h-5" @click="close" icon="PhX" />
-                    <div class=" text-label-sm">{{ t('calendar.form.addEvent') }}</div>
-                </div>
-                <div class=" w-full mt-4">
-                    <BSelect :title="t('calendar.form.type.title')" :placeholder="t('general.select')"
-                        :options="eventTypeOptions" v-model="eventType.value" :color="eventType.color"
-                        :message="eventType.message" />
-                    <BInput :title="titleAndDescription.title" :placeholder="t('general.write')"
-                        v-model="eventTitle.value" :color="eventTitle.color" :message="eventTitle.message" />
+  
+    <div class=" w-full ">
+        <BSelect :title="t('calendar.form.type.title')" :placeholder="t('general.select')" :options="eventTypeOptions"
+            v-model="eventType.value" :color="eventType.color" :message="eventType.message" />
+        <BInput :title="titleAndDescription.title" :placeholder="t('general.write')" v-model="eventTitle.value"
+            :color="eventTitle.color" :message="eventTitle.message" />
 
-                    <BInput :title="titleAndDescription.description" :placeholder="t('general.write')"
-                        v-model="description.value" :color="description.color" :message="description.message" />
-                    <div :class="[eventType.value === 'task' ? 'h-auto opacity-100' : 'opacity-0 h-0']"
-                        class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap">
-                        <CheckList v-model="checkListData" ref="checkList" />
-                    </div>
-                    <div :class="[eventType.value !== 'medicine' ? 'h-auto opacity-100 overflow-visible' : ' overflow-hiddenopacity-0 h-0']"
-                        class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full">
-                        <BSelect :title="t('calendar.form.addPerson')" :placeholder="t('general.select')"
-                            v-model="selectedUsers.value" :color="selectedUsers.color" :message="selectedUsers.message"
-                            :options="familyOptions" />
-                        <div class=" w-full relative">
-                            <div id="shit"
-                                class="absolute z-20 top-10.5 ltr:right-3 rtl:left-3 w-5 h-5 overflow-visible">
-                                <BMenu :options="attachementOptions" @select="removeAttachement">
-                                    <template #trigger>
-                                        <BIcon icon="PhDotsThreeOutline"
-                                            class="  w-5 h-5 cursor-pointer text-on-surface " />
-                                    </template>
-                                </BMenu>
-                            </div>
-                            <BInput v-file-pick="{ onSelect: onImagePick, accept: '.pdf,.doc,.docx,image/*' }" readonly
-                                icon="PhPaperclip" :color="attachement.color" :message="attachement.message"
-                                v-model="attachement.value" :placeholder="t('general.select')"
-                                :title="t('calendar.form.attachement')" />
-                        </div>
-                        <BSelect v-model="chosenColor.value" :color="chosenColor.color" :message="chosenColor.message"
-                            :placeholder="t('general.select')" :title="t('calendar.form.color')" :options="colors" />
-                    </div>
+        <BInput :title="titleAndDescription.description" :placeholder="t('general.write')" v-model="description.value"
+            :color="description.color" :message="description.message" />
+        <div :class="[eventType.value === 'task' ? 'h-auto opacity-100' : 'opacity-0 h-0']"
+            class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap">
+            <CheckList v-model="checkListData" ref="checkList" />
+        </div>
+        <div :class="[eventType.value !== 'medicine' ? 'h-auto opacity-100 overflow-visible' : ' overflow-hiddenopacity-0 h-0']"
+            class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full">
+            <BSelect :title="t('calendar.form.addPerson')" :placeholder="t('general.select')"
+                v-model="selectedUsers.value" :color="selectedUsers.color" :message="selectedUsers.message"
+                :options="familyOptions" />
+            <div class=" w-full relative">
+                <div id="shit" class="absolute z-20 top-10.5 ltr:right-3 rtl:left-3 w-5 h-5 overflow-visible">
+                    <BMenu :options="attachementOptions" @select="removeAttachement">
+                        <template #trigger>
+                            <BIcon icon="PhDotsThreeOutline" class="  w-5 h-5 cursor-pointer text-on-surface " />
+                        </template>
+                    </BMenu>
                 </div>
-                <BButton class=" min-w-full w-full" color="primary" type="fill" :text="t('calendar.form.continue')"
-                    :disabled="hasErrors" @click="validateFields" />
+                <BInput v-file-pick="{ onSelect: onImagePick, accept: '.pdf,.doc,.docx,image/*' }" readonly
+                    icon="PhPaperclip" :color="attachement.color" :message="attachement.message"
+                    v-model="attachement.value" :placeholder="t('general.select')"
+                    :title="t('calendar.form.attachement')" />
             </div>
+            <BSelect v-model="chosenColor.value" :color="chosenColor.color" :message="chosenColor.message"
+                :placeholder="t('general.select')" :title="t('calendar.form.color')" :options="colors" />
         </div>
     </div>
+    <BButton class=" min-w-full w-full" color="primary" type="fill" :text="t('calendar.form.continue')"
+        :disabled="hasErrors" @click="validateFields" />
 </template>
 <script lang="ts">
 import { defineComponent, computed, ref, watch, useTemplateRef, onMounted } from 'vue';
