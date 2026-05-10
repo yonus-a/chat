@@ -5,7 +5,7 @@
                 <div class=" w-full px-6 py-4 max-w-99">
                     <div class=" mb-4 flex items-center gap-x-3 select-none text-on-surface ">
                         <BIcon class=" opacity-50 cursor-pointer w-5 h-5" @click="close" icon="PhX" />
-                        <div class=" text-label-sm">{{ t('calendar.form.addEvent') }}</div>
+                        <div class=" text-label-sm">{{ popupTitle }}</div>
                     </div>
                     <CreateEvent v-if="mode === 'create' && step === 1" :initial-data="eventData" @close="close"
                         @submit="handleStep1Submit" />
@@ -48,7 +48,9 @@ export default defineComponent({
     setup(_, { expose }) {
         const { t } = useI18n();
         const popup = ref<Popup | null>(null);
+        const isEditting = ref(false)
         const mode = ref<EventPopupModes>('repetition');
+        const popupTitle = computed(() => isEditting.value ? t('calendar.form.editEvent') : t('calendar.form.addEvent'))
 
         // Multi-step form state
         const step = ref(1);
@@ -56,26 +58,36 @@ export default defineComponent({
 
         const timingData = ref<Record<string, any> | null>(null);
 
+        const isTransitioning = ref(false);
 
-
-        const handleTimingBack = () => {
-            popup.value?.close()
+        // 2. Add a helper function to safely transition without wiping data
+        const transitionToStep = (newStep: number, newMode: EventPopupModes) => {
+            isTransitioning.value = true;
+            popup.value?.close();
             setTimeout(() => {
-                step.value = 2;
-                mode.value = 'create';
-                popup.value?.open()
+                step.value = newStep;
+                mode.value = newMode;
+                popup.value?.open();
+                // Release the lock after animation finishes
+                setTimeout(() => { isTransitioning.value = false; }, 300);
             }, 300);
         };
 
+        const handleTimingBack = () => transitionToStep(1, 'create');
+        const handleRepetitionBack = () => transitionToStep(2, 'timing');
+
         const handleStep1Submit = (payload: Record<string, any>) => {
-            // Save the data locally and move to the next step
             eventData.value = payload;
-            popup.value?.close()
-            setTimeout(() => {
-                step.value = 2;
-                mode.value = 'timing';
-                popup.value?.open()
-            }, 300);
+            transitionToStep(2, 'timing');
+        };
+
+        const handleTimingSubmit = (payload: Record<string, any>) => {
+            timingData.value = payload;
+            if (payload.hasRepetition) {
+                transitionToStep(3, 'repetition');
+            } else {
+                finalSubmit();
+            }
         };
 
 
@@ -90,32 +102,9 @@ export default defineComponent({
 
         const repetitionData = ref<Record<string, any> | null>(null);
 
-        // 2. Replace handleTimingSubmit with this:
-        const handleTimingSubmit = (payload: Record<string, any>) => {
-            timingData.value = payload;
 
-            // Check if we need to show the third step
-            if (payload.hasRepetition) {
-                popup.value?.close();
-                setTimeout(() => {
-                    step.value = 3;
-                    mode.value = 'repetition';
-                    popup.value?.open();
-                }, 300);
-            } else {
-                finalSubmit();
-            }
-        };
 
-        // 3. Add these new functions:
-        const handleRepetitionBack = () => {
-            popup.value?.close();
-            setTimeout(() => {
-                step.value = 2;
-                mode.value = 'timing';
-                popup.value?.open();
-            }, 300);
-        };
+
 
         const handleRepetitionSubmit = (payload: Record<string, any>) => {
             repetitionData.value = payload;
@@ -130,12 +119,16 @@ export default defineComponent({
                 // Only merge repetition data if they actually enabled it
                 ...(timingData.value?.hasRepetition ? repetitionData.value : {})
             };
+            console.log(eventData.value)
+            console.log(timingData.value)
+            console.log(repetitionData.value)
             console.log("FINAL API PAYLOAD:", finalPayload);
             close();
         };
 
         // 5. Update onClosed to clear the new state:
         const onClosed = () => {
+            if (isTransitioning.value) return; 
             mode.value = 'create';
             step.value = 1;
             eventData.value = null;
@@ -153,6 +146,7 @@ export default defineComponent({
             timingData,
             handleTimingBack,
             handleStep1Submit,
+            popupTitle,
             handleRepetitionSubmit,
             finalSubmit,
             onClosed,

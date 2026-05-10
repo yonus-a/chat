@@ -35,6 +35,7 @@
     },
     "form": {
       "addEvent": "ایجاد رویداد",
+      "editEvent":"ویرایش رویداد",
       "type": {
         "title": "نوع",
         "medicine": "دارو",

@@ -1,5 +1,5 @@
 <template>
-  
+
     <div class=" w-full ">
         <BSelect :title="t('calendar.form.type.title')" :placeholder="t('general.select')" :options="eventTypeOptions"
             v-model="eventType.value" :color="eventType.color" :message="eventType.message" />
@@ -12,11 +12,11 @@
             class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap">
             <CheckList v-model="checkListData" ref="checkList" />
         </div>
+        <BSelect :title="t('calendar.form.addPerson')" :placeholder="t('general.select')" v-model="selectedUsers.value"
+            :color="selectedUsers.color" :message="selectedUsers.message" :options="familyOptions" />
         <div :class="[eventType.value !== 'medicine' ? 'h-auto opacity-100 overflow-visible' : ' overflow-hiddenopacity-0 h-0']"
             class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full">
-            <BSelect :title="t('calendar.form.addPerson')" :placeholder="t('general.select')"
-                v-model="selectedUsers.value" :color="selectedUsers.color" :message="selectedUsers.message"
-                :options="familyOptions" />
+
             <div class=" w-full relative">
                 <div id="shit" class="absolute z-20 top-10.5 ltr:right-3 rtl:left-3 w-5 h-5 overflow-visible">
                     <BMenu :options="attachementOptions" @select="removeAttachement">
@@ -115,7 +115,6 @@ export default defineComponent({
             // Wait 250ms (200ms animation + 50ms buffer) before clearing hidden fields
             setTimeout(() => {
                 if (newType === 'medicine') {
-                    selectedUsers.value.value = [];
                     attachement.value.value = '';
                     checkListRef.value?.clear();
                 } else if (newType === 'event') {
@@ -276,8 +275,8 @@ export default defineComponent({
                 eventType: eventType.value.value,
                 title: eventTitle.value.value,
                 description: description.value.value,
+                selectedUsers: selectedUsers.value.value,
             };
-
             if (eventType.value.value !== 'medicine') {
                 payload.selectedUsers = selectedUsers.value.value;
                 payload.attachement = attachement.value.value;
