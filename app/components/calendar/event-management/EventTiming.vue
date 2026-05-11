@@ -68,14 +68,13 @@ export default defineComponent({
             hasErrors.value = false;
         };
 
-        watch(() => chosenDate.value.value, () => { clearField(chosenDate) })
-        watch(() => chosenTime.value.value, () => { clearField(chosenTime) })
+        watch(() => chosenDate.value.value, () => { clearField(chosenDate); clearField(chosenTime) })
+        watch(() => chosenTime.value.value, () => { clearField(chosenTime); clearField(chosenDate) })
 
         const validateFields = () => {
-            const dateStr = chosenDate.value.value;
+            const rawDate = chosenDate.value.value;
             const timeStr = chosenTime.value.value || '00:00';
-
-            if (!dateStr) {
+            if (!rawDate || !timeStr) {
                 chosenDate.value.color = 'error';
                 chosenTime.value.color = 'error'
                 timeError.value = t('validation.required', { field: t('calendar.form.fullDate') })
@@ -83,17 +82,22 @@ export default defineComponent({
 
             }
 
-            const selectedDateTime = new Date(`${dateStr}T${timeStr}`);
+
+            const selectedDateTime = new Date(rawDate);
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            selectedDateTime.setHours(hours, minutes, 0, 0);
+
             const now = new Date();
 
+            // 3. Comparison
             if (selectedDateTime < now) {
                 timeError.value = t('calendar.form.timeErrors.past');
                 chosenDate.value.color = 'error';
                 chosenTime.value.color = 'error';
                 hasErrors.value = true;
+                console.log('Validation Failed: Date is in the past', selectedDateTime);
                 return;
             }
-
             submitFields();
         };
 

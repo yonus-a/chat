@@ -29,4 +29,6 @@ export interface CalendarEvent {
   id: number;
   startDate: Date;
   endDate: Date;
+  title?: string;
+  color?: string;
 }

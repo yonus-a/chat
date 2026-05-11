@@ -1,6 +1,5 @@
 import type { CalendarEvent } from "./components/calendar";
 import type { Contact } from "./chat";
-import type { Service } from "./service";
 export type ShareTypes = "viewer" | "editor";
 
 export interface SharedUserCalendar extends Contact {
@@ -46,7 +45,7 @@ export interface CalendarEventData extends CalendarEvent {
   title: string;
   description: string;
   checklist?: EventCheckList[];
-  attachement?: string[];
+  attachement?: string;
   color: string;
   users: Contact[];
   callId?: number;
