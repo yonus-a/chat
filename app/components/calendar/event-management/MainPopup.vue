@@ -84,6 +84,15 @@ export default defineComponent({
         const handleTimingSubmit = (payload: Record<string, any>) => {
             timingData.value = payload;
             if (payload.hasRepetition) {
+                const normalizedDate = new Date(payload.date);
+                normalizedDate.setHours(0, 0, 0, 0);
+                repetitionData.value = {
+                    ...(repetitionData.value || {}),
+                    hasRepetition: true,
+                    wholeDay: payload.isFullDay,
+                    repetitionStart: normalizedDate
+                };
+
                 transitionToStep(3, 'repetition');
             } else {
                 finalSubmit();
