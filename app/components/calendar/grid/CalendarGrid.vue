@@ -12,7 +12,7 @@
                     </div>
 
                     <div class="flex-1 relative overflow-hidden">
-                        <CalendarPointer :mode="mode" :hours="hours" :headers="headers" />
+                        <CalendarPointer v-if="mode !== 'monthly'" :mode="mode" :hours="hours" :headers="headers" />
 
                         <Transition name="calendar-view">
 
