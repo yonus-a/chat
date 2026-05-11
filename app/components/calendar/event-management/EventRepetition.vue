@@ -349,10 +349,22 @@ export default defineComponent({
                     repetitionAmount.value.color = 'error';
                     repetitionAmount.value.message = t('validation.required', { field: t('calendar.form.repeatEnding.date') });
                     isValid = false;
-                } else if (new Date(repetitionAmount.value.value) < now) {
-                    repetitionAmount.value.color = 'error';
-                    repetitionAmount.value.message = t('calendar.form.validation.pastDate');
-                    isValid = false;
+                } else {
+                    const endDate = new Date(repetitionAmount.value.value);
+                    const startDate = new Date(repetitionStart.value.value);
+
+                    // 1. Check if the end date is in the past
+                    if (endDate < now) {
+                        repetitionAmount.value.color = 'error';
+                        repetitionAmount.value.message = t('calendar.form.validation.pastDate');
+                        isValid = false;
+                    }
+                    // 2. Check if the end date is earlier than the start date
+                    else if (endDate < startDate) {
+                        repetitionAmount.value.color = 'error';
+                        repetitionAmount.value.message = t('calendar.form.validation.invalidEndTime');
+                        isValid = false;
+                    }
                 }
             }
 
