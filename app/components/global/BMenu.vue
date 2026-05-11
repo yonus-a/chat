@@ -1,16 +1,16 @@
 <template>
     <div ref="menuWrapper" id="menu" class="relative">
-        <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-10001' : '']">
+        <div @click.stop="toggleMenu" class="cursor-pointer relative" :class="[overlay ? 'z-10100' : '']">
             <slot name="trigger" :isOpen="isOpen" />
         </div>
 
         <div v-if="overlay" @click="closeMenu"
-            class="w-dvw h-dvh fixed top-0 left-0 transition-all duration-300 ease-in-out z-10000"
+            class="w-dvw h-dvh fixed top-0 left-0 transition-all duration-300 ease-in-out z-10060"
             :class="[isOpen ? 'bg-on-background/20 backdrop-blur-sm pointer-events-auto' : 'backdrop-blur-none bg-on-background/0 pointer-events-none']">
         </div>
 
         <div ref="panelRef" @click="handleContentClick"
-            class="absolute z-120  bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
+            class="absolute z-10110  bg-surface shadow-floating rounded-xl border border-outline-variant transition-all duration-200 ease-in-out"
             :style="panelPositionStyles"
             :class="[isOpen ? 'shadow-[0px_8px_24px_rgba(149,157,165,0.2)]' : 'shadow-none', !hasCustomContent && options && options.length > 0 ? 'w-50' : '']">
 
@@ -193,7 +193,7 @@ export default defineComponent({
             closeMenu()
         }
 
-        expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });
+        expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); console.log('should open')}, close: closeMenu });
 
         return { isOpen, handleContentClick, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles, hasCustomContent };
     }

@@ -29,6 +29,7 @@
 import { defineComponent, watch, onMounted, ref } from 'vue';
 import { useI18n } from '#imports';
 import ErrorDisplay from '~/components/general/ErrorDisplay.vue';
+import { errorMessages } from 'vue/compiler-sfc';
 export default defineComponent({
     name: 'EventTiming',
     props: {
@@ -58,13 +59,17 @@ export default defineComponent({
             }
         });
 
-        watch([() => chosenDate.value.value, () => chosenTime.value.value], () => {
+        const clearField = (fieldRef: any) => {
+            if (fieldRef.value.color === 'error') {
+                fieldRef.value.color = 'primary';
+                fieldRef.value.message = '';
+            }
             timeError.value = '';
             hasErrors.value = false;
-            chosenDate.value.color = 'primary';
-            chosenTime.value.color = 'primary';
-        });
+        };
 
+        watch(() => chosenDate.value.value, () => { clearField(chosenDate) })
+        watch(() => chosenTime.value.value, () => { clearField(chosenTime) })
 
         const validateFields = () => {
             const dateStr = chosenDate.value.value;
@@ -72,7 +77,10 @@ export default defineComponent({
 
             if (!dateStr) {
                 chosenDate.value.color = 'error';
+                chosenTime.value.color = 'error'
+                timeError.value = t('validation.required', { field: t('calendar.form.fullDate') })
                 return;
+
             }
 
             const selectedDateTime = new Date(`${dateStr}T${timeStr}`);

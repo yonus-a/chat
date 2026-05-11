@@ -22,25 +22,28 @@
                 </div>
             </div>
             <div class=" py-4">
-                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="wholeDay" :label="t('calendar.form.wholeDay')" />
+                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="wholeDay"
+                    :label="t('calendar.form.wholeDay')" />
             </div>
-            <BInput :disabled="!hasRepetition" :title="t('calendar.form.hour')" v-model="chosenTime.value" :color="chosenTime.color"
-                :message="chosenTime.message" preset="time" />
+            <BInput :disabled="!hasRepetition" :title="t('calendar.form.hour')" v-model="chosenTime.value"
+                :color="chosenTime.color" :message="chosenTime.message" preset="time" />
             <div class="pb-4">
-                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="isReminder" :label="t('calendar.form.remind')" />
+                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="isReminder"
+                    :label="t('calendar.form.remind')" />
             </div>
             <div class=" w-full  transition-all duration-200 ease-in-out  whitespace-nowrap text-wrap"
                 :class="[isReminder ? ' h-auto opacity-100 overflow-visible' : ' opacity-0 h-0 overflow-hidden']">
-                <BSelect :disabled="!hasRepetition" :options="reminderOptions" v-model="selectedReminder.value" :color="selectedReminder.color"
-                    :message="selectedReminder.message" :placeholder="t('general.select')"
-                    :title="t('calendar.form.remindingTime')" />
+                <BSelect :disabled="!hasRepetition" :options="reminderOptions" v-model="selectedReminder.value"
+                    :color="selectedReminder.color" :message="selectedReminder.message"
+                    :placeholder="t('general.select')" :title="t('calendar.form.remindingTime')" />
             </div>
-            <BSelect :disabled="!hasRepetition" :title="t('calendar.form.repeatEnding.title')" :placeholder="t('general.select')"
-                :options="repetitionEndTypes" v-model="repeatitionEnd.value" :color="repeatitionEnd.color"
-                :message="repeatitionEnd.message" />
-            <BInput :disabled="!hasRepetition" :maxlength="endingDetailsProps.type === 'date' ? undefined : 3" v-model="repetitionAmount.value"
-                :color="repetitionAmount.color" :message="repetitionAmount.message" :title="endingDetailsProps.title"
-                :placeholder="endingDetailsProps.placeholder" :type="endingDetailsProps.type" />
+            <BSelect :disabled="!hasRepetition" :title="t('calendar.form.repeatEnding.title')"
+                :placeholder="t('general.select')" :options="repetitionEndTypes" v-model="repeatitionEnd.value"
+                :color="repeatitionEnd.color" :message="repeatitionEnd.message" />
+            <BInput :disabled="!hasRepetition" :maxlength="endingDetailsProps.type === 'date' ? undefined : 3"
+                v-model="repetitionAmount.value" :color="repetitionAmount.color" :message="repetitionAmount.message"
+                :title="endingDetailsProps.title" :placeholder="endingDetailsProps.placeholder"
+                :type="endingDetailsProps.type" />
             <div class=" flex w-full items-center gap-x-3">
                 <div v-for="button in buttonsProps" :key="button.key" class=" basis-1/2">
                     <BButton :disabled="button.disabled" :text="button.text" class=" min-w-full " :color="button.color"
@@ -115,6 +118,10 @@ export default defineComponent({
                 repetitionAmount: repetitionAmount.value.value
             };
         };
+
+        watch(() => repetitionStart.value.value, () => {
+            console.log(repetitionStart.value.value)
+        })
 
         onMounted(() => {
             if (props.initialData) {

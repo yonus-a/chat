@@ -1,14 +1,16 @@
 <template>
-    <div class="w-dvw max-w-91.5 p-2 rounded-2xl bg-surface shadow-xl">
-        <div class="w-full flex items-center justify-between mb-4">
-            <div class="flex items-center gap-x-2 text-on-surface/50">
-                <BIcon icon="PhX" class="w-4 h-4 cursor-pointer " @click="close" />
-                <div class="flex gap-x-1.5 text-label-sm select-none">
-                    {{ t('general.datePicker.title') }}
+    <div class="w-dvw max-w-91.5 p-2 min-h-73 ">
+        <!--  
+            <div class="w-full flex items-center justify-between mb-4">
+                <div class="flex items-center gap-x-2 text-on-surface/50">
+                    <BIcon icon="PhX" class="w-4 h-4 cursor-pointer " @click="close" />
+                    <div class="flex gap-x-1.5 text-label-sm select-none">
+                        {{ t('general.datePicker.title') }}
+                    </div>
                 </div>
+                
             </div>
-
-        </div>
+            -->
         <div class="flex pb-6 w-full select-none text-label-md items-center justify-between gap-x-4 text-on-surface ">
             <div @click="toggleView('months')" class="cursor-pointer flex items-center gap-x-2">
                 <div>{{ currentMonthLabel }}</div>
@@ -25,7 +27,7 @@
         </div>
         <div class="relative w-full transition-all duration-300 ease-in-out">
             <div :class="[viewMode == 'years' ? 'opacity-100' : 'opacity-0']"
-                class=" transition-all duration-200 rotate-180 ease-in-out w-full absolute z-10 top-0 bottom-0 bg-linear-to-t from-surface to-surface/0 h-6">
+                class=" transition-all pointer-events-none duration-200 rotate-180 ease-in-out w-full absolute z-10 top-0 bottom-0 bg-linear-to-t from-surface to-surface/0 h-6">
             </div>
             <Transition name="view-fade" mode="out-in">
                 <div v-if="viewMode === 'days'" key="days" class="w-full select-none">
@@ -96,7 +98,7 @@
                 </div>
             </Transition>
             <div :class="[viewMode == 'years' ? 'opacity-100' : 'opacity-0']"
-                class=" transition-all duration-200 ease-in-out w-full absolute z-10 left-0 bottom-0 bg-linear-to-t from-surface to-surface/0 h-6">
+                class=" transition-all pointer-events-none duration-200 ease-in-out w-full absolute z-10 left-0 bottom-0 bg-linear-to-t from-surface to-surface/0 h-6">
             </div>
         </div>
     </div>
@@ -126,6 +128,10 @@ export default defineComponent({
         const chosenDate = ref(new Date(props.modelValue));
         const viewDate = ref(new Date(props.modelValue)); // Tracks the currently browsed month/year
         const yearListContainer = ref<HTMLElement | null>(null);
+
+        onMounted(() => {
+            console.log(props.modelValue)
+        })
 
         // UI Labels
         const viewParts = computed(() => getParts(viewDate.value));
@@ -189,7 +195,7 @@ export default defineComponent({
 
         const selectYear = (yearKey: string) => {
             viewDate.value = setTargetMonth(parseInt(yearKey), viewParts.value.month, viewDate.value);
-            viewMode.value = 'days';
+            viewMode.value = 'months';
         };
 
         const selectDay = (date: Date) => {
