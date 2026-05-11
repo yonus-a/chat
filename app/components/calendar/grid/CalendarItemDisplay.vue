@@ -1,5 +1,5 @@
 <template>
-    <div :style="wrapperStyle" :class="{ 'absolute lg:px-4 z-10': position !== 'static' }">
+    <div :style="wrapperStyle" :class="{ 'absolute px-2 lg:px-4 z-10': position !== 'static' }">
         <div :class="[
             'flex items-center overflow-hidden rounded-md cursor-pointer transition-transform active:scale-95 text-[11px] leading-[1.2]',
             // Mode Specific padding/height

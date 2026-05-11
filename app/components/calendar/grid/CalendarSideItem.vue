@@ -30,29 +30,34 @@ export default defineComponent({
         const numFormat = new Intl.NumberFormat('fa-IR');
         const itemHeights = computed(() => `${100 / (hoursList.value.length)}%`)
 
-        const hoursList = computed(() => {
+       const hoursList = computed(() => {
             const list = [];
             const { start, end } = props.range;
 
             for (let h = start; h <= end; h++) {
-                let suffixKey = '';
-                if (h >= 1 && h <= 11) {
-                    suffixKey = 'morning';
-                } else if (h === 12) {
-                    suffixKey = 'noon';
-                } else if (h >= 13 && h < 19) {
-                    suffixKey = 'afternoon';
+                if (isMobile.value) {
+                    // 24-hour format for Mobile
+                    list.push({
+                        raw: h,
+                        label: numFormat.format(h)
+                    });
                 } else {
-                    suffixKey = 'night';
-                }
-                let displayHour = h;
-                if (h > 12) displayHour = h - 12;
-                if (h === 0) displayHour = 12;
+                    // 12-hour format with suffixes for Desktop
+                    let suffixKey = '';
+                    if (h >= 1 && h <= 11) suffixKey = 'morning';
+                    else if (h === 12) suffixKey = 'noon';
+                    else if (h >= 13 && h < 19) suffixKey = 'afternoon';
+                    else suffixKey = 'night';
 
-                list.push({
-                    raw: h,
-                    label: `${numFormat.format(displayHour)} ${isMobile.value ? '' : t(`calendar.dayTimes.${suffixKey}`)}`
-                });
+                    let displayHour = h;
+                    if (h > 12) displayHour = h - 12;
+                    if (h === 0) displayHour = 12;
+
+                    list.push({
+                        raw: h,
+                        label: `${numFormat.format(displayHour)} ${t(`calendar.dayTimes.${suffixKey}`)}`
+                    });
+                }
             }
             return list;
         });
