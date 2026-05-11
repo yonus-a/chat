@@ -3,9 +3,7 @@
         <CalendarHeaderItem class="shrink-0" :mode="mode" :days="displayedHeader" />
 
         <div class="w-full flex-1 min-h-0 overflow-hidden">
-
             <div class="h-full w-full overflow-y-auto hide-scrollbar">
-
                 <div class="flex items-stretch min-h-full w-full">
 
                     <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
@@ -18,7 +16,8 @@
 
                         <Transition name="calendar-view">
 
-                            <div v-if="mode !== 'monthly'" class="w-full h-full bg-surface" :key="'time-grid-' + mode">
+                            <div v-if="mode !== 'monthly'" class="w-full h-full bg-surface"
+                                :key="`time-grid-${mode}-${range?.start?.getTime() || 0}`">
 
                                 <div class="absolute inset-0 pointer-events-none">
                                     <div class="relative w-full h-full pointer-events-auto">
@@ -43,7 +42,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-else class="w-full grid grid-cols-7 auto-rows-[186px] bg-surface" key="monthly-view">
+
+                            <div v-else class="w-full grid grid-cols-7 auto-rows-[186px] bg-surface"
+                                :key="`monthly-view-${range?.start?.getTime() || 0}`">
                                 <CalendarDayHolder v-for="(day, index) in headers" :key="index" :day="day"
                                     :events="eventsByDay.get(new Date(day.date).toDateString()) || []"
                                     :other-month="isOtherMonth(day.date)" @open-day="openSpecificDay(day)" />
@@ -57,7 +58,6 @@
         </div>
     </div>
 </template>
-
 <script lang="ts">
 import { defineComponent, type PropType, computed } from 'vue';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';

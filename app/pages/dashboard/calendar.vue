@@ -134,15 +134,22 @@ export default defineComponent({
         };
 
         const handleRangeUpdate = (range: { start: Date; end: Date }) => {
+            const isInsideOldRange = currentRange.value &&
+                range.start.getTime() >= currentRange.value.start.getTime() &&
+                range.end.getTime() <= currentRange.value.end.getTime();
+
             currentRange.value = range;
-            // Generate new events whenever range changes
-            generateMockEvents();
-            console.log(events.value)
+
+            if (!isInsideOldRange) {
+                generateMockEvents();
+                console.log('Generated new data for range');
+            } else {
+                console.log('Range inside existing data, skipped generation');
+            }
         };
 
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {
             currentMode.value = mode;
-            generateMockEvents();
         };
 
         const applyModeUpdate = (mode: 'daily' | 'weekly' | 'monthly', targetDate?: Date) => {
