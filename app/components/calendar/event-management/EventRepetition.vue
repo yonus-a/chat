@@ -27,16 +27,6 @@
             </div>
             <BInput :disabled="!hasRepetition" :title="t('calendar.form.hour')" v-model="chosenTime.value"
                 :color="chosenTime.color" :message="chosenTime.message" preset="time" />
-            <div class="pb-4">
-                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="isReminder"
-                    :label="t('calendar.form.remind')" />
-            </div>
-            <div class=" w-full  transition-all duration-200 ease-in-out  whitespace-nowrap text-wrap"
-                :class="[isReminder ? ' h-auto opacity-100 overflow-visible' : ' opacity-0 h-0 overflow-hidden']">
-                <BSelect :disabled="!hasRepetition" :options="reminderOptions" v-model="selectedReminder.value"
-                    :color="selectedReminder.color" :message="selectedReminder.message"
-                    :placeholder="t('general.select')" :title="t('calendar.form.remindingTime')" />
-            </div>
             <BSelect :disabled="!hasRepetition" :title="t('calendar.form.repeatEnding.title')"
                 :placeholder="t('general.select')" :options="repetitionEndTypes" v-model="repeatitionEnd.value"
                 :color="repeatitionEnd.color" :message="repeatitionEnd.message" />
@@ -44,6 +34,16 @@
                 v-model="repetitionAmount.value" :color="repetitionAmount.color" :message="repetitionAmount.message"
                 :title="endingDetailsProps.title" :placeholder="endingDetailsProps.placeholder"
                 :type="endingDetailsProps.type" />
+            <div class="pt-4">
+                <BCheckBox :disabled="!hasRepetition" mode="switch" v-model="isReminder"
+                    :label="t('calendar.form.remind')" />
+            </div>
+            <div class=" w-full  transition-all duration-200 ease-in-out  whitespace-nowrap text-wrap"
+                :class="[isReminder ? ' pb-4 h-auto opacity-100 overflow-visible mt-0' : ' pb-0 mt-4 opacity-0 h-0 overflow-hidden']">
+                <BSelect :disabled="!hasRepetition" :options="reminderOptions" v-model="selectedReminder.value"
+                    :color="selectedReminder.color" :message="selectedReminder.message"
+                    :placeholder="t('general.select')" :title="t('calendar.form.remindingTime')" />
+            </div>
             <div class=" flex w-full items-center gap-x-3">
                 <div v-for="button in buttonsProps" :key="button.key" class=" basis-1/2">
                     <BButton :disabled="button.disabled" :text="button.text" class=" min-w-full " :color="button.color"
@@ -81,7 +81,7 @@ export default defineComponent({
         const selectedDays = ref<number[]>([])
         const isReminder = ref(false)
         const repeatitionEnd = ref({ value: 'date', color: 'primary', message: '' })
-        const repetitionAmount = ref({ value: 'date', color: 'primary', message: '' })
+        const repetitionAmount = ref({ value: '', color: 'primary', message: '' })
         const mode = ref<RepetitionMode>('create')
         const initialSnapshot = ref('');
         const hasErrors = ref(false)
@@ -212,6 +212,10 @@ export default defineComponent({
         watch(() => selectedDays.value, () => clearField(repeatTimeCycle), { deep: true });
         watch(() => repetitionType.value, () => clearField(repeatTimeCycle), { deep: true })
         watch(() => chosenTime.value.value, () => clearField(chosenTime));
+        watch(() => repeatitionEnd.value.value, () => {
+            clearField(repetitionAmount)
+            repetitionAmount.value.value = ''
+        }, { deep: true })
 
 
         const endingDetailsProps = computed(() => {

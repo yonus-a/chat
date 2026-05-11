@@ -111,24 +111,24 @@ export default defineComponent({
             finalSubmit();
         };
 
-        // 4. Update finalSubmit to merge all 3 steps:
         const finalSubmit = () => {
             const finalPayload = {
                 ...eventData.value,
                 ...timingData.value,
-                // Only merge repetition data if they actually enabled it
-                ...(timingData.value?.hasRepetition ? repetitionData.value : {})
             };
-            console.log(eventData.value)
-            console.log(timingData.value)
-            console.log(repetitionData.value)
+
+            if (timingData.value?.hasRepetition && repetitionData.value) {
+                const { hasRepetition, ...pureRepetitionData } = repetitionData.value;
+                finalPayload.repetition = pureRepetitionData;
+            }
+
             console.log("FINAL API PAYLOAD:", finalPayload);
             close();
         };
 
         // 5. Update onClosed to clear the new state:
         const onClosed = () => {
-            if (isTransitioning.value) return; 
+            if (isTransitioning.value) return;
             mode.value = 'create';
             step.value = 1;
             eventData.value = null;

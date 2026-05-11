@@ -1,54 +1,46 @@
-import type { CalendarEvent } from "./components/calendar";
-import type { Contact } from "./chat";
-export type ShareTypes = "viewer" | "editor";
+export type EventCategory = "task" | "medicine" | "event";
+export type RepetitionCycleType = "day" | "hour" | "custom";
+export type RepetitionEndType = "date" | "times";
 
-export interface SharedUserCalendar extends Contact {
-  accessType: ShareTypes;
-}
-
-export enum WeekDays {
-  Saturday,
-  Sunday,
-  Monday,
-  Tuesday,
-  Wednesday,
-  Thursday,
-  Friday,
-}
-
-export enum RepetitionTypes {
-  Custom,
-  Daily,
-  Hourly,
-}
-
-export enum EventType {
-  Medicine,
-  AI,
-  Service,
-  Task,
-}
-
-export interface EventCheckList {
+export interface EventChecklistItem {
   id?: number;
   text: string;
   isChecked: boolean;
 }
 
-export interface EventRepetition {
-  repeatingDays: WeekDays | number;
-  startDate: Date;
-  endDate?: Date;
+// Strictly types Step 3 Data
+export interface EventRepetitionConfig {
+  repetitionStart: string | Date;
+  repetitionType: RepetitionCycleType;
+  repeatTimeCycle: number;
+  selectedDays?: number[]; // e.g., for Sunday, Tuesday, Thursday
+  wholeDay: boolean;
+  chosenTime: string;
+  isReminder: boolean;
+  selectedReminder?: number; // Minutes before
+  repeatitionEnd: RepetitionEndType;
+  repetitionAmount: string | number; // Date string if 'date', number if 'times'
 }
 
-export interface CalendarEventData extends CalendarEvent {
+// The Final Combined Payload from MainPopup.vue
+export interface CalendarEventPayload {
+  id?: number;
+  
+  // --- Step 1: Details ---
+  eventType: EventCategory;
   title: string;
   description: string;
-  checklist?: EventCheckList[];
+  selectedUsers?: number[]; // Array of Contact IDs
   attachement?: string;
-  color: string;
-  users: Contact[];
-  callId?: number;
-  type: EventType;
-  repetition?: EventRepetition;
+  color?: string;
+  checkList?: EventChecklistItem[];
+
+  // --- Step 2: Timing ---
+  date: string | Date;
+  time: string;
+  isFullDay: boolean;
+  hasRepetition: boolean;
+
+  // --- Step 3: Repetition (Optional) ---
+  repetition?: EventRepetitionConfig;
 }
