@@ -147,7 +147,6 @@ export default defineComponent({
 
 
         watch(() => checkListData.value, () => {
-            console.log('fuck')
             if (eventType.value.value === 'task' && hasErrors.value) {
                 hasErrors.value = false;
 

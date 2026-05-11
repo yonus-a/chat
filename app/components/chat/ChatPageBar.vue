@@ -150,7 +150,6 @@ export default defineComponent({
                     break;
                 case 'prescribe-meds':
                     if (currentConversationId.value) {
-                        console.log('fuck')
                         chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
                     }
                     break;
@@ -212,7 +211,6 @@ export default defineComponent({
         })
 
         const initCall = () => {
-            console.log('fuck')
             if (props.contact?.isActive) {
                 callStore.startCall(props.contact, props.contact.serviceType)
             }

@@ -95,7 +95,6 @@ export default defineComponent({
                 chosenDate.value.color = 'error';
                 chosenTime.value.color = 'error';
                 hasErrors.value = true;
-                console.log('Validation Failed: Date is in the past', selectedDateTime);
                 return;
             }
             submitFields();

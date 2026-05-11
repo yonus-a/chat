@@ -265,10 +265,6 @@ const submitFields = async () => {
             finalGDate = new Date(y, m - 1, d);
         }
 
-        console.log("Submitting Profile Update...", {
-            name: name.value.value,
-            birthDate: finalGDate.toISOString()
-        });
 
         // Final backend call would go here
     } catch (error) {

@@ -126,15 +126,11 @@ export default defineComponent({
             }
         })
 
-        onMounted(() => {
-            console.log(props.message.request)
-        })
 
         const isMedic = computed(() => profileStore.userData.id == props.message.senderId && profileStore.chosenRole !== 'user')
 
         const cardSubText = computed(() => {
             let text = ''
-            console.log(t('chat.requestCard.addMedic.rejected'))
             let status = request.value.request.status
             if (request.value?.type === 'add-person') {
                 switch (status) {
@@ -162,12 +158,6 @@ export default defineComponent({
             return request.value?.request.status === 'expired' || request.value?.request.status === 'rejected'
         })
 
-
-        onMounted(() => {
-            nextTick(() => {
-                console.log(props.message)
-            })
-        })
 
         const messageId = computed(() => props.message.id)
         const chatId = computed(() => parseInt(route.params.id as string))

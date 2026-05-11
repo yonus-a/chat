@@ -257,7 +257,6 @@ export default defineComponent({
                 chatActionStore.selectedMessages.clear();
                 chatActionStore.toggleSelection(props.message);
             }
-            console.log(event.clientX, event.clientY)
 
             // when openning the menu remember to make also a mode for vibrate
             bubbleOptionsRef.value?.openMenu(event.clientX, event.clientY);

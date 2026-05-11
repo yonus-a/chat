@@ -142,7 +142,6 @@ export default defineComponent({
             } catch (err) {
                 console.error("Failed to enumerate devices for camera count", err);
             } finally {
-                console.log(supportsTorch.value, hasMultipleCameras.value)
             }
         }
 
@@ -253,7 +252,6 @@ export default defineComponent({
         })
 
         watch(() => chatContact.value, () => {
-            console.log(chatContact.value)
             if (chatContact.value) {
                 initPermissions()
             }

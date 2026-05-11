@@ -118,13 +118,11 @@ export default defineComponent({
             selectedMedia.value = [...selectedMedia.value, ...incoming.slice(0, remaining)];
             popupMode.value = selectedMedia.value.length === 1 ? 'single-image' : 'multi-image'
             popup.value?.open()
-            console.log(popupMode.value)
-            console.log('Media Selected:', selectedMedia.value);
+       
         }
 
         const handleFilesSelected = (files: any[]) => {
             selectedFiles.value = [...selectedFiles.value, ...files];
-            console.log('Files Selected:', selectedFiles.value);
             popupMode.value = 'file'
             popup.value?.open()
         }

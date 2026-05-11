@@ -109,7 +109,6 @@ const validateFields = () => {
 
   // 4. Terms of Service Check
   if (!agreeToTerms.value.value) {
-    console.log("[Validation] User has not agreed to terms.");
     agreeToTerms.value.color = 'error'
     openToast(t('validation.agreeToTerms'), 'error');
     // Toast logic would go here
@@ -126,7 +125,6 @@ const sendUserDetails = async () => {
 
   isSending.value = true;
   try {
-    console.log("[Auth] Sending registration details for:", email.value.value);
     // Add your API call here
 
     // if successful call the line below :

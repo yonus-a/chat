@@ -593,7 +593,6 @@ const parsedModelDate = computed(() => {
 
 const handleDateSelect = (d: Date) => {
     emit('update:modelValue', d);
-    console.log(d)
     closeDateMenu();
 };
 

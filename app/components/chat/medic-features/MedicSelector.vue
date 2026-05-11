@@ -73,7 +73,6 @@ export default defineComponent({
                         }, 200);
                     }, 200);
                 } else {
-                    console.log('fuck')
                     handleMobileClick()
                 }
             } else {

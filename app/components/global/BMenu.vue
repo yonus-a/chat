@@ -18,7 +18,8 @@
                 <slot :isOpen="isOpen" :close="closeMenu" />
             </div>
 
-            <div v-else-if="options && options.length > 0" key="menu-list" class="flex p-3 max-h-75 overflow-y-auto flex-col gap-y-1">
+            <div v-else-if="options && options.length > 0" key="menu-list"
+                class="flex p-3 max-h-75 overflow-y-auto flex-col gap-y-1">
                 <template v-for="(opt, idx) in options" :key="opt.key">
                     <div class="pointer-events-auto">
                         <div @click="handleSelect(opt.key)"
@@ -193,7 +194,7 @@ export default defineComponent({
             closeMenu()
         }
 
-        expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); console.log('should open')}, close: closeMenu });
+        expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });
 
         return { isOpen, handleContentClick, menuWrapper, panelRef, toggleMenu, closeMenu, handleSelect, getColorClass, panelPositionStyles, hasCustomContent };
     }

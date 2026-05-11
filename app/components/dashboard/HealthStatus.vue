@@ -256,7 +256,6 @@ const cardTitle = computed(() => {
 });
 
 const addForm = () => {
-    console.log('idk really !')
 }
 </script>
 

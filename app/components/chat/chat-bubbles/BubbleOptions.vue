@@ -103,7 +103,6 @@ export default defineComponent({
                         }
                         break;
                     case 'edit':
-                        console.log('message passed', props.message)
                         chatActionStore.triggerEdit(props.message);
                         break;
                     case 'reply':

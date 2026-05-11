@@ -129,9 +129,6 @@ export default defineComponent({
         const viewDate = ref(new Date(props.modelValue)); // Tracks the currently browsed month/year
         const yearListContainer = ref<HTMLElement | null>(null);
 
-        onMounted(() => {
-            console.log(props.modelValue)
-        })
 
         // UI Labels
         const viewParts = computed(() => getParts(viewDate.value));

@@ -90,14 +90,7 @@ export default defineComponent({
             return target.month !== current.month || target.year !== current.year;
         };
 
-        onMounted(() => {
-            console.log('range applied', getCalendarHeaders(props.range, 'monthly'))
-            console.log(headers.value)
-        })
 
-        watch(() => headers.value, () => {
-            console.log(headers.value)
-        }, { deep: true, immediate: true })
 
         return {
             headers,

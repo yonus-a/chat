@@ -111,7 +111,6 @@ export default defineComponent({
         watch(() => route.params.id, () => {
             if (chatId.value && selectedChat.value?.isActive) {
                 nextTick(() => {
-                    console.log(chatInput.value)
                     chatInput.value?.focus()
                 })
             }

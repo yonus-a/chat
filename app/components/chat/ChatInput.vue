@@ -222,7 +222,6 @@ export default defineComponent({
         };
 
         watch(() => textMode.value, () => {
-            console.log(textMode.value)
         })
 
         // Refs
@@ -348,7 +347,6 @@ export default defineComponent({
 
         const handleGlobalKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                console.log('text mode before cancel action:', textMode.value)
                 if (textMode.value !== 'normal') {
                     cancelAction();
                 } else {

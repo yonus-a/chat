@@ -119,9 +119,6 @@ export default defineComponent({
             };
         };
 
-        watch(() => repetitionStart.value.value, () => {
-            console.log(repetitionStart.value.value)
-        })
 
         onMounted(() => {
             if (props.initialData) {

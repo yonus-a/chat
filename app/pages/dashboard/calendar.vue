@@ -51,39 +51,89 @@ export default defineComponent({
         const generateMockEvents = () => {
             if (!currentRange.value) return;
 
-            const mockData: CalendarEvent[] = [];
+            const mockData: CalendarEventPayload[] = [];
             const startTime = currentRange.value.start.getTime();
             const endTime = currentRange.value.end.getTime();
 
-            // Adjust count based on mode for visual density
-            const eventCount = currentMode.value === 'daily' ? 4 : currentMode.value === 'weekly' ? 12 : 30;
+            // Adjust count based on mode
+            const eventCount = currentMode.value === 'daily' ? 6 : currentMode.value === 'weekly' ? 15 : 45;
+
+            const categories: EventCategory[] = ['task', 'medicine', 'event'];
+            const colors = ['#F34040', '#F37040', '#E9EF37', '#8CE25E', '#40F3E4', '#555CEE', '#CF40F3', '#F897F6', '#2C2727'];
+
+            let lastUsedTimestamp: number | null = null;
 
             for (let i = 0; i < eventCount; i++) {
-                // Pick a random timestamp within the range
-                const randomStartTimestamp = startTime + Math.random() * (endTime - startTime);
+                // --- RANDOM DATE LOGIC ---
+                let randomStartTimestamp: number;
+
+                // In monthly mode, 30% chance to use the same day as the previous event to test clustering
+                if (currentMode.value === 'monthly' && lastUsedTimestamp && Math.random() < 0.3) {
+                    randomStartTimestamp = lastUsedTimestamp + (Math.random() * 2 * 60 * 60 * 1000); // Shift by a few hours
+                } else {
+                    randomStartTimestamp = startTime + Math.random() * (endTime - startTime);
+                }
+                lastUsedTimestamp = randomStartTimestamp;
+
                 const startDate = new Date(randomStartTimestamp);
+                const type = categories[Math.floor(Math.random() * categories.length)];
 
-                // Random duration between 30 mins and 3 hours
-                const randomDurationMs = (Math.floor(Math.random() * 5) + 1) * 30 * 60 * 1000;
-                const endDate = new Date(startDate.getTime() + randomDurationMs);
+                // Timing logic
+                const isFullDay = Math.random() < 0.2; // 20% chance of full day
+                const hasRepetition = Math.random() < 0.15; // 15% chance of repetition
+                const durationHours = (Math.floor(Math.random() * 4) + 1); // 1-4 hours
 
-                mockData.push({
-                    id: Math.floor(Math.random() * 100000),
-                    title: `Mock Event ${i + 1}`,
-                    startDate,
-                    endDate,
-                    // Optional: add a color from your palette
-                    color: ['#F34040', '#555CEE', '#8CE25E', '#CF40F3', '#F37040'][Math.floor(Math.random() * 5)]
-                });
+                // --- CONSTRUCT PAYLOAD ---
+                const event: CalendarEventPayload = {
+                    id: Math.floor(100000 + Math.random() * 900000), // Unique 6-digit ID
+                    eventType: type,
+                    title: `Random ${type.charAt(0).toUpperCase() + type.slice(1)} ${i + 1}`,
+                    description: `This is a fully randomized description for event #${i + 1}. Truly chaotic metadata here.`,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    date: startDate,
+                    time: startDate.toTimeString().slice(0, 5), // "HH:mm"
+                    isFullDay,
+                    hasRepetition,
+                    selectedUsers: [Math.floor(Math.random() * 100), Math.floor(Math.random() * 100)],
+                    attachement: Math.random() < 0.3 ? 'document.pdf' : undefined
+                };
+
+                // Add Checklist only for tasks
+                if (type === 'task') {
+                    event.checkList = [
+                        { text: 'Verify chaotic logic', isChecked: Math.random() > 0.5 },
+                        { text: 'Randomize the randomization', isChecked: Math.random() > 0.5 }
+                    ];
+                }
+
+                // Add Repetition Logic if enabled
+                if (hasRepetition) {
+                    const repType: RepetitionCycleType = ['day', 'hour', 'custom'][Math.floor(Math.random() * 3)] as RepetitionCycleType;
+                    event.repetition = {
+                        repetitionStart: startDate,
+                        repetitionType: repType,
+                        repeatTimeCycle: Math.floor(Math.random() * 5) + 1,
+                        selectedDays: repType === 'custom' ? : undefined,
+                        wholeDay: isFullDay,
+                        chosenTime: event.time,
+                        isReminder: Math.random() > 0.5,
+                        selectedReminder: 15,
+                        repeatitionEnd: Math.random() > 0.5 ? 'date' : 'times',
+                        repetitionAmount: Math.random() > 0.5 ? 5 : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                    };
+                }
+
+                mockData.push(event);
             }
-            events.value = mockData;
+
+            // Sort by date to make it easier for the grid to process
+            events.value = mockData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         };
 
         const handleRangeUpdate = (range: { start: Date; end: Date }) => {
             currentRange.value = range;
             // Generate new events whenever range changes
             generateMockEvents();
-            console.log(events.value)
         };
 
         const handleModeUpdate = (mode: 'daily' | 'weekly' | 'monthly') => {

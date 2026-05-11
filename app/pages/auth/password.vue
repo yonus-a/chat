@@ -82,7 +82,6 @@ const submitPassword = async () => {
   isSending.value = true;
   try {
     // Logic to verify password using the identifier stored in authStore
-    console.log(`Attempting login for: ${authStore.loginIdentifier}`);
 
     // Example: const success = await authStore.loginWithPassword(password.value.value);
     // if (success) router.push(localePath('/dashboard'));

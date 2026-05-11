@@ -382,7 +382,6 @@ export const useChatActionStore = defineStore("chatAction", () => {
       chatStore.patchLastMessage(conversationId, messageId, {
         request: updatedRequest,
       });
-      console.log(`Mock API Success: ${key}`);
     } catch (error) {
       console.error("Action failed", error);
     } finally {

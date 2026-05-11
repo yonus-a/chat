@@ -37,7 +37,6 @@ export default defineComponent({
 
         bus.on((payload) => {
             currentResolver.value = payload.resolve;
-            console.log(payload.state)
             switchMode(payload.state);
         });
 

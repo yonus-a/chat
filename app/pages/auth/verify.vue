@@ -81,7 +81,6 @@ const validateAndSend = async () => {
 
     isVerifying.value = true;
     try {
-        console.log("Verifying OTP for:", currentPhone.value);
         // API verification logic here
 
         // if successful proceed to this block

@@ -110,9 +110,7 @@ export default defineComponent({
                     isPlaying.value = false;
                 } else {
                     // FIX: Catch the NotSupportedError from the fake mock blob and fall back to the network URL
-                    console.log(audioRef.value)
-                    console.log(audioRef.value.src)
-                    console.log(props.url)
+           
                     audioRef.value.play().then(() => {
                         isPlaying.value = true;
                     }).catch((err) => {

@@ -128,7 +128,6 @@ const handleCaptchaVerified = () => {
 };
 
 const handleOAuthAction = (provider: string) => {
-  console.log(`OAuth: ${provider}`);
 };
 
 watch(() => userName.value.value, () => {
