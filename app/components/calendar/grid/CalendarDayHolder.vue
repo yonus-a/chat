@@ -8,7 +8,7 @@
                 <CalendarItemDisplay position="static" v-for="event in displayedEvents" :key="event.id"
                     :event="event" />
 
-                <div v-if="remainingCount > 0"
+                <div v-if="remainingCount > 2"
                     class="w-full h-9 px-2 flex items-center rounded-lg bg-surface-variant text-label-sm text-on-surface select-none ">
                     {{ t('calendar.moreItems', { count: remainingCount }) }}
                 </div>
