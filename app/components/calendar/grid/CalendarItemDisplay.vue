@@ -11,7 +11,7 @@
                 <template #trigger>
                     <div class="w-full relative z-50 flex items-center gap-x-1">
                         <div v-if="displayedContact" class="w-5 h-5 shrink-0">
-                            <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
+                            <ContactAvatar :contact="displayedContact[0]" :show-online="false" class="w-full h-full" />
                         </div>
                         <div
                             class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
@@ -60,6 +60,7 @@ export default defineComponent({
         const profileStore = useProfileStore();
 
         const displayedContact = computed<Contact | null>(() => {
+            if (!props.event.selectedUsers || props.event.selectedUsers.length === 0) return null
             // Priority 1: Event type is service -> use first provider
             if (props.event.eventType === 'service' && props.event.service?.provider?.length) {
                 return props.event.service.provider || null; // <--- ADDED

@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full h-full relative ">
+    <div class=" w-full h-full relative  z-10">
         <BImage draggable="false" :src="contact.imageUrl" @click.stop @mousedown.stop v-if="hasImage"
             class=" pointer-events-none select-none w-full h-full min-w-full rounded-full overflow-hidden min-h-full max-w-full max-h-full" />
         <div v-else class=" w-full h-full bg-primary/10 flex items-center justify-center rounded-full overflow-hidden ">
@@ -27,6 +27,12 @@ export default defineComponent({
     },
     setup(props) {
         const hasImage = computed(() => props.contact.imageUrl && props.contact.imageUrl.trim().length > 0)
+
+        onMounted(()=>{
+            nextTick(()=>{
+                console.log(props.contact)
+            })
+        })
 
         const initials = computed(() => {
             // Accessing directly from props.contact
