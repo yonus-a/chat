@@ -4,7 +4,7 @@
             @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
             <CalendarGrid :loading="isLoading" @update:mode="applyModeUpdate" @update:range="handleRangeUpdate"
-                :events="events" :range="currentRange" :mode="currentMode" />
+                :events="events" :range="currentRange" :mode="currentMode" :hours="calculatedHoursRange" />
         </div>
         <SharePopup ref="sharePopup" />
         <MainPopup ref="eventPopup" />
@@ -223,6 +223,36 @@ export default defineComponent({
             ogTitle: () => `${t('seo.siteName')} - ${t('seo.dashboard.calendar.title')}`,
         });
 
+
+        const calculatedHoursRange = computed(() => {
+            if (!events.value || events.value.length === 0) {
+                return { start: 0, end: 24 };
+            }
+
+            let minHour = 24;
+            let maxHour = 0;
+
+            events.value.forEach(event => {
+                if (!event.time) return;
+
+                const hour = parseInt(event.time.split(':'), 10);
+
+                if (isNaN(hour)) return;
+
+                if (hour < minHour) minHour = hour;
+                if (hour > maxHour) maxHour = hour;
+            });
+
+            if (minHour === 24) {
+                return { start: 0, end: 24 };
+            }
+
+            return {
+                start: Math.max(0, minHour - 1),
+                end: Math.min(24, maxHour + 2)
+            };
+        });
+
         return {
             applyModeUpdate,
             handleModeUpdate,
@@ -232,6 +262,7 @@ export default defineComponent({
             openSharePopup,
             refreshCalendar,
             sharePopup,
+            calculatedHoursRange,
             calendarHeader,
             t,
             eventPopup,

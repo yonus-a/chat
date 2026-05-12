@@ -2,7 +2,7 @@
     <div class=" border border-outline-variant/50 w-full relative h-full"
         :class="[otherMonth ? ' overflow-hidden' : 'overflow-visible']">
         <div class="  relative top-0 left-0 w-full h-full p-4 flex flex-col">
-            <div class=" shrink-0">
+            <div v-if="!otherMonth" class=" shrink-0">
                 <CalendarDayBadge :day="day" />
             </div>
             <div id="holder" class="w-full flex-1 relative flex flex-col gap-y-1.5 mt-2">

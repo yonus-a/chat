@@ -1,6 +1,5 @@
 <template>
     <div :style="wrapperStyle" :class="[position !== 'static' ? 'absolute px-1 lg:px-4' : '']">
-
         <div :class="[
             'flex relative items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform text-[11px] leading-[1.2]',
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
