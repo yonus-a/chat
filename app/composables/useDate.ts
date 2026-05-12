@@ -1,4 +1,5 @@
 import { useI18n } from "#imports";
+import type { CalendarEventPayload } from "~/types/calendar";
 
 export interface DateFormatOptions {
   showWeekday?: boolean;
@@ -483,6 +484,53 @@ export const useDate = () => {
     }
   };
 
+  const formatEventFullDateTime = (event: CalendarEventPayload) => {
+    const date = new Date(event.date);
+
+    // 1. Format the Date part (e.g., ۲۶ اردیبهشت ۱۴۰۵)
+    const datePart = new Intl.DateTimeFormat(
+      locale.value === "fa" ? "fa-IR" : "en-US",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      },
+    ).format(date);
+
+    // 2. Prepare Start Time
+    const startTime = event.time;
+    let timePart = startTime;
+
+    // 3. Calculate and Add End Time if duration or endDate exists
+    if (event.duration || event.endDate) {
+      let endH: string = "";
+      let endM: string = "";
+
+      if (event.duration) {
+        const [h, m] = startTime.split(":").map(Number);
+        const endDateObj = new Date();
+        endDateObj.setHours(h, m, 0);
+        endDateObj.setMinutes(endDateObj.getMinutes() + event.duration);
+        endH = String(endDateObj.getHours()).padStart(2, "0");
+        endM = String(endDateObj.getMinutes()).padStart(2, "0");
+      } else if (event.endDate) {
+        const endObj = new Date(event.endDate);
+        endH = String(endObj.getHours()).padStart(2, "0");
+        endM = String(endObj.getMinutes()).padStart(2, "0");
+      }
+
+      const separator = locale.value === "fa" ? " تا " : " to ";
+      timePart += `${separator}${endH}:${endM}`;
+    }
+
+    // 4. Combine with localized labels
+    const hourLabel = locale.value === "fa" ? " ساعت " : " at ";
+    const finalString = `${datePart}${hourLabel}${timePart}`;
+
+    // Use your existing utility to ensure Persian digits if needed
+    return replaceDigitsByLocale(finalString, locale.value);
+  };
+
   return {
     getYearsPassed,
     parseDate,
@@ -497,5 +545,6 @@ export const useDate = () => {
     j2g,
     getRelativeTime: (d: any) => formatDate(d, { useRelativeDay: true }),
     formatRelativeDate,
+    formatEventFullDateTime,
   };
 };

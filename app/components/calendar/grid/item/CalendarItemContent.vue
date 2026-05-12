@@ -1,5 +1,5 @@
 <template>
-    <div class=" p-6 flex flex-col gap-y-4.5 w-[90vw] max-w-140">
+    <div class=" p-6 cursor-default flex flex-col gap-y-4.5 w-[90vw] max-w-140">
         <div class=" flex items-center gap-x-2">
             <BIcon v-for="action in actions" :key="action.key" :icon="action.icon" @click="handleAction(action.key)"
                 class=" w-4 h-4 cursor-pointer fill-on-surface/50" />
@@ -17,7 +17,9 @@
         </div>
         <div class=" flex items-center gap-x-4">
             <BIcon icon="PhClock" class=" w-5 h-5 fill-on-surface/50" />
-            <div class=" select-none text-title-md text-on-surface">{{ }}</div>
+            <div v-if="event" class=" select-none text-title-md text-on-surface">
+                {{ formatEventFullDateTime(event) }}
+            </div>
         </div>
     </div>
 </template>
@@ -36,6 +38,7 @@ export default defineComponent({
     },
     emits: ['edit', 'delete', 'close'],
     setup(props, { emit }) {
+        const { formatEventFullDateTime } = useDate()
         const { t } = useI18n()
 
         const actions = computed(() => {
@@ -48,12 +51,12 @@ export default defineComponent({
                 {
                     icon: 'PhPen',
                     key: 'edit',
-                    active: true,
+                    active: props.event?.eventType !== 'service',
                 },
                 {
                     icon: 'PhTrash',
                     key: 'delete',
-                    active: true,
+                    active: props.event?.eventType !== 'service',
                 }
             ]
             return items.filter((item) => item.active === true)
@@ -79,6 +82,7 @@ export default defineComponent({
             actions,
             handleAction,
             t,
+            formatEventFullDateTime,
         }
     }
 })

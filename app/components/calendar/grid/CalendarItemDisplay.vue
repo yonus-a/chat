@@ -18,7 +18,7 @@
                         </div>
                     </div>
                 </template>
-                <CalendarItemContent :event="event" />
+                <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
             </BMenu>
 
         </div>
@@ -31,6 +31,7 @@ import type { CalendarMode, CalendarTimeRange, CalendarDay } from '~/types/compo
 import type { CalendarEventPayload } from '~/types/calendar';
 import { useWindowSize, useProfileStore } from '#imports';
 import type { Contact } from '~/types/chat';
+import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Menu } from '~/types/components/menu';
 import CalendarItemContent from './item/CalendarItemContent.vue';
@@ -55,6 +56,7 @@ export default defineComponent({
         const isMobile = computed(() => width.value < 768)
         const menuRef = useTemplateRef<Menu>('menuRef')
         const menuOpen = ref(false)
+        const bus = useEventBus<{ type: string; id: number | undefined }>('calendar-actions');
 
         const profileStore = useProfileStore();
 
@@ -140,7 +142,16 @@ export default defineComponent({
             menuRef.value?.open()
         }
 
-        return { wrapperStyle, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen };
+        const closeMenu = () => {
+            menuRef.value?.close()
+        }
+
+        const handleDelete = () => {
+            bus.emit({ type: 'delete', id: props.event.id });
+            closeMenu()
+        }
+
+        return { wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu };
     }
 });
 </script>

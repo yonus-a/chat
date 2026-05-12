@@ -8,17 +8,19 @@
         </div>
         <SharePopup ref="sharePopup" />
         <MainPopup ref="eventPopup" />
+        <BModal ref="modal" @action="deleteSelectedEvent" :loading="isDeleting" />
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
-import { useI18n, useSeoMeta, useCalendarStore } from '#imports';
+import { defineComponent, ref, computed, useTemplateRef } from 'vue';
+import { useI18n, useSeoMeta, useCalendarStore, useAppToast } from '#imports';
 import CalendarHeader, { type CalendarHeaderExposed } from '~/components/calendar/CalendarHeader.vue';
 import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
 import type { Popup } from '~/types/components/popup';
-import type { CalendarEvent } from '~/types/components/calendar';
+import type { Modal } from '~/types/components/modal';
 import type { CalendarEventPayload, EventCategory, RepetitionCycleType } from '~/types/calendar';
+import { useEventBus } from '@vueuse/core';
 import MainPopup from '~/components/calendar/event-management/MainPopup.vue';
 definePageMeta({
     layout: 'dashboard',
@@ -35,12 +37,26 @@ export default defineComponent({
     },
     setup() {
         const { t } = useI18n()
+        const { openToast } = useAppToast()
         const calendarStore = useCalendarStore()
         const calendarHeader = useTemplateRef<CalendarHeaderExposed>('header')
         const isLoading = ref(false)
+        const modal = useTemplateRef<Modal>('modal')
+
+        const isDeleting = ref(false)
 
         const eventPopup = ref<Popup | null>(null)
         const sharePopup = ref<Popup | null>(null)
+
+        const bus = useEventBus<{ type: string; id: number }>('calendar-actions');
+
+        const selectedEventId = ref<number | null>(null);
+        bus.on((payload) => {
+            if (payload.type === 'delete') {
+                selectedEventId.value = payload.id; // Store the ID
+                modal.value?.openModal(t('calendar.form.delete.title'), t('calendar.form.delete.description'), 'error', true, t('calendar.form.delete.delete'))
+            }
+        });
 
         const events = ref<CalendarEventPayload[]>([]);
 
@@ -253,6 +269,23 @@ export default defineComponent({
             };
         });
 
+        const deleteSelectedEvent = async () => {
+            if (!selectedEventId.value) return;
+
+            isDeleting.value = true;
+            try {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                events.value = events.value.filter(e => e.id !== selectedEventId.value);
+                openToast(t('calendar.form.delete.success'), 'success');
+                modal.value?.closeModal();
+                selectedEventId.value = null;
+            } catch (error) {
+                openToast(t('calendar.form.delete.error'), 'error');
+            } finally {
+                isDeleting.value = false;
+            }
+        };
+
         return {
             applyModeUpdate,
             handleModeUpdate,
@@ -269,6 +302,8 @@ export default defineComponent({
             openEventDetails,
             currentRange,
             isLoading,
+            modal,
+            deleteSelectedEvent,
         }
     }
 })
