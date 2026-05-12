@@ -1,6 +1,6 @@
 <template>
-    <ClientOnly>
-        <div class="w-full pt-6 px-4" style="touch-action: pan-x;" @touchstart="handleTouchStart"
+    <div class=" w-full pt-6 px-4">
+        <div id="mobile-grid" class="w-full" style="touch-action: pan-x;" @touchstart="handleTouchStart"
             @touchmove="handleTouchMove" @touchend="handleTouchEnd">
 
             <div class="select-none text-[10px] text-on-surface/50 w-full flex items-center justify-between">
@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-    </ClientOnly>
+    </div>
 </template>
 
 <script lang="ts">
@@ -63,6 +63,7 @@ export default defineComponent({
         onMounted(() => {
             const today = new Date().toDateString();
             selectedDate.value = today;
+            console.log('fuck')
         });
 
         const isDaySelected = (day: CalendarDay) => {

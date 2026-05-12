@@ -1,72 +1,77 @@
 <template>
-    <div class="w-full h-full max-h-full flex flex-col">
-        <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
+    <ClientOnly>
+        <div class="w-full h-full max-h-full flex flex-col">
 
-        <div v-if="showMonthly" class="w-full flex-1 min-h-0 overflow-hidden">
-            <div class="h-full w-full overflow-y-auto hide-scrollbar">
-                <div class="flex items-stretch min-h-full w-full">
+            <Transition name="fade-overlay" mode="out-in">
 
-                    <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
-                        :class="[
-                            mode !== 'monthly' ? 'w-9 md:w-25 opacity-100' : 'w-0 opacity-0',
-                            isSidebarActive ? '' : '!hidden'
-                        ]">
-                        <CalendarSideItem class="w-9 md:w-25 h-full" :range="hours" />
-                    </div>
+                <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 overflow-hidden">
+                    <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
+                    <div class="h-full w-full overflow-y-auto hide-scrollbar">
+                        <div class="flex items-stretch min-h-full w-full">
 
-                    <div class="flex-1 relative overflow-hidden">
-                        <CalendarPointer v-if="mode !== 'monthly'" :mode="mode" :hours="hours" :headers="headers" />
-
-                        <Transition name="calendar-view">
-
-                            <div v-if="mode !== 'monthly'" class="w-full h-full bg-surface"
-                                :key="`time-grid-${mode}-${range?.start?.getTime() || 0}`">
-
-                                <div class="absolute inset-0 pointer-events-none">
-                                    <div class="relative w-full h-full pointer-events-auto">
-                                        <CalendarItemDisplay v-for="event in visibleGridEvents" :key="event.id"
-                                            :event="event" :mode="mode" :headers="headers" :hours="hours" />
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="w-full absolute top-0 left-0 h-full pointer-events-none justify-between flex items-stretch">
-                                    <div class="h-full border-surface-variant"
-                                        :class="[n === headers.length + 1 || n === 1 ? 'border-0' : 'border']"
-                                        v-for="n in headers.length + 1" :key="'v' + n">
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="w-full absolute top-0 left-0 h-full flex-col pointer-events-none justify-between flex items-stretch">
-                                    <div class="w-full border border-surface-variant"
-                                        :class="[n === 0 || n === 1 ? 'opacity-0' : 'opacity-100']"
-                                        v-for="n in (hours.end - hours.start + 2)" :key="'h' + n">
-                                    </div>
-                                </div>
+                            <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
+                                :class="[
+                                    mode !== 'monthly' ? 'w-9 md:w-25 opacity-100' : 'w-0 opacity-0',
+                                    isSidebarActive ? '' : '!hidden'
+                                ]">
+                                <CalendarSideItem class="w-9 md:w-25 h-full" :range="hours" />
                             </div>
 
-                            <div v-else class="w-full grid grid-cols-7 auto-rows-[186px] bg-surface"
-                                :key="`monthly-view-${range?.start?.getTime() || 0}`">
-                                <CalendarDayHolder :mode="mode" v-for="(day, index) in headers" :key="index" :day="day"
-                                    :events="eventsByDay.get(new Date(day.date).toDateString()) || []"
-                                    :other-month="isOtherMonth(day.date)" @open-day="openSpecificDay(day)" />
+                            <div class="flex-1 relative overflow-hidden">
+                                <CalendarPointer v-if="mode !== 'monthly'" :mode="mode" :hours="hours"
+                                    :headers="headers" />
+
+                                <Transition name="calendar-view">
+                                    <div v-if="mode !== 'monthly'" class="w-full h-full bg-surface"
+                                        :key="`time-grid-${mode}-${range?.start?.getTime() || 0}`">
+
+                                        <div class="absolute inset-0 pointer-events-none">
+                                            <div class="relative w-full h-full pointer-events-auto">
+                                                <CalendarItemDisplay v-for="event in visibleGridEvents" :key="event.id"
+                                                    :event="event" :mode="mode" :headers="headers" :hours="hours" />
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="w-full absolute top-0 left-0 h-full pointer-events-none justify-between flex items-stretch">
+                                            <div class="h-full border-surface-variant"
+                                                :class="[n === headers.length + 1 || n === 1 ? 'border-0' : 'border']"
+                                                v-for="n in headers.length + 1" :key="'v' + n">
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="w-full absolute top-0 left-0 h-full flex-col pointer-events-none justify-between flex items-stretch">
+                                            <div class="w-full border border-surface-variant"
+                                                :class="[n === 0 || n === 1 ? 'opacity-0' : 'opacity-100']"
+                                                v-for="n in (hours.end - hours.start + 2)" :key="'h' + n">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div v-else class="w-full grid grid-cols-7 auto-rows-[186px] bg-surface"
+                                        :key="`monthly-view-${range?.start?.getTime() || 0}`">
+                                        <CalendarDayHolder :mode="mode" v-for="(day, index) in headers" :key="index"
+                                            :day="day"
+                                            :events="eventsByDay.get(new Date(day.date).toDateString()) || []"
+                                            :other-month="isOtherMonth(day.date)" @open-day="openSpecificDay(day)" />
+                                    </div>
+                                </Transition>
                             </div>
 
-                        </Transition>
+                        </div>
                     </div>
-
                 </div>
-            </div>
-        </div>
-        
-        <MobileCalendarGrid v-else :days="headers" :mode="mode" :events-by-day="eventsByDay"
-            :is-other-month-func="isOtherMonth" />
-    </div>
-</template>
 
+                <MobileCalendarGrid v-else key="mobile-view" :days="headers" :mode="mode" :events-by-day="eventsByDay"
+                    :is-other-month-func="isOtherMonth" />
+
+            </Transition>
+        </div>
+    </ClientOnly>
+</template>
 <script lang="ts">
-import { defineComponent, type PropType, computed, ref, watch } from 'vue'; 
+import { defineComponent, type PropType, computed, ref, watch } from 'vue';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import type { CalendarMode, CalendarDateRange, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
@@ -204,8 +209,8 @@ export default defineComponent({
     }
 })
 </script>
-
 <style scoped>
+/* Existing Inner Transition (Daily/Weekly <-> Desktop Monthly) */
 .calendar-view-enter-active,
 .calendar-view-leave-active {
     transition: all 0.2s ease-out;
@@ -226,5 +231,22 @@ export default defineComponent({
 .calendar-view-leave-to {
     opacity: 0;
     transform: scale(0.98);
+}
+
+/* NEW Outer Transition (Desktop UI <-> Mobile UI) */
+.fade-overlay-enter-active,
+.fade-overlay-leave-active {
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    will-change: opacity, transform;
+}
+
+.fade-overlay-enter-from {
+    opacity: 0;
+    transform: scale(0.99);
+}
+
+.fade-overlay-leave-to {
+    opacity: 0;
+    transform: scale(1.01);
 }
 </style>

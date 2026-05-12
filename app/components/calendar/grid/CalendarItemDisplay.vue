@@ -1,7 +1,7 @@
 <template>
     <div :style="wrapperStyle" :class="{ 'absolute px-1 lg:px-4 z-10': position !== 'static' }">
         <div :class="[
-            'flex items-center min-h-4 overflow-hidden rounded-lg md:rounded-md cursor-pointer transition-transform active:scale-95 text-[11px] leading-[1.2]',
+            'flex items-center min-h-4 overflow-hidden rounded-lg md:rounded-md cursor-pointer transition-transform  text-[11px] leading-[1.2]',
             // Mode Specific padding/height
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
@@ -59,7 +59,7 @@ export default defineComponent({
                 top: `${topPercent}%`,
                 left: `${dayIndex * columnWidth}%`,
                 width: `${columnWidth}%`,
-                height: isMobile.value ?'16px': '36px',
+                height: isMobile.value && props.mode==='weekly' ?'16px' : '36px',
             };
         });
 
