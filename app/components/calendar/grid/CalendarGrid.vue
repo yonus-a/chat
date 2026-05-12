@@ -1,8 +1,8 @@
 <template>
     <div class="w-full h-full max-h-full flex flex-col">
-        <CalendarHeaderItem class="shrink-0" :mode="mode" :days="displayedHeader" />
+        <CalendarHeaderItem v-show="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
 
-        <div class="w-full flex-1 min-h-0 overflow-hidden">
+        <div v-show="showMonthly" class="w-full flex-1 min-h-0 overflow-hidden">
             <div class="h-full w-full overflow-y-auto hide-scrollbar">
                 <div class="flex items-stretch min-h-full w-full">
 
@@ -48,7 +48,7 @@
 
                             <div v-else class="w-full grid grid-cols-7 auto-rows-[186px] bg-surface"
                                 :key="`monthly-view-${range?.start?.getTime() || 0}`">
-                                <CalendarDayHolder v-for="(day, index) in headers" :key="index" :day="day"
+                                <CalendarDayHolder :mode="mode" v-for="(day, index) in headers" :key="index" :day="day"
                                     :events="eventsByDay.get(new Date(day.date).toDateString()) || []"
                                     :other-month="isOtherMonth(day.date)" @open-day="openSpecificDay(day)" />
                             </div>
@@ -59,6 +59,8 @@
                 </div>
             </div>
         </div>
+        <MobileCalendarGrid v-show="!showMonthly" :days="headers" :mode="mode" :events-by-day="eventsByDay"
+            :is-other-month-func="isOtherMonth" />
     </div>
 </template>
 
@@ -72,10 +74,13 @@ import CalendarSideItem from './CalendarSideItem.vue';
 import CalendarDayHolder from './CalendarDayHolder.vue';
 import CalendarPointer from './CalendarPointer.vue';
 import CalendarItemDisplay from './CalendarItemDisplay.vue';
+import { useWindowSize } from '#imports';
+import MobileCalendarGrid from './mobile/MobileCalendarGrid.vue';
 
 export default defineComponent({
     name: 'CalendarGrid',
     components: {
+        MobileCalendarGrid,
         CalendarHeaderItem,
         CalendarSideItem,
         CalendarDayHolder,
@@ -102,6 +107,8 @@ export default defineComponent({
     },
     emits: ['update:mode', 'update:range'],
     setup(props, { emit }) {
+        const { width } = useWindowSize()
+        const isMobile = computed(() => width.value < 768)
         const { getCalendarHeaders, getParts } = useCalendarDate();
 
         const columnWidths = computed(() => `${100 / (headers.value.length + (props.mode == 'monthly' ? 0 : 1))}%`);
@@ -179,10 +186,18 @@ export default defineComponent({
             }
         });
 
+        const showMonthly = computed(() => {
+            if (isMobile.value) return props.mode !== 'monthly'
+            return true
+        })
+
         return {
+            isMobile,
             headers,
             isOtherMonth,
             columnWidths,
+            showMonthly,
+            isMobile,
             displayedHeader,
             eventsByDay,
             visibleGridEvents,

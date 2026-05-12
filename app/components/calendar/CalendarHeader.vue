@@ -1,5 +1,5 @@
 <template>
-    <div class=" px-8 py-5 w-full flex justify-center md:justify-between shrink-0 items-center">
+    <div class=" px-8 py-3 md:py-5 w-full flex justify-center md:justify-between shrink-0 items-center">
         <div class=" flex items-center gap-x-4">
             <div class=" flex items-center gap-x-2">
                 <div @click="prevStep"
@@ -43,6 +43,27 @@
                 :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
             <BButton @click="handleOption('add')" :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
         </div>
+    </div>
+    <div class=" w-full md:hidden flex justify-between items-center">
+        <BMenu @select="handleYearSelect" :options="getYears">
+            <template #trigger="{ isOpen }">
+                <div class=" flex cursor-pointer items-center py-1.5 px-3 gap-x-2">
+                    <div class=" select-none text-label-md text-on-surface">{{ selectedYearText }}</div>
+                    <BIcon icon="PhCaretDown" :class="[isOpen ? ' rotate-180' : ' rotate-0']"
+                        class=" w-5 aspect-square transition-all duration-200 ease-in-out fill-on-surface/50" />
+                </div>
+            </template>
+
+        </BMenu>
+        <BMenu :options="getMonths" @select="handleMonthSelect">
+            <template #trigger="{ isOpen }">
+                <div class=" flex cursor-pointer items-center py-1.5 px-3 gap-x-2">
+                    <div class=" select-none text-label-md text-on-surface">{{ selectedMonthText }}</div>
+                    <BIcon icon="PhCaretDown" :class="[isOpen ? ' rotate-180' : ' rotate-0']"
+                        class=" w-5 aspect-square transition-all duration-200 ease-in-out fill-on-surface/50" />
+                </div>
+            </template>
+        </BMenu>
     </div>
     <Teleport v-if="isMobile" to="#header-custom-actions">
         <div class=" flex md:hidden items-center gap-x-2">

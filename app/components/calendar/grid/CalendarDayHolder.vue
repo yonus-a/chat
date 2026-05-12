@@ -42,7 +42,7 @@ export default defineComponent({
         events: {
             type: Array as PropType<CalendarEventPayload[]>,
             default: () => []
-        }
+        },
     },
     components: {
         CalendarDayBadge,
