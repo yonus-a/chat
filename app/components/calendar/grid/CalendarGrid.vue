@@ -4,10 +4,10 @@
 
             <Transition name="fade-overlay" mode="out-in">
 
-                <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 "
+                <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 flex flex-col"
                     :class="[showMonthly ? 'overflow-hidden' : 'overflow-y-auto']">
                     <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
-                    <div class="h-full w-full overflow-y-auto hide-scrollbar">
+                    <div class="flex-1 min-h-0 w-full overflow-y-auto hide-scrollbar">
                         <div class="flex items-stretch min-h-full w-full">
 
                             <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
