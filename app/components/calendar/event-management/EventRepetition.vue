@@ -132,7 +132,7 @@ export default defineComponent({
                 if (typeof startStr === 'string' && startStr.includes('T')) {
                     startStr = startStr.split('T'); // FIX: Added
                 }
-                console.log('new data:',newData)
+                console.log('new data:', newData)
                 repetitionStart.value.value = newData.repetitionStart;
                 repeatTimeCycle.value.value = newData.repeatTimeCycle || '';
                 repetitionType.value = newData.repetitionType || 'day';
@@ -140,11 +140,24 @@ export default defineComponent({
                 wholeDay.value = newData.wholeDay ?? false;
                 chosenTime.value.value = newData.chosenTime || '';
                 isReminder.value = newData.isReminder ?? false;
-                const incomingReminder = Number(newData.selectedReminder);
-                const matchedOption = reminderOptions.value.find(opt => opt.value === incomingReminder);
-                selectedReminder.value.value = matchedOption ? matchedOption.value : reminderOptions.value;
-                repeatitionEnd.value.value = newData.repeatitionEnd;
-                repetitionAmount.value.value = newData.repeatitionEnd;
+                repeatitionEnd.value.value = newData.repeatitionEnd
+                if (repeatitionEnd.value.value === 'times') {
+                    console.log('son of a bitch works finally')
+                    repetitionAmount.value.value = newData.repetitionAmount
+                } else {
+                    repetitionAmount.value.value = new Date(newData.repetitionAmount[0])
+                }
+                // if (newData.repeatitionEnd !== 'times') {
+                //     const incomingReminder = Number(newData.selectedReminder);
+                //     console.log(incomingReminder)
+                //     const matchedOption = reminderOptions.value.find(opt => opt.value === incomingReminder);
+                //     console.log(matchedOption)
+                //     selectedReminder.value.value = reminderOptions.value[Number(newData.selectedReminder)]?.value;
+                // } else {
+                //     selectedReminder.value.value = newData.selectedReminder
+                // }
+                // repeatitionEnd.value.value = newData.repeatitionEnd;
+                // repetitionAmount.value.value = newData.repeatitionEnd;
 
                 // FIX: Force the input box to show the correct text if custom days are already selected
                 if (newData.repetitionType === 'custom') {
@@ -250,7 +263,6 @@ export default defineComponent({
 
         const selectOption = (key: RepetitionTypes) => {
             repetitionType.value = key;
-
         }
 
         const isSelected = (dayOfWeek: number) => {
@@ -261,6 +273,7 @@ export default defineComponent({
             const index = selectedDays.value.indexOf(dayOfWeek);
             if (index > -1) selectedDays.value.splice(index, 1);
             else selectedDays.value.push(dayOfWeek);
+            repeatTimeCycle.value.value = selectedDaysLabels.value;
         }
 
         watch(selectedDays, () => {
