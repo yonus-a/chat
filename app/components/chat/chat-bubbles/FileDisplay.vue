@@ -1,28 +1,13 @@
 <template>
-    <div class="w-45 flex gap-x-2 select-none items-center">
+    <div class="w-48 px-3 flex gap-x-2 select-none items-center">
         <div class="flex text-left flex-col gap-y-0.5 flex-1 min-w-0">
             <div class="text-on-surface text-label-md truncate">{{ fileName }}</div>
             <div dir="ltr" class="text-body-sm text-on-surface/70">{{ formattedSize }}</div>
         </div>
-
-        <div class="relative shrink-0 cursor-pointer active:scale-95 transition-transform"
-            v-if="status === 'downloaded' && !isUploading" @click="toggleDownload">
-            <BIcon icon="PhFile" class="fill-white w-10 h-10" :class="[isMine ? '' : 'drop-shadow-sm']" weight="fill" />
-            <div class="absolute bottom-2 right-0 bg-error rounded-sm px-1 py-0.5 flex items-center justify-center">
-                <div class="text-center text-white text-[7px] font-bold leading-none uppercase tracking-wide">
-                    {{ fileExt }}
-                </div>
-            </div>
-        </div>
-
-        <LoadingStatus 
-            v-else 
-            :class="[isUploading ? 'cursor-default' : 'cursor-pointer']" 
-            :progress="displayProgress"
-            :is-uploading="isUploading" 
-            :is-downloading="status === 'downloading'" 
-            @click="toggleDownload" 
-        />
+        <FileFormatDisplay :width="30" :height="33" :label="fileExt" v-if="status === 'downloaded' && !isUploading"
+            @click="toggleDownload" />
+        <LoadingStatus v-else :class="[isUploading ? 'cursor-default' : 'cursor-pointer']" :progress="displayProgress"
+            :is-uploading="isUploading" :is-downloading="status === 'downloading'" @click="toggleDownload" />
     </div>
 </template>
 
@@ -31,11 +16,13 @@ import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useI18n, useLocale, formatBytes } from '#imports';
 import { useChatActionStore } from '~/stores/chatActionStore';
 import LoadingStatus from '~/components/general/LoadingStatus.vue';
+import FileFormatDisplay from '~/components/general/FileFormatDisplay.vue';
 
 export default defineComponent({
     name: 'FileDisplay',
     components: {
         LoadingStatus,
+        FileFormatDisplay,
     },
     props: {
         url: { type: String, required: true },

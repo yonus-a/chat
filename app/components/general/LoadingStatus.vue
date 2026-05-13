@@ -43,7 +43,7 @@
             />
             <BIcon 
                 v-else 
-                icon="PhArrowDown" 
+                icon="PhDownloadSimple" 
                 :style="{ width: `${iconSize}px`, height: `${iconSize}px` }"
                 class="fill-on-surface" 
             />

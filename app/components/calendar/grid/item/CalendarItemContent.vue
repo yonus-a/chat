@@ -1,5 +1,6 @@
 <template>
-    <div class=" p-1 text-wrap whitespace-normal md:p-6 cursor-default flex flex-col gap-y-3.5 w-dvw md:max-w-140">
+    <div @click.stop
+        class=" p-1 text-wrap whitespace-normal md:p-6 cursor-default flex flex-col gap-y-3.5 w-dvw md:max-w-140">
         <div class=" hidden md:flex items-center gap-x-2">
             <BIcon v-for="action in actions" :key="action.key" :icon="action.icon" @click="handleAction(action.key)"
                 class=" w-4 h-4 cursor-pointer fill-on-surface/50" />
@@ -46,6 +47,7 @@
                 </div>
             </div>
         </div>
+        <FileFormatDisplay />
         <div class=" flex items-center gap-x-4">
             <BIcon icon="PhClock" class=" w-5 h-5 fill-on-surface/50" />
             <div v-if="event" class=" select-none text-title-md text-on-surface">
@@ -68,6 +70,7 @@ import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Contact } from '~/types/chat';
 import CheckList from '../../event-management/CheckList.vue';
 import CalendarAttachementDisplay from '../../content/CalendarAttachementDisplay.vue';
+import FileFormatDisplay from '~/components/general/FileFormatDisplay.vue';
 export default defineComponent({
     name: 'CalendarItemDisplay',
     props: {
@@ -80,6 +83,7 @@ export default defineComponent({
         ContactAvatar,
         CheckList,
         CalendarAttachementDisplay,
+        FileFormatDisplay,
     },
     emits: ['edit', 'delete', 'close'],
     setup(props, { emit }) {
