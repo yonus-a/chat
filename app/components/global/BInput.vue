@@ -371,9 +371,9 @@ watch(() => props.modelValue, (val) => {
     // --- ADDED: Intercept 'date' type for localized formatting ---
     if (props.type === 'date') {
         if (val) {
-            const d = parseDate(val);
+            // Check if it's already a Date object, otherwise parse it
+            const d = val instanceof Date ? val : parseDate(val);
 
-            // Check if d is actually a Date object AND is not "Invalid Date"
             if (d instanceof Date && !isNaN(d.getTime())) {
                 inputValue.value = formatDate(d, {
                     showWeekday: false,
@@ -381,7 +381,6 @@ watch(() => props.modelValue, (val) => {
                     showTime: false
                 });
             } else {
-                // If it's a string that parseDate couldn't handle, or null
                 inputValue.value = typeof val === 'string' ? val : '';
             }
         } else {

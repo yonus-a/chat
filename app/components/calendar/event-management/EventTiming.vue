@@ -1,8 +1,8 @@
 <template>
     <div class=" w-full">
         <div class=" flex w-full items-center gap-x-3">
-            <BInput :title="t('calendar.form.date')" type="date" v-model="chosenDate.value" :color="chosenDate.color"
-                :placeholder="t('general.select')" />
+            <BInput :readonly="isEditing" :title="t('calendar.form.date')" type="date" v-model="chosenDate.value"
+                :color="chosenDate.color" :placeholder="t('general.select')" />
             <BInput :title="t('calendar.form.hour')" preset="time" v-model="chosenTime.value"
                 :color="chosenTime.color" />
         </div>
@@ -48,20 +48,9 @@ export default defineComponent({
         const timeError = ref('')
         const hasRepetition = ref(false)
         const isFullDay = ref(false)
-
-
-        //  onMounted(() => {
-        //      if (props.initialData) {
-        //          chosenDate.value.value = props.initialData.date || '';
-        //          chosenTime.value.value = props.initialData.time || '';
-        //          isFullDay.value = props.initialData.isFullDay || false;
-        //          hasRepetition.value = props.initialData.hasRepetition || false;
-        //      }
-        //  });
-
+        const isEditing = computed(() => props.initialData?.isEditing === true);
         watch(() => props.initialData, (newData) => {
             if (newData) {
-                // Ensure we are working with a string
                 let dateStr = newData.date;
                 if (dateStr instanceof Date) {
                     dateStr = dateStr.toISOString();
@@ -69,15 +58,23 @@ export default defineComponent({
                     dateStr = dateStr || '';
                 }
 
-                // Now it's safe to check for 'T' and split
                 if (typeof dateStr === 'string' && dateStr.includes('T')) {
-                    dateStr = dateStr.split('T'); // is crucial to get YYYY-MM-DD
+                    dateStr = dateStr.split('T'); // FIX: Added
                 }
 
                 chosenDate.value.value = dateStr;
                 chosenTime.value.value = newData.time || '';
                 isFullDay.value = newData.isFullDay || false;
                 hasRepetition.value = newData.hasRepetition || false;
+            } else {
+                chosenDate.value.value = '';
+                chosenTime.value.value = '';
+                isFullDay.value = false;
+                hasRepetition.value = false;
+                timeError.value = '';
+                hasErrors.value = false;
+                chosenDate.value.color = 'primary';
+                chosenTime.value.color = 'primary';
             }
         }, { immediate: true, deep: true });
 
@@ -101,9 +98,7 @@ export default defineComponent({
                 chosenTime.value.color = 'error'
                 timeError.value = t('validation.required', { field: t('calendar.form.fullDate') })
                 return;
-
             }
-
 
             const selectedDateTime = new Date(rawDate);
             const [hours, minutes] = timeStr.split(':').map(Number);
@@ -111,8 +106,8 @@ export default defineComponent({
 
             const now = new Date();
 
-            // 3. Comparison
-            if (selectedDateTime < now) {
+            // FIX: Bypass the past-date error if we are editing an existing event
+            if (selectedDateTime < now && !isEditing.value) {
                 timeError.value = t('calendar.form.timeErrors.past');
                 chosenDate.value.color = 'error';
                 chosenTime.value.color = 'error';
@@ -144,6 +139,7 @@ export default defineComponent({
             isFullDay,
             validateFields,
             timeError,
+            isEditing,
             goBack,
             hasRepetition,
             chosenDate,

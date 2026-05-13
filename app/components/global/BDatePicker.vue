@@ -33,7 +33,7 @@
                 <div v-if="viewMode === 'days'" key="days" class="w-full select-none">
                     <div class="grid grid-cols-7 w-full mb-6">
                         <div v-for="day in weekDays" :key="day.dayOfWeek"
-                            class="text-center text-[10px] opacity-50 py-1">
+                            class="text-center text-on-surface/50 text-[10px] opacity-50 py-1">
                             {{ day.fullName }}
                         </div>
                     </div>

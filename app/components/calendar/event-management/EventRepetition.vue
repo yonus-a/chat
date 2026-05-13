@@ -82,7 +82,7 @@ export default defineComponent({
         const isReminder = ref(false)
         const repeatitionEnd = ref({ value: 'date', color: 'primary', message: '' })
         const repetitionAmount = ref({ value: '', color: 'primary', message: '' })
-        const selectedReminder = ref({ value: 15, color: 'primary', message: '' });
+        const selectedReminder = ref({ value: '15', color: 'primary', message: '' });
 
         const mode = ref<RepetitionMode>('create')
         const hasErrors = ref(false)
@@ -125,60 +125,49 @@ export default defineComponent({
                 mode.value = newData.mode || 'create';
                 hasRepetition.value = newData.hasRepetition ?? true;
 
-                // Handle repetitionStart
                 let startStr = newData.repetitionStart;
                 if (startStr instanceof Date) startStr = startStr.toISOString();
                 else startStr = startStr || '';
 
                 if (typeof startStr === 'string' && startStr.includes('T')) {
-                    startStr = startStr.split('T');
+                    startStr = startStr.split('T'); // FIX: Added
                 }
-                repetitionStart.value.value = startStr;
-
-                // ... (repeatTimeCycle, repetitionType, etc. remain the same) ...
+                console.log('new data:',newData)
+                repetitionStart.value.value = newData.repetitionStart;
                 repeatTimeCycle.value.value = newData.repeatTimeCycle || '';
                 repetitionType.value = newData.repetitionType || 'day';
                 selectedDays.value = newData.selectedDays || [];
                 wholeDay.value = newData.wholeDay ?? false;
                 chosenTime.value.value = newData.chosenTime || '';
                 isReminder.value = newData.isReminder ?? false;
-                selectedReminder.value.value = newData.selectedReminder || 15;
-                repeatitionEnd.value.value = newData.repeatitionEnd || 'date';
+                const incomingReminder = Number(newData.selectedReminder);
+                const matchedOption = reminderOptions.value.find(opt => opt.value === incomingReminder);
+                selectedReminder.value.value = matchedOption ? matchedOption.value : reminderOptions.value;
+                repeatitionEnd.value.value = newData.repeatitionEnd;
+                repetitionAmount.value.value = newData.repeatitionEnd;
 
-                // Handle repetitionAmount
-                let amountStr = newData.repetitionAmount;
-                if (amountStr instanceof Date) amountStr = amountStr.toISOString();
-                else amountStr = amountStr || '';
-
-                if (repeatitionEnd.value.value === 'date' && typeof amountStr === 'string' && amountStr.includes('T')) {
-                    amountStr = amountStr.split('T');
+                // FIX: Force the input box to show the correct text if custom days are already selected
+                if (newData.repetitionType === 'custom') {
+                    nextTick(() => {
+                        repeatTimeCycle.value.value = selectedDaysLabels.value;
+                    });
                 }
-                repetitionAmount.value.value = amountStr;
             } else {
+                mode.value = 'create';
                 hasRepetition.value = true;
+                repetitionStart.value.value = '';
+                repeatTimeCycle.value.value = '';
+                repetitionType.value = 'day';
+                selectedDays.value = [];
+                wholeDay.value = false;
+                chosenTime.value.value = '';
+                isReminder.value = false;
+                selectedReminder.value.value = 15;
+                repeatitionEnd.value.value = 'date';
+                repetitionAmount.value.value = '';
+                hasErrors.value = false;
             }
         }, { immediate: true, deep: true });
-
-        //  onMounted(() => {
-        //      if (props.initialData) {
-        //          mode.value = props.initialData.mode || 'create';
-        //          hasRepetition.value = props.initialData.hasRepetition ?? true;
-        //          repetitionStart.value.value = props.initialData.repetitionStart || '';
-        //          repeatTimeCycle.value.value = props.initialData.repeatTimeCycle || '';
-        //          repetitionType.value = props.initialData.repetitionType || 'day';
-        //          selectedDays.value = props.initialData.selectedDays || [];
-        //          wholeDay.value = props.initialData.wholeDay ?? false;
-        //          chosenTime.value.value = props.initialData.chosenTime || '';
-        //          isReminder.value = props.initialData.isReminder ?? false;
-        //          selectedReminder.value.value = props.initialData.selectedReminder || 15;
-        //          repeatitionEnd.value.value = props.initialData.repeatitionEnd || 'date';
-        //          repetitionAmount.value.value = props.initialData.repetitionAmount || '';
-        //      } else {
-        //          hasRepetition.value = true; // Default true on fresh open
-        //      }
-        //      initialSnapshot.value = JSON.stringify(getFormData());
-        //  });
-
 
         const reminderOptions = computed<DropdownOption[]>(() => {
             const m = t('general.timeframes.minutes');
@@ -195,7 +184,7 @@ export default defineComponent({
                 { val: 1, unit: d, raw: 1440 }
             ].map(opt => ({
                 label: t('calendar.form.reminderOption', { time: opt.val, unit: opt.unit }),
-                value: opt.raw
+                value: opt.raw.toString()
             }));
         });
 
@@ -226,6 +215,7 @@ export default defineComponent({
                 { key: 'back', color: 'secondary', text: t('calendar.form.delete.delete'), icon: 'PhTrash', disabled: false }
             ];
         });
+
         watch(() => getFormData(), () => {
             hasErrors.value = false;
         }, { deep: true });

@@ -1,41 +1,44 @@
 <template>
+    <div class=" w-full">
+        <div class=" w-full ">
+            <BSelect :title="t('calendar.form.type.title')" :placeholder="t('general.select')"
+                :options="eventTypeOptions" v-model="eventType.value" :color="eventType.color"
+                :message="eventType.message" />
+            <BInput :title="titleAndDescription.title" :placeholder="t('general.write')" v-model="eventTitle.value"
+                :color="eventTitle.color" :message="eventTitle.message" />
 
-    <div class=" w-full ">
-        <BSelect :title="t('calendar.form.type.title')" :placeholder="t('general.select')" :options="eventTypeOptions"
-            v-model="eventType.value" :color="eventType.color" :message="eventType.message" />
-        <BInput :title="titleAndDescription.title" :placeholder="t('general.write')" v-model="eventTitle.value"
-            :color="eventTitle.color" :message="eventTitle.message" />
-
-        <BInput :title="titleAndDescription.description" :placeholder="t('general.write')" v-model="description.value"
-            :color="description.color" :message="description.message" />
-        <div :class="[eventType.value === 'task' ? 'h-auto opacity-100' : 'opacity-0 h-0']"
-            class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap">
-            <CheckList v-model="checkListData" ref="checkList" />
-        </div>
-        <BSelect :title="t('calendar.form.addPerson')" :placeholder="t('general.select')" v-model="selectedUsers.value"
-            :color="selectedUsers.color" :message="selectedUsers.message" :options="familyOptions" />
-        <div :class="[eventType.value !== 'medicine' ? 'h-auto opacity-100 overflow-visible' : ' overflow-hiddenopacity-0 h-0']"
-            class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full">
-
-            <div class=" w-full relative">
-                <div id="shit" class="absolute z-20 top-10.5 ltr:right-3 rtl:left-3 w-5 h-5 overflow-visible">
-                    <BMenu :options="attachementOptions" @select="removeAttachement">
-                        <template #trigger>
-                            <BIcon icon="PhDotsThreeOutline" class="  w-5 h-5 cursor-pointer text-on-surface " />
-                        </template>
-                    </BMenu>
-                </div>
-                <BInput v-file-pick="{ onSelect: onImagePick, accept: '.pdf,.doc,.docx,image/*' }" readonly
-                    icon="PhPaperclip" :color="attachement.color" :message="attachement.message"
-                    v-model="attachement.value" :placeholder="t('general.select')"
-                    :title="t('calendar.form.attachement')" />
+            <BInput :title="titleAndDescription.description" :placeholder="t('general.write')"
+                v-model="description.value" :color="description.color" :message="description.message" />
+            <div :class="[eventType.value === 'task' ? 'h-auto opacity-100' : 'opacity-0 h-0']"
+                class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap">
+                <CheckList v-model="checkListData" ref="checkList" />
             </div>
-            <BSelect v-model="chosenColor.value" :color="chosenColor.color" :message="chosenColor.message"
-                :placeholder="t('general.select')" :title="t('calendar.form.color')" :options="colors" />
+            <BSelect multiple :title="t('calendar.form.addPerson')" :placeholder="t('general.select')"
+                v-model="selectedUsers.value" :color="selectedUsers.color" :message="selectedUsers.message"
+                :options="familyOptions" />
+            <div :class="[eventType.value !== 'medicine' ? 'h-auto opacity-100 overflow-visible' : ' overflow-hiddenopacity-0 h-0']"
+                class=" transition-all duration-200 ease-in-out overflow-hidden text-wrap whitespace-nowrap w-full">
+
+                <div class=" w-full relative">
+                    <div id="shit" class="absolute z-20 top-10.5 ltr:right-3 rtl:left-3 w-5 h-5 overflow-visible">
+                        <BMenu :options="attachementOptions" @select="removeAttachement">
+                            <template #trigger>
+                                <BIcon icon="PhDotsThreeOutline" class="  w-5 h-5 cursor-pointer text-on-surface " />
+                            </template>
+                        </BMenu>
+                    </div>
+                    <BInput v-file-pick="{ onSelect: onImagePick, accept: '.pdf,.doc,.docx,image/*' }" readonly
+                        icon="PhPaperclip" :color="attachement.color" :message="attachement.message"
+                        v-model="attachement.value" :placeholder="t('general.select')"
+                        :title="t('calendar.form.attachement')" />
+                </div>
+                <BSelect v-model="chosenColor.value" :color="chosenColor.color" :message="chosenColor.message"
+                    :placeholder="t('general.select')" :title="t('calendar.form.color')" :options="colors" />
+            </div>
         </div>
+        <BButton class=" min-w-full w-full" color="primary" type="fill" :text="t('calendar.form.continue')"
+            :disabled="hasErrors" @click="validateFields" />
     </div>
-    <BButton class=" min-w-full w-full" color="primary" type="fill" :text="t('calendar.form.continue')"
-        :disabled="hasErrors" @click="validateFields" />
 </template>
 <script lang="ts">
 import { defineComponent, computed, ref, watch, useTemplateRef, onMounted } from 'vue';
@@ -69,6 +72,12 @@ export default defineComponent({
         const selectedUsers = ref({ value: [], message: '', color: 'primary' })
         const attachement = ref({ value: '', color: '', message: '' })
 
+        const checkListData = ref(
+            (props.initialData?.eventType === 'task' && props.initialData?.checkList)
+                ? [...props.initialData.checkList]
+                : []
+        );
+
 
         watch(() => props.initialData, (newData) => {
             if (newData) {
@@ -78,7 +87,15 @@ export default defineComponent({
 
                 if (newData.eventType !== 'medicine') {
                     selectedUsers.value.value = newData.selectedUsers || [];
-                    attachement.value.value = newData.attachement || '';
+
+                    // FIX: Extract file name from full URL
+                    let attUrl = newData.attachement || '';
+                    if (attUrl && attUrl.includes('/')) {
+                        attUrl = attUrl.split('/').pop() || attUrl;
+                    }
+                    attachement.value.value = attUrl;
+
+                    // FIX: colors.value is an array, must use
                     chosenColor.value.value = newData.color || colors.value?.value;
                 }
 
@@ -86,19 +103,27 @@ export default defineComponent({
                     checkListData.value = [...newData.checkList];
                 }
             } else {
+                eventType.value.value = 'task';
+                eventTitle.value.value = '';
+                description.value.value = '';
+                selectedUsers.value.value = [];
+                attachement.value.value = '';
+                checkListData.value = [];
                 const randomIdx = Math.floor(Math.random() * colors.value.length);
                 chosenColor.value.value = colors.value[randomIdx]?.value || 'primary';
+
+                hasErrors.value = false;
+                eventTitle.value.color = 'primary';
+                eventTitle.value.message = '';
+                description.value.color = 'primary';
+                description.value.message = '';
             }
         }, { immediate: true, deep: true });
 
 
 
 
-        const checkListData = ref(
-            (props.initialData?.eventType === 'task' && props.initialData?.checkList)
-                ? [...props.initialData.checkList]
-                : []
-        );
+
 
 
         const titleAndDescription = computed(() => {
@@ -135,23 +160,6 @@ export default defineComponent({
             }, 250);
         });
 
-        // onMounted(() => {
-        //     if (props.initialData) {
-        //         eventType.value.value = props.initialData.eventType;
-        //         eventTitle.value.value = props.initialData.title;
-        //         description.value.value = props.initialData.description;
-
-        //         if (props.initialData.eventType !== 'medicine') {
-        //             selectedUsers.value.value = props.initialData.selectedUsers || [];
-        //             attachement.value.value = props.initialData.attachement || '';
-        //             chosenColor.value.value = props.initialData.color;
-        //         }
-        //         // REMOVED: checkListData assignment here (now handled in ref initialization)
-        //     } else {
-        //         const randomIdx = Math.floor(Math.random() * colors.value.length);
-        //         chosenColor.value.value = colors.value[randomIdx].value;
-        //     }
-        // });
 
 
         const attachementOptions = computed(() => [{ key: 'delete', icon: 'PhTrash', color: 'error', label: t('calendar.form.deleteAttachement') }])

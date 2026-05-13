@@ -126,6 +126,7 @@ export default defineComponent({
         });
 
         const handleOpen = (e: MouseEvent) => {
+            console.log(props.event.repetition)
             bus.emit({ type: 'open-details', event: props.event, x: e.clientX, y: e.clientY });
         }
 

@@ -7,11 +7,11 @@
                         <BIcon class=" opacity-50 cursor-pointer w-5 h-5" @click="close" icon="PhX" />
                         <div class=" text-label-sm">{{ popupTitle }}</div>
                     </div>
-                    <CreateEvent v-if="mode === 'create' && step === 1" :initial-data="eventData" @close="close"
+                    <CreateEvent v-show="mode === 'create' && step === 1" :initial-data="eventData" @close="close"
                         @submit="handleStep1Submit" />
-                    <EventTiming v-if="mode === 'timing'" :initial-data="timingData" @back="handleTimingBack"
+                    <EventTiming v-show="mode === 'timing'" :initial-data="timingData" @back="handleTimingBack"
                         @submit="handleTimingSubmit" />
-                    <EventRepetition v-if="mode === 'repetition'" :initial-data="repetitionData"
+                    <EventRepetition v-show="mode === 'repetition'" :initial-data="repetitionData"
                         @back="handleRepetitionBack" @submit="handleRepetitionSubmit" />
 
                     <div v-if="mode === 'create' && step === 2" class="w-full max-w-99 px-6 py-4 bg-surface rounded-xl">
@@ -67,8 +67,10 @@ export default defineComponent({
         // Multi-step form state
         const step = ref(1);
         const eventData = ref<Record<string, any> | null>(null);
-
         const timingData = ref<Record<string, any> | null>(null);
+
+        const submittedEventData = ref<Record<string, any> | null>(null);
+        const submittedTimingData = ref<Record<string, any> | null>(null);
 
         const isTransitioning = ref(false);
 
@@ -89,12 +91,12 @@ export default defineComponent({
         const handleRepetitionBack = () => transitionToStep(2, 'timing');
 
         const handleStep1Submit = (payload: Record<string, any>) => {
-            eventData.value = payload;
+            submittedEventData.value = payload; // Safe assignment
             transitionToStep(2, 'timing');
         };
 
         const handleTimingSubmit = (payload: Record<string, any>) => {
-            timingData.value = payload;
+            submittedTimingData.value = payload; // Safe assignment
             if (payload.hasRepetition) {
                 const normalizedDate = new Date(payload.date);
                 normalizedDate.setHours(0, 0, 0, 0);
@@ -104,7 +106,6 @@ export default defineComponent({
                     wholeDay: payload.isFullDay,
                     repetitionStart: normalizedDate
                 };
-
                 transitionToStep(3, 'repetition');
             } else {
                 finalSubmit();
@@ -181,15 +182,17 @@ export default defineComponent({
 
         const finalSubmit = () => {
             const finalPayload: Record<string, any> = {
-                ...eventData.value,
-                ...timingData.value,
+                ...(submittedEventData.value || eventData.value),
+                ...(submittedTimingData.value || timingData.value),
             };
 
-            if (timingData.value?.hasRepetition && repetitionData.value) {
+            if (submittedTimingData.value?.hasRepetition && repetitionData.value) {
                 const { hasRepetition, mode, ...pureRepetitionData } = repetitionData.value;
                 finalPayload.repetition = pureRepetitionData;
             }
+
             delete finalPayload.isEditing;
+
             if (isEditting.value && currentEditId.value) {
                 finalPayload.id = currentEditId.value;
                 emit('edit', finalPayload);
@@ -204,9 +207,15 @@ export default defineComponent({
             if (isTransitioning.value) return;
             mode.value = 'create';
             step.value = 1;
+
             eventData.value = null;
             timingData.value = null;
             repetitionData.value = null;
+            submittedEventData.value = null;
+            submittedTimingData.value = null;
+
+            isEditting.value = false;
+            currentEditId.value = null;
         };
 
         return {
