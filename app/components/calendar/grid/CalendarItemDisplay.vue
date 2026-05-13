@@ -4,27 +4,17 @@
             'flex relative items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform text-[11px] leading-[1.2]',
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
             (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
-        ]" :style="contentStyle" @click="openMenu">
+        ]" :style="contentStyle" @click="handleOpen">
 
-            <BMenu @close="toggleMenuState(false)" @open="toggleMenuState(true)" ref="menuRef">
-                <template #trigger>
-                    <div class="w-full  relative z-50 hidden md:flex items-center gap-x-1">
-                        <div v-if="displayedContact" class="w-5 h-5 shrink-0">
-                            <ContactAvatar :contact="displayedContact[0]" :show-online="false" class="w-full h-full" />
-                        </div>
-                        <div
-                            class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
-                            {{ event.title }}
-                        </div>
-                    </div>
-                </template>
-                <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
-            </BMenu>
-            <BPopup has-close :title="t('calendar.form.type.event')" ref="popup">
-                <div class=" w-full flex justify-center">
-                    <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
+            <div class="w-full relative z-50 hidden md:flex items-center gap-x-1">
+                <div v-if="displayedContact" class="w-5 h-5 shrink-0">
+                    <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
                 </div>
-            </BPopup>
+                <div class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
+                    {{ event.title }}
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
@@ -39,7 +29,7 @@ import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Menu } from '~/types/components/menu';
 import type { Popup } from '~/types/components/popup';
-import CalendarItemContent from './item/CalendarItemContent.vue';
+import CalendarItemContent from '../content/CalendarItemContent.vue';
 export default defineComponent({
     name: 'CalendarEventItem',
     props: {
@@ -59,7 +49,7 @@ export default defineComponent({
     setup(props) {
         const { t } = useI18n()
         const { width } = useWindowSize()
-        
+
         const isMobile = computed(() => width.value < 768)
         const menuRef = useTemplateRef<Menu>('menuRef')
         const popup = useTemplateRef<Popup>('popup')
@@ -140,26 +130,18 @@ export default defineComponent({
             };
         });
 
+        const handleOpen = (e: MouseEvent) => {
+            bus.emit({ type: 'open-details', event: props.event, x: e.clientX, y: e.clientY });
+        }
 
         const toggleMenuState = (state: boolean) => {
             menuOpen.value = state
         }
 
-        const openMenu = () => {
-            if (width.value > 1024) return
-            popup.value?.open()
-        }
 
-        const closeMenu = () => {
-            menuRef.value?.close()
-        }
 
-        const handleDelete = () => {
-            bus.emit({ type: 'delete', id: props.event.id });
-            closeMenu()
-        }
 
-        return { t, wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu, popup, };
+        return { t, wrapperStyle, contentStyle, displayedContact, menuRef, toggleMenuState, handleOpen, menuOpen, popup, };
     }
 });
 </script>

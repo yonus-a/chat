@@ -1,5 +1,5 @@
 <template>
-    <div
+    <div @click="handleOpen"
         class=" w-full overflow-hidden cursor-pointer flex flex-col select-none h-24 rounded-xl border border-outline-variant bg-surface relative">
         <div class=" p-4 w-full flex-1 flex flex-col gap-y-1.5">
             <div class=" text-label-md  text-on-surface">{{ event.title }}</div>
@@ -32,6 +32,7 @@
 import { defineComponent, type PropType, computed } from 'vue';
 import type { CalendarEventPayload } from '~/types/calendar';
 import { useProfileStore, useI18n } from '#imports';
+import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 export default defineComponent({
     name: 'EventDisplay',
@@ -63,6 +64,12 @@ export default defineComponent({
             )
         );
 
+        const bus = useEventBus<any>('calendar-actions');
+
+        const handleOpen = (e: MouseEvent) => {
+            bus.emit({ type: 'open-details', event: props.event, x: e.clientX, y: e.clientY });
+        }
+
         onMounted(() => {
             console.log(props.event.selectedUsers.length)
         })
@@ -85,6 +92,7 @@ export default defineComponent({
             timeRange,
             selectedFamilyMembers,
             remainingUsers,
+            handleOpen,
         }
     }
 })

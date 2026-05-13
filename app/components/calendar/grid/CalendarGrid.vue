@@ -1,13 +1,15 @@
 <template>
     <ClientOnly>
-        <div class="w-full h-full max-h-full flex flex-col">
+        <div class="w-full relative h-full max-h-full flex flex-col">
 
+            <CalendarEventDetailWrapper @lock-scroll="setLockScroll" />
             <Transition name="fade-overlay" mode="out-in">
 
                 <div v-if="showMonthly" key="desktop-view" class="w-full flex-1 min-h-0 flex flex-col"
-                    :class="[showMonthly ? 'overflow-hidden' : 'overflow-y-auto']">
+                    :class="[scrollLocked ? '!overflow-hidden touch-none' : 'overflow-y-auto']">
                     <CalendarHeaderItem v-if="showMonthly" class="shrink-0" :mode="mode" :days="displayedHeader" />
-                    <div class="flex-1 min-h-0 w-full overflow-y-auto hide-scrollbar">
+                    <div class="flex-1 min-h-0 w-full hide-scrollbar"
+                        :class="[scrollLocked ? '!overflow-hidden touch-none' : 'overflow-y-auto']">
                         <div class="flex items-stretch min-h-full w-full">
 
                             <div class="transition-all duration-300 ease-in-out shrink-0 overflow-hidden whitespace-nowrap"
@@ -64,7 +66,8 @@
                     </div>
                 </div>
 
-                <div v-else key="mobile-view" class="w-full flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+                <div v-else key="mobile-view" class="w-full flex-1 min-h-0 hide-scrollbar"
+                    :class="[scrollLocked ? '!overflow-hidden touch-none' : 'overflow-y-auto']">
                     <MobileCalendarGrid :loading="isLoading" :days="headers" :mode="mode" :events-by-day="eventsByDay"
                         :is-other-month-func="isOtherMonth" />
                 </div>
@@ -84,6 +87,7 @@ import CalendarPointer from './CalendarPointer.vue';
 import CalendarItemDisplay from './CalendarItemDisplay.vue';
 import { useWindowSize } from '#imports';
 import MobileCalendarGrid from './mobile/MobileCalendarGrid.vue';
+import CalendarEventDetailWrapper from '../content/CalendarEventDetailWrapper.vue';
 
 export default defineComponent({
     name: 'CalendarGrid',
@@ -94,6 +98,7 @@ export default defineComponent({
         CalendarDayHolder,
         CalendarPointer,
         CalendarItemDisplay,
+        CalendarEventDetailWrapper,
     },
     props: {
         range: {
@@ -170,6 +175,8 @@ export default defineComponent({
             });
         });
 
+        const scrollLocked = ref(false);
+
         // Triggered when "X More Items" is clicked inside CalendarDayHolder
         const openSpecificDay = (day: CalendarDay) => {
             const start = new Date(day.date);
@@ -201,14 +208,21 @@ export default defineComponent({
             return true
         })
 
+        const setLockScroll = (state: boolean) => {
+            scrollLocked.value = state;
+            console.log(scrollLocked.value)
+        }
+
         return {
             isMobile,
             headers,
             isOtherMonth,
             columnWidths,
             showMonthly,
+            setLockScroll,
             displayedHeader,
             eventsByDay,
+            scrollLocked,
             visibleGridEvents,
             openSpecificDay,
             isSidebarActive,

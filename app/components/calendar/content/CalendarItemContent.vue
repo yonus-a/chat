@@ -81,7 +81,7 @@ import type { CalendarEventPayload } from '~/types/calendar';
 import { useI18n, useDate, useProfileStore, useAppToast, useCallStore } from '#imports';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
 import type { Contact } from '~/types/chat';
-import CheckList from '../../event-management/CheckList.vue';
+import CheckList from '../event-management/CheckList.vue';
 import FileFormatDisplay from '~/components/general/FileFormatDisplay.vue';
 import FileDisplay from '~/components/chat/chat-bubbles/FileDisplay.vue';
 import { useRouter } from 'vue-router';
