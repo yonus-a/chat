@@ -168,7 +168,7 @@ export default defineComponent({
         };
         watch(globalActiveMenuId, (newId) => {
             if (props.ignoreGlobal) return;
-        
+
             if (newId !== instanceId && isOpen.value) {
                 closeMenu();
             }
@@ -192,8 +192,8 @@ export default defineComponent({
 
         const handleContentClick = () => {
             if (hasCustomContent.value) return
-            if (!props.autoClose) return
-            closeMenu()
+            //if (!props.autoClose) return
+            //closeMenu()
         }
 
         expose({ open: () => { globalActiveMenuId.value = instanceId; isOpen.value = true; calculateAlignment(); }, close: closeMenu });

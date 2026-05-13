@@ -20,8 +20,10 @@
                 </template>
                 <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
             </BMenu>
-            <BPopup ref="popup">
-                Hello Bitch
+            <BPopup has-close :title="t('calendar.form.type.event')" ref="popup">
+                <div class=" w-full flex justify-center">
+                    <CalendarItemContent @delete="handleDelete" @close="closeMenu" :event="event" />
+                </div>
             </BPopup>
         </div>
     </div>
@@ -31,7 +33,7 @@
 import { defineComponent, computed, type PropType, useTemplateRef } from 'vue';
 import type { CalendarMode, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
-import { useWindowSize, useProfileStore } from '#imports';
+import { useWindowSize, useProfileStore, useI18n } from '#imports';
 import type { Contact } from '~/types/chat';
 import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
@@ -55,7 +57,9 @@ export default defineComponent({
         CalendarItemContent,
     },
     setup(props) {
+        const { t } = useI18n()
         const { width } = useWindowSize()
+        
         const isMobile = computed(() => width.value < 768)
         const menuRef = useTemplateRef<Menu>('menuRef')
         const popup = useTemplateRef<Popup>('popup')
@@ -155,7 +159,7 @@ export default defineComponent({
             closeMenu()
         }
 
-        return { wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu, popup, };
+        return { t, wrapperStyle, handleDelete, contentStyle, displayedContact, menuRef, toggleMenuState, openMenu, menuOpen, closeMenu, popup, };
     }
 });
 </script>

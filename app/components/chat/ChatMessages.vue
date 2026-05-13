@@ -322,7 +322,7 @@ export default defineComponent({
                     type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
                     text: scenario === "text" ? `Message ${id}: ${isMe ? 'Sent by me.' : 'Received from them.'}` : undefined,
                     imageUrl: scenario === "image" ? [`https://picsum.photos/600/600?sig=${id}`] : scenario === "multiImage" ? [`https://picsum.photos/600/600?sig=${id}_1`, `https://picsum.photos/600/600?sig=${id}_2`, `https://picsum.photos/600/600?sig=${id}_3`] : undefined,
-                    fileUrl: scenario === "file" ? `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf?id=${id}` : undefined,
+                    fileUrl: scenario === "file" ? `https://upload.wikimedia.org/wikipedia/commons/d/d3/Test.pdf` : undefined,
                     voiceUrl: scenario === "voice" ? `https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3?id=${id}` : undefined,
                     videoUrl: scenario === "video" ? 'https://www.w3schools.com/html/mov_bbb.mp4' : undefined,
                     isEdited: id % 8 === 0,

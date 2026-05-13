@@ -1,5 +1,5 @@
 <template>
-    <div class=" w-full h-full max-h-full flex flex-col">
+    <div class=" md:w-full w-dvw md:max-w-full h-full max-h-full overflow-hidden flex flex-col">
         <CalendarHeader ref="header" @add="openEventDetails" @refresh="refreshCalendar" @share="openSharePopup"
             @update:mode="handleModeUpdate" @update:range="handleRangeUpdate" />
         <div class=" w-full overflow-hidden flex-1 ">
@@ -133,7 +133,7 @@ export default defineComponent({
                     isFullDay,
                     hasRepetition,
                     selectedUsers: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, () => (Math.random() > 0.5 ? 1 : 2)),
-                    attachement: Math.random() < 0.3 ? "https://pdf.ir/document.pdf" : undefined,
+                    attachement: Math.random() < 0.3 ? "https://upload.wikimedia.org/wikipedia/commons/d/d3/Test.pdf" : undefined,
                 };
 
                 // --- SERVICE SPECIFIC MOCK DATA ---
@@ -304,6 +304,7 @@ export default defineComponent({
             isLoading,
             modal,
             deleteSelectedEvent,
+            isDeleting,
         }
     }
 })

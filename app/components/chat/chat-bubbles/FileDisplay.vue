@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full flex gap-x-2 select-none items-center">
+    <div class="w-45 flex gap-x-2 select-none items-center">
         <div class="flex text-left flex-col gap-y-0.5 flex-1 min-w-0">
             <div class="text-on-surface text-label-md truncate">{{ fileName }}</div>
             <div dir="ltr" class="text-body-sm text-on-surface/70">{{ formattedSize }}</div>
@@ -15,21 +15,14 @@
             </div>
         </div>
 
-        <div v-else class="w-10 h-10 relative shrink-0 group"
-            :class="[isUploading ? 'cursor-default' : 'cursor-pointer']" @click="toggleDownload">
-            <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" class="stroke-on-surface/20" stroke-width="2" fill="none" />
-                <circle cx="20" cy="20" r="18" class="stroke-on-surface transition-all duration-200 ease-linear"
-                    stroke-width="2" fill="none" stroke-linecap="round" :stroke-dasharray="circumference"
-                    :stroke-dashoffset="dashOffset" />
-            </svg>
-
-            <div class="absolute inset-0 flex items-center justify-center transition-colors">
-                <BIcon v-if="isUploading" icon="PhUploadSimple" class="w-4 h-4 fill-on-surface" />
-                <BIcon v-else-if="status === 'downloading'" icon="PhX" class="w-4 h-4 fill-on-surface" />
-                <BIcon v-else icon="PhArrowDown" class="w-4 h-4 fill-on-surface" />
-            </div>
-        </div>
+        <LoadingStatus 
+            v-else 
+            :class="[isUploading ? 'cursor-default' : 'cursor-pointer']" 
+            :progress="displayProgress"
+            :is-uploading="isUploading" 
+            :is-downloading="status === 'downloading'" 
+            @click="toggleDownload" 
+        />
     </div>
 </template>
 
@@ -37,9 +30,13 @@
 import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useI18n, useLocale, formatBytes } from '#imports';
 import { useChatActionStore } from '~/stores/chatActionStore';
+import LoadingStatus from '~/components/general/LoadingStatus.vue';
 
 export default defineComponent({
     name: 'FileDisplay',
+    components: {
+        LoadingStatus,
+    },
     props: {
         url: { type: String, required: true },
         isMine: { type: Boolean, default: true },
@@ -52,14 +49,26 @@ export default defineComponent({
         const chatActionStore = useChatActionStore();
 
         const status = ref<'idle' | 'downloading' | 'downloaded'>('idle');
-        const progress = ref(0);
+        const progress = ref(0); // This is 0-100 internally
         const fetchedSize = ref<number | null>(null);
         let abortController: AbortController | null = null;
         const dbName = 'ChatFileCache';
 
-        // Read global upload state
         const uploadData = computed(() => props.messageId ? chatActionStore.uploadProgress.get(props.messageId) : null);
         const isUploading = computed(() => !props.isSent && uploadData.value);
+
+        // FIX: Progress logic must handle both Uploading and Downloading
+        const displayProgress = computed(() => {
+            if (isUploading.value && uploadData.value) {
+                return uploadData.value.progress / 100;
+            }
+            if (status.value === 'downloading') {
+                return progress.value / 100;
+            }
+            return 0; // Idle/Default
+        });
+
+        // REMOVED: circumference and dashOffset (The new component handles this now)
 
         const getDB = () => new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(dbName, 1);
@@ -76,14 +85,6 @@ export default defineComponent({
             request.onsuccess = () => { if (request.result) status.value = 'downloaded'; };
         };
 
-        const circumference = 2 * Math.PI * 18;
-        const dashOffset = computed(() => {
-            if (isUploading.value && uploadData.value) {
-                return circumference - (uploadData.value.progress / 100) * circumference;
-            }
-            return circumference - (progress.value / 100) * circumference;
-        });
-
         const fileName = computed(() => {
             try {
                 const urlObj = new URL(props.url);
@@ -99,10 +100,8 @@ export default defineComponent({
 
         const formattedSize = computed(() => {
             if (isUploading.value && uploadData.value) {
-                // Map the mock percentage to the REAL fetched file size, fallback to store total if HEAD request is still pending
                 const realTotal = fetchedSize.value || uploadData.value.total;
                 const currentUploaded = (uploadData.value.progress / 100) * realTotal;
-
                 return `${formatBytes(currentUploaded)} / ${formatBytes(realTotal)}`;
             }
             if (status.value === 'downloading' && fetchedSize.value) {
@@ -116,7 +115,6 @@ export default defineComponent({
             try {
                 if (props.url.startsWith('blob:')) {
                     const res = await fetch(props.url);
-                    if (!res.ok) throw new Error('Local blob read failed');
                     const blob = await res.blob();
                     fetchedSize.value = blob.size;
                 } else {
@@ -125,8 +123,6 @@ export default defineComponent({
                     if (length) fetchedSize.value = parseInt(length, 10);
                 }
             } catch (e) {
-                console.error('CRASH: Could not fetch real file size:', e);
-                // Keeping 0 here only so the UI doesn't display "NaN / NaN" if a network link is permanently dead
                 fetchedSize.value = 0;
             }
         };
@@ -138,7 +134,6 @@ export default defineComponent({
                 const db = await getDB();
                 const tx = db.transaction('files', 'readonly');
                 const store = tx.objectStore('files');
-
                 const fileBlob = await new Promise<Blob | undefined>((res) => {
                     store.get(props.url).onsuccess = (e: any) => res(e.target.result);
                 });
@@ -172,9 +167,6 @@ export default defineComponent({
 
             try {
                 const response = await fetch(props.url, { signal: abortController.signal });
-                if (!response.ok) throw new Error('Network response failed');
-
-                const contentType = response.headers.get('content-type') || 'application/octet-stream';
                 const total = parseInt(response.headers.get('content-length') || '0', 10);
                 let loaded = 0;
                 const chunks: Uint8Array[] = [];
@@ -192,11 +184,10 @@ export default defineComponent({
                     }
                 }
 
-                const blob = new Blob(chunks, { type: contentType });
+                const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' });
                 const db = await getDB();
                 const tx = db.transaction('files', 'readwrite');
                 tx.objectStore('files').put(blob, props.url);
-
                 status.value = 'downloaded';
             } catch (error: any) {
                 status.value = 'idle';
@@ -211,7 +202,7 @@ export default defineComponent({
 
         return {
             status, progress, fileName, fileExt, formattedSize,
-            circumference, dashOffset, dir, toggleDownload, isUploading
+            dir, toggleDownload, isUploading, displayProgress,
         };
     }
 });

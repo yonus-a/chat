@@ -28,7 +28,7 @@
                         <div class="h-1.5 w-12 bg-outline rounded-full"></div>
                     </div>
                     <div v-if="hasClose || title.trim().length > 0"
-                        class="w-full pb-3 px-3 flex justify-start gap-x-3 items-center ">
+                        class="w-full pb-3 flex justify-start gap-x-3 items-center ">
                         <div v-if="hasClose" @click="close"
                             class="w-7 h-7 flex items-center justify-center cursor-pointer transition-colors">
                             <BIcon icon="PhX" class="w-4 h-4 fill-on-surface" />

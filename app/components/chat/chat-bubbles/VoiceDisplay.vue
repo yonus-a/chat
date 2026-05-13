@@ -22,17 +22,8 @@
             :class="[status === 'downloaded' && !isUploading ? 'bg-diamond-surface rounded-xl cursor-pointer' : 'rounded-full group', !isUploading ? 'cursor-pointer' : 'cursor-default']"
             @click="handleAction">
 
-            <svg v-if="status !== 'downloaded' || isUploading"
-                class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 44 44">
-                <circle cx="22" cy="22" r="20" class="stroke-on-surface/20" stroke-width="2.5" fill="none" />
-                <circle cx="22" cy="22" r="20" class="stroke-on-surface transition-all duration-200 ease-linear"
-                    stroke-width="2.5" fill="none" stroke-linecap="round" :stroke-dasharray="circumference"
-                    :stroke-dashoffset="dashOffset" />
-            </svg>
-
-            <BIcon v-if="isUploading" icon="PhUploadSimple" class="w-5 h-5 fill-on-surface" />
-            <BIcon v-else-if="status === 'idle'" icon="PhArrowDown" class="w-5 h-5 fill-on-surface transition-colors" />
-            <BIcon v-else-if="status === 'downloading'" icon="PhX" class="w-5 h-5 fill-on-surface transition-colors" />
+            <LoadingStatus v-if="status !== 'downloaded' || isUploading" :size="44" :stroke-width="2.5"
+                :progress="displayProgress" :is-uploading="isUploading" :is-downloading="status === 'downloading'" />
 
             <BIcon v-else-if="status === 'downloaded' && !isUploading" :icon="isPlaying ? 'PhPause' : 'PhPlay'"
                 weight="light" class="w-5 h-5 text-surface transition-transform duration-300"
@@ -43,6 +34,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import LoadingStatus from '~/components/general/LoadingStatus.vue';
 import { useChatActionStore } from '~/stores/chatActionStore';
 
 export default defineComponent({
@@ -51,6 +43,9 @@ export default defineComponent({
         url: { type: String, required: true },
         messageId: { type: Number, required: false },
         isSent: { type: Boolean, default: true }
+    },
+    components: {
+        LoadingStatus,
     },
     setup(props) {
         const chatActionStore = useChatActionStore();
@@ -67,12 +62,14 @@ export default defineComponent({
         const uploadData = computed(() => props.messageId ? chatActionStore.uploadProgress.get(props.messageId) : null);
         const isUploading = computed(() => !props.isSent && uploadData.value);
 
-        const circumference = 2 * Math.PI * 20;
-        const dashOffset = computed(() => {
+        const displayProgress = computed(() => {
             if (isUploading.value && uploadData.value) {
-                return circumference - (uploadData.value.progress / 100) * circumference;
+                return uploadData.value.progress / 100;
             }
-            return circumference - (downloadProgress.value / 100) * circumference;
+            if (status.value === 'downloading') {
+                return downloadProgress.value / 100;
+            }
+            return 0;
         });
 
         const staticWaveform = [
@@ -110,7 +107,7 @@ export default defineComponent({
                     isPlaying.value = false;
                 } else {
                     // FIX: Catch the NotSupportedError from the fake mock blob and fall back to the network URL
-           
+
                     audioRef.value.play().then(() => {
                         isPlaying.value = true;
                     }).catch((err) => {
@@ -204,7 +201,7 @@ export default defineComponent({
 
         return {
             status, downloadProgress, playProgress, isPlaying, audioSrc, audioRef,
-            circumference, dashOffset, staticWaveform, handleAction, onTimeUpdate, onEnded, seekAudio, isUploading
+            displayProgress, staticWaveform, handleAction, onTimeUpdate, onEnded, seekAudio, isUploading
         };
     }
 });

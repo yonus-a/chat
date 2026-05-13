@@ -90,6 +90,8 @@
         "times": "تعداد دفعات",
         "date": "تاریخ مشخص"
       },
+      "edit": "ویرایش",
+      "people": "افراد",
       "deleteAttachement": "حذف پیوست",
       "invalidFormat": "فرمت پیوست مجاز نمیباشد.",
       "invalidFileSize": "حداکثر حجم مجاز پیوست {size} میباشد.",
