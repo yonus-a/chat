@@ -5,7 +5,9 @@
                 <BIcon icon="PhX" class=" cursor-pointer w-4 h-4 " @click="closeSettings" />
                 <div class=" flex items-center text-label-sm">{{ t('calendar.filters.title') }}</div>
             </div>
+            <!-- 
             <BCheckBox v-model="showHolidays" :label="t('calendar.filters.showHolidays')" class=" mt-4" />
+            -->
             <div class=" w-full mt-4">
                 <BSelect :options="calendarOptions" :title="t('calendar.filters.calendar.title')"
                     :placeholder="t('general.select')" v-model="chosenCalendar" />
