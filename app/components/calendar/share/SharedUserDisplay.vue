@@ -27,8 +27,7 @@
                 <BIcon icon="PhCircleNotch" class=" fill-on-surface/50 w-5 h-5 animate-spin" v-if="inProgress" />
                 <BMenu @select="handleMenuClick" :options="secondMenuOptions" v-show="!inProgress">
                     <template #trigger>
-                        <BIcon icon="PhDotsThreeVertical" 
-                            class=" fill-on-surface/50 w-4.5 cursor-pointer h-4.5" />
+                        <BIcon icon="PhDotsThreeVertical" class=" fill-on-surface/50 w-4.5 cursor-pointer h-4.5" />
                     </template>
                 </BMenu>
             </div>
@@ -37,16 +36,16 @@
 </template>
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue';
-import type { SharedUserCalendar, ShareTypes } from '~/types/calendar';
+import type { CalendarAccess, ShareTypes } from '~/types/calendar';
 import { useI18n, useCalendarStore } from '#imports';
 import type { MenuOption } from '~/types/components/menu-options';
-
+import { useEventBus } from '@vueuse/core';
 
 export default defineComponent({
     name: 'SharedUserDisplay',
     props: {
         user: {
-            type: Object as PropType<SharedUserCalendar>,
+            type: Object as PropType<CalendarAccess>,
             required: true,
         },
         loading: {
@@ -57,7 +56,11 @@ export default defineComponent({
             type: Boolean,
             default: false,
         },
-        isDeleting: { type: Boolean, default: false }
+        isDeleting: { type: Boolean, default: false },
+        eventId: {
+            type: Number,
+            default: null
+        }
     },
     setup(props) {
         const calendarStore = useCalendarStore()
@@ -69,7 +72,8 @@ export default defineComponent({
 
         const currentType = computed(() => getAccessTypeTitles(props.user.accessType))
         const getAccessTypeTitles = (key: ShareTypes) => {
-            return menuOptions.value.find((option) => option.key === key)?.label
+            const option = menuOptions.value.find((opt) => String(opt.key).toLowerCase() === String(key).toLowerCase());
+            return option ? option.label : t('calendar.share.types.viewer');
         }
 
         const menuOptions = computed<MenuOption[]>(() => [
@@ -95,15 +99,30 @@ export default defineComponent({
         ])
 
         const handleMenuClick = async (key: string) => {
+            const isEventMode = props.eventId !== null;
+            const bus = useEventBus<any>('calendar-actions');
+
             if (key === 'delete') {
-                await calendarStore.removeSharedUser(props.user.id);
+                if (isEventMode) {
+                    bus.emit({ type: 'remove-event-user-ui', id: props.user.id });
+                    bus.emit({ type: 'remove-event-access-master', eventId: props.eventId, userId: props.user.id });
+
+                    await calendarStore.removeEventAccess(props.eventId!, props.user.id);
+                } else {
+                    await calendarStore.removeSharedUser(props.user.id);
+                }
             } else if (key === 'viewer' || key === 'editor') {
-                if (key === props.user.accessType) return
-                await calendarStore.updateAccessType(props.user.id, key as ShareTypes);
+                if (key === props.user.accessType) return;
+
+                if (isEventMode) {
+                    bus.emit({ type: 'update-event-access-master', eventId: props.eventId, userId: props.user.id, newAccess: key });
+                    await calendarStore.updateEventAccess(props.eventId!, props.user.id, key as ShareTypes);
+                    props.user.accessType = key as ShareTypes;
+                } else {
+                    await calendarStore.updateAccessType(props.user.id, key as ShareTypes);
+                }
             }
         };
-
-
 
 
         return {

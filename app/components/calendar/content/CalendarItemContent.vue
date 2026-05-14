@@ -50,11 +50,19 @@
                     {{ t('calendar.form.people') }}</div>
             </div>
             <div class=" w-full rtl:pr-10 ltr:pl-10 flex flex-col gap-y-2">
-                <div v-for="user in displayedContacts" class=" flex items-center select-none gap-x-2">
+                <div v-for="item in displayedContacts" :key="item.user.id"
+                    class=" flex items-center select-none gap-x-2">
                     <div class=" w-8 h-8">
-                        <ContactAvatar :contact="user" />
+                        <ContactAvatar :contact="item.user" />
                     </div>
-                    <div class=" text-body-md text-on-surface/50">{{ user.name }} {{ user.lastName }}</div>
+                    <div class="flex-1 flex justify-between items-center">
+                        <div class=" text-body-md text-on-surface/50">
+                            {{ item.user.name }} {{ item.user.lastName }}
+                        </div>
+                        <div v-if="false" class="text-[10px] font-bold opacity-30 uppercase tracking-tighter">
+                            {{ item.accessType }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,6 +92,7 @@ import type { Contact } from '~/types/chat';
 import CheckList from '../event-management/CheckList.vue';
 import FileFormatDisplay from '~/components/general/FileFormatDisplay.vue';
 import FileDisplay from '~/components/chat/chat-bubbles/FileDisplay.vue';
+import { useEventBus } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 export default defineComponent({
     name: 'CalendarItemDisplay',
@@ -99,7 +108,7 @@ export default defineComponent({
         FileDisplay,
         FileFormatDisplay,
     },
-    emits: ['edit', 'delete', 'close'],
+    emits: ['edit', 'delete', 'close', 'share'],
     setup(props, { emit }) {
         const router = useRouter()
         const callStore = useCallStore()
@@ -112,42 +121,64 @@ export default defineComponent({
         const canJoinCall = computed(() => isService.value && props.event.service?.provider[0]?.isActive)
         const isCopied = ref(false)
 
-        const displayedContacts = computed<Contact | null>(() => {
-            if (!props.event) return null
-            if (!props.event.selectedUsers || props.event.selectedUsers.length === 0) return null
-            // Priority 1: Event type is service -> use first provider
+        const bus = useEventBus<any>('calendar-actions');
+
+        // 1. Determine the current user's access level
+        const myAccess = computed(() => {
+            if (!props.event) return 'viewer';
+
+            // Check if I am in the accesss array
+            const record = props.event.accesss?.find(a => a.user.id === profileStore.userData.id);
+            return record ? record.accessType : 'viewer';
+        });
+
+        // 2. Permission Flags
+        const canEditOrDelete = computed(() => {
+            // Services are NEVER editable/deletable by the user
+            if (isService.value) return false;
+
+            // Owners and Editors can modify/delete
+            return myAccess.value === 'owner' || myAccess.value === 'editor';
+        });
+
+        const displayedContacts = computed(() => {
+            if (!props.event) return null;
+
             if (props.event.eventType === 'service' && props.event.service?.provider?.length) {
-                return props.event.service.provider || null;
+                return props.event.service.provider.map(p => ({ user: p, accessType: null }));
             }
 
-            if (props.event.eventType !== 'service' && props.event.selectedUsers?.length) {
-                const members = profileStore.getFamilyMembersByIds(props.event.selectedUsers);
-                return members && members.length > 0 ? members : null;
+            if (props.event.accesss && props.event.accesss.length > 0) {
+                return props.event.accesss;
             }
 
             return null;
         });
 
         const actions = computed(() => {
-            let items = [
+            return [
                 {
                     icon: 'PhX',
                     key: 'close',
                     active: true,
                 },
                 {
+                    icon: 'PhShareNetwork',
+                    key: 'share',
+                    active: true, // Everyone can share
+                },
+                {
                     icon: 'PhPen',
                     key: 'edit',
-                    active: !isService.value,
+                    active: canEditOrDelete.value,
                 },
                 {
                     icon: 'PhTrash',
                     key: 'delete',
-                    active: !isService.value,
+                    active: canEditOrDelete.value,
                 }
-            ]
-            return items.filter((item) => item.active === true)
-        })
+            ].filter(item => item.active);
+        });
 
         const mobileActions = computed(() => [
             {
@@ -179,6 +210,9 @@ export default defineComponent({
                     break;
                 case 'delete':
                     emit('delete')
+                    break;
+                case 'share':
+                    emit('share')
                     break;
             }
         }

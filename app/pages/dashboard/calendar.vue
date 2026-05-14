@@ -19,7 +19,7 @@ import CalendarGrid from '~/components/calendar/grid/CalendarGrid.vue';
 import SharePopup from '~/components/calendar/SharePopup.vue';
 import type { Popup } from '~/types/components/popup';
 import type { Modal } from '~/types/components/modal';
-import type { CalendarEventPayload, EventCategory, RepetitionCycleType } from '~/types/calendar';
+import type { CalendarEventPayload, CalendarBusPayload, EventCategory, RepetitionCycleType } from '~/types/calendar';
 import { useEventBus } from '@vueuse/core';
 import MainPopup from '~/components/calendar/event-management/MainPopup.vue';
 definePageMeta({
@@ -48,19 +48,41 @@ export default defineComponent({
         const eventPopup = ref<Popup | null>(null)
         const sharePopup = ref<Popup | null>(null)
 
-        const bus = useEventBus<{ type: string; id: number }>('calendar-actions');
-
+        const bus = useEventBus<CalendarBusPayload>('calendar-actions');
         const selectedEventId = ref<number | null>(null);
         bus.on((payload) => {
             if (payload.type === 'delete') {
-                selectedEventId.value = payload.id; // Store the ID
+                selectedEventId.value = payload.id;
                 modal.value?.openModal(t('calendar.form.delete.title'), t('calendar.form.delete.description'), 'error', true, t('calendar.form.delete.delete'))
+            }
+
+
+            if (payload.type === 'update-event-access-master') {
+                const event = events.value.find(e => e.id === payload.eventId);
+                if (event && event.accesss) {
+                    const accessRecord = event.accesss.find(a => a.user.id === payload.userId);
+                    if (accessRecord) accessRecord.accessType = payload.newAccess;
+                }
+            }
+
+            if (payload.type === 'remove-event-access-master') {
+                const event = events.value.find(e => e.id === payload.eventId);
+                if (event && event.accesss) {
+                    event.accesss = event.accesss.filter(a => a.user.id !== payload.userId);
+                }
+            }
+
+            if (payload.type === 'add-event-access-master') {
+                const event = events.value.find(e => e.id === payload.eventId);
+                if (event) {
+                    if (!event.accesss) event.accesss = [];
+                    event.accesss.push(payload.record);
+                }
             }
         });
 
         const events = ref<CalendarEventPayload[]>([]);
-
-
+        
         const openEventDetails = () => {
             eventPopup.value?.open()
         }
@@ -76,9 +98,14 @@ export default defineComponent({
             const endTime = currentRange.value.end.getTime();
 
             const categories: EventCategory[] = ["task", "medicine", "event", "service"];
-            // Use the string values that match your store, not hex codes
             const colors = ["red", "orange", "yellow", "green", "blueLight", "blue", "purple", "pink", "darkPink", "black"];
             const eventCount = currentMode.value === "daily" ? 6 : currentMode.value === "weekly" ? 15 : 45;
+
+            // Define mock full contacts for the family (matching IDs used in logic)
+            const familyContacts: Contact[] = [
+                { id: 1, name: "امیر", lastName: "سفری", imageUrl: "https://i.pravatar.cc/150?u=1", isOnline: true },
+                { id: 2, name: "سارا", lastName: "احمدی", imageUrl: "https://i.pravatar.cc/150?u=2", isOnline: false }
+            ];
 
             const mockFellowships = [
                 { id: 101, title: "فلوشیپ اینترونشنال کاردیولوژی" },
@@ -95,6 +122,16 @@ export default defineComponent({
                 const isFullDay = Math.random() < 0.2;
                 const shouldHaveRepetition = type !== 'service' && Math.random() < 0.4;
 
+                // Generate the "accesss" array using full contact data
+                const numUsers = Math.floor(Math.random() * 2) + 1; // 1 or 2 users
+                const accessLevels: ("viewer" | "editor" | "owner")[] = ["viewer", "editor", "owner"];
+
+                const eventAccess: EventAccess[] = familyContacts.slice(0, numUsers).map((contact, idx) => ({
+                    id: Math.floor(Math.random() * 1000),
+                    user: contact,
+                    accessType: idx === 0 ? "owner" : accessLevels[Math.floor(Math.random() * 2)]
+                }));
+
                 const event: CalendarEventPayload = {
                     id: Math.floor(100000 + Math.random() * 900000),
                     eventType: type,
@@ -106,7 +143,8 @@ export default defineComponent({
                     isFullDay,
                     attachement: 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Test.pdf',
                     hasRepetition: shouldHaveRepetition,
-                    selectedUsers: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, () => (Math.random() > 0.5 ? 1 : 2)),
+                    // selectedUsers is removed here as it's now handled by accesss
+                    accesss: eventAccess,
                 };
 
                 if (shouldHaveRepetition) {
@@ -117,7 +155,7 @@ export default defineComponent({
                     if (endType === "date") {
                         const futureDate = new Date(startDate);
                         futureDate.setDate(startDate.getDate() + 7 + Math.floor(Math.random() * 60));
-                        amount = futureDate.toISOString().split('T'); // FIX: Added
+                        amount = futureDate.toISOString().split('T'); // FIXED: Added
                     } else {
                         amount = Math.floor(Math.random() * 15) + 2;
                     }
@@ -130,6 +168,7 @@ export default defineComponent({
                     }
 
                     const isReminder = Math.random() > 0.5;
+                    const reminderValues = [5, 10, 15, 30, 60, 120, 1440];
 
                     event.repetition = {
                         repetitionStart: startDate,
@@ -139,8 +178,8 @@ export default defineComponent({
                         wholeDay: isFullDay,
                         chosenTime: event.time,
                         isReminder,
-                        // FIX: Ensure this is a raw number, not an array
-                        selectedReminder: isReminder ? [Math.floor(Math.random() * 5)] : undefined,
+                        // FIXED: Passing a raw value from the allowed options
+                        selectedReminder: isReminder ? reminderValues[Math.floor(Math.random() * reminderValues.length)] : undefined,
                         repeatitionEnd: endType,
                         repetitionAmount: amount,
                     };
@@ -148,7 +187,7 @@ export default defineComponent({
 
                 if (type === "service") {
                     event.service = {
-                        ...baseServices, // FIX: Spread the object, not the array
+                        ...baseServices, // FIXED: Spread the specific object
                         status: "pending",
                         provider: [{
                             id: 2,
@@ -158,7 +197,7 @@ export default defineComponent({
                             imageUrl: "https://i.pravatar.cc/150?u=2",
                             serviceType: "voice-call",
                             clinics: mockClinics,
-                            fellowships: mockFellowships // FIX: Pass array directly
+                            fellowships: mockFellowships
                         }]
                     };
                 }

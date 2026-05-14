@@ -5,8 +5,8 @@
                 <template #trigger>
                     <div class="w-1 h-1"></div>
                 </template>
-                <CalendarItemContent @edit="handleEdit" v-if="activeEvent" @delete="handleDelete" @close="closeAll"
-                    :event="activeEvent" />
+                <CalendarItemContent @share="handleShare" @edit="handleEdit" v-if="activeEvent" @delete="handleDelete"
+                    @close="closeAll" :event="activeEvent" />
             </BMenu>
         </div>
 
@@ -96,6 +96,16 @@ export default defineComponent({
             }, 300)
         }
 
+        const handleShare = () => {
+            closeAll();
+            // Wait for the details menu/popup to close before opening the share popup
+            setTimeout(() => {
+                if (activeEvent.value) {
+                    bus.emit({ type: 'share-event', event: activeEvent.value });
+                }
+            }, 300);
+        }
+
         const onOpen = () => {
             isOpen.value = true;
             emit('lock-scroll', true);
@@ -107,7 +117,7 @@ export default defineComponent({
         };
 
 
-        return { t, x, y, activeEvent, menuRef, popupRef, onOpen, onClose, closeAll, handleDelete, handleEdit };
+        return { t, x, y, activeEvent, menuRef, popupRef, onOpen, onClose, closeAll, handleDelete, handleEdit, handleShare };
     }
 });
 </script>

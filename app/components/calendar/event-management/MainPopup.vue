@@ -131,7 +131,7 @@ export default defineComponent({
                     eventType: event.eventType || 'task',
                     title: event.title || '',
                     description: event.description || '',
-                    selectedUsers: event.selectedUsers || [],
+                    selectedUsers: event.accesss?.map(a => a.user.id) || [],
                     attachement: event.attachement || '',
                     color: event.color || '',
                     checkList: event.checkList ? JSON.parse(JSON.stringify(event.checkList)) : []

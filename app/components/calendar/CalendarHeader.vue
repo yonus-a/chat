@@ -76,6 +76,7 @@
 import { defineComponent, computed } from 'vue';
 import { useI18n, useCalendarStore, useWindowSize } from '#imports';
 import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
+import { useEventBus } from '@vueuse/core';
 export interface CalendarHeaderExposed {
     setTab: (tab: string, targetDate?: Date) => void;
 }
@@ -89,6 +90,7 @@ export default defineComponent({
         const isSyncingCalendar = computed(() => calendarStore.isLoadingCalendar)
         const { width } = useWindowSize()
         const isMobile = computed(() => width.value < 768)
+        const bus = useEventBus<any>('calendar-actions');
 
 
         // Source of truth. Start at today.
@@ -138,7 +140,7 @@ export default defineComponent({
         const handleOption = (key: string) => {
             switch (key) {
                 case 'share':
-                    emit('share')
+                    bus.emit({ type: 'share-calendar' });
                     break;
                 case 'sync':
                     emit('refresh')

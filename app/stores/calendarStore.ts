@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { SharedUserCalendar, ShareTypes } from "~/types/calendar";
+import type { CalendarAccess, ShareTypes } from "~/types/calendar";
 import type { Contact } from "~/types/chat";
 import { useAppToast, useI18n } from "#imports";
 
@@ -13,40 +13,42 @@ export const useCalendarStore = defineStore("calendar", () => {
   const isSending = ref(false);
 
   const processingIds = ref<Record<number, boolean>>({});
-  const sharedUsers = ref<SharedUserCalendar[]>([]);
+  const sharedUsers = ref<CalendarAccess[]>([]);
 
   const isLoadingCalendar = ref(false);
 
   // --- Mock Data Generator ---
-  const generateMockUsers = (): SharedUserCalendar[] => [
+  const generateMockUsers = (): CalendarAccess[] => [
     {
-      id: 101,
-      name: "سارا",
-      lastName: "احمدی",
+      id: 1,
+      name: "امیر",
+      lastName: "سعیدی",
       isOnline: true,
       lastSeen: new Date(),
-      imageUrl: "https://i.pravatar.cc/150?u=101",
-      isActive: true,
-      unreadCount: 0,
+      imageUrl: "https://i.pravatar.cc/150?u=1",
+      isActive: false,
+      unreadCount: 2,
       serviceType: "chat",
       birthDate: new Date(),
-      phoneNumber: "09123456789",
-      nationalCode: "0012345678",
+      phoneNumber: "09134168227",
+      nationalCode: "1235678901",
+      userType: ["user"],
       accessType: "editor",
     },
     {
-      id: 102,
-      name: "محمد",
-      lastName: "رضایی",
+      id: 2,
+      name: "سارا",
+      lastName: "احمدی",
       isOnline: false,
-      lastSeen: new Date(),
-      imageUrl: "", // Should trigger your /images/no-avatar.webp logic
+      lastSeen: new Date(new Date().getTime() - 3600000),
+      imageUrl: "https://i.pravatar.cc/150?u=2",
       isActive: true,
       unreadCount: 0,
-      serviceType: "chat",
+      serviceType: "voice-call",
       birthDate: new Date(),
-      phoneNumber: "09987654321",
-      nationalCode: "0098765432",
+      phoneNumber: "09134168227",
+      nationalCode: "1235678901",
+      userType: ["user"],
       accessType: "viewer",
     },
   ];
@@ -157,7 +159,53 @@ export const useCalendarStore = defineStore("calendar", () => {
     { value: "black", label: t("general.colors.black"), color: "#2C2727" },
   ]);
 
+  const addEventAccess = async (
+    eventId: number,
+    contact: Contact,
+    access: ShareTypes = "viewer",
+  ) => {
+    try {
+      await withLoading(contact.id, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // In a real app, this updates the DB for that specific event
+      });
+      openToast(t("calendar.share.api.success.add"), "success");
+    } catch (error) {
+      openToast(t("calendar.share.api.error"), "error");
+      throw error;
+    }
+  };
+
+  const updateEventAccess = async (
+    eventId: number,
+    userId: number,
+    newAccess: ShareTypes,
+  ) => {
+    try {
+      await withLoading(userId, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      });
+      openToast(t("calendar.share.api.success.edit"), "success");
+    } catch (error) {
+      openToast(t("calendar.share.api.error"), "error");
+    }
+  };
+
+  const removeEventAccess = async (eventId: number, userId: number) => {
+    try {
+      await withLoading(userId, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      });
+      openToast(t("calendar.share.api.success.delete"), "success");
+    } catch (error) {
+      openToast(t("calendar.share.api.error"), "error");
+    }
+  };
+
   return {
+    addEventAccess,
+    removeEventAccess,
+    updateEventAccess,
     isSending,
     errorLoadingShared,
     sharedUsers,

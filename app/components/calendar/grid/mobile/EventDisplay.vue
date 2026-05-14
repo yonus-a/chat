@@ -72,16 +72,14 @@ export default defineComponent({
 
 
 
-        const selectedFamilyMembers = computed(() =>
-            profileStore.getFamilyMembersByIds(props.event.selectedUsers).slice(0, 4)
-        );
+        const selectedFamilyMembers = computed(() => {
+            return props.event.accesss?.map(access => access.user).slice(0, 4) || [];
+        });
 
         const remainingUsers = computed(() => {
-            if (props.event.selectedUsers) {
-                return props.event.selectedUsers?.length - selectedFamilyMembers.value.length
-            }
-            return 0
-        })
+            const total = props.event.accesss?.length || 0;
+            return Math.max(0, total - selectedFamilyMembers.value.length);
+        });
 
 
 

@@ -14,10 +14,10 @@
                         :title="t('calendar.share.addUser')" :no-result-text="t('calendar.share.noUsers')" />
                 </div>
                 <div class=" flex flex-col gap-y-1.5 w-full">
-                    <TransitionGroup tag="div" name="list-item" class="w-full relative flex flex-col">
+                    <TransitionGroup tag="div" :name="transitionName" class="w-full relative flex flex-col">
                         <SharedUserDisplay v-for="user in localSharedUsers" :key="user.id" :user="user"
-                            :loading="isLoadingSharedUsers" :sending="isUserProcessing(user.id)" class="mb-1.5"
-                            :is-deleting="user.isDeleting" />
+                            :event-id="mode === 'event' ? activeEvent?.id : null" :loading="isLoadingSharedUsers"
+                            :sending="isUserProcessing(user.id)" :is-deleting="user.isDeleting" class="mb-1.5" />
                     </TransitionGroup>
                 </div>
             </div>
@@ -29,9 +29,10 @@ import { defineComponent, computed, onMounted, watch } from 'vue';
 import { useI18n, useAppToast, useProfileStore, useCalendarStore } from '#imports';
 import type { Popup } from '~/types/components/popup';
 import type { DropdownOption } from '~/types/components/select';
+import { useEventBus } from '@vueuse/core';
 import SharedUserDisplay from './share/SharedUserDisplay.vue';
-import type { SharedUserCalendar, ShareTypes } from '~/types/calendar';
-interface LocalSharedUser extends SharedUserCalendar {
+import type { CalendarAccess, CalendarEventPayload, ShareTypes } from '~/types/calendar';
+interface LocalSharedUser extends CalendarAccess {
     isDeleting?: boolean;
 }
 export default defineComponent({
@@ -45,8 +46,46 @@ export default defineComponent({
         const profileStore = useProfileStore()
         const calendarStore = useCalendarStore()
         const popup = ref<Popup | null>(null)
+        const transitionName = ref('list-item');
+        const mode = ref<'calendar' | 'event'>('calendar');
+        const activeEvent = ref<CalendarEventPayload | null>(null);
+        const bus = useEventBus<any>('calendar-actions');
 
-        const mockSharedUser = ref<SharedUserCalendar>({
+        bus.on((payload) => {
+            if (payload.type === 'share-event' || payload.type === 'share-calendar') {
+                transitionName.value = 'none';
+                if (payload.type === 'share-event') {
+                    mode.value = 'event';
+                    activeEvent.value = payload.event;
+                    localSharedUsers.value = []
+                    localSharedUsers.value = payload.event.accesss?.map((a: any) => ({
+                        ...a.user,
+                        accessType: a.accessType
+                    })) || [];
+                } else {
+                    mode.value = 'calendar';
+                    activeEvent.value = null;
+                    localSharedUsers.value = [...calendarStore.sharedUsers];
+                }
+
+
+
+                open();
+                setTimeout(() => { transitionName.value = 'list-item'; }, 500);
+            }
+
+            if (payload.type === 'remove-event-user-ui' && mode.value === 'event') {
+                const user = localSharedUsers.value.find(u => u.id === payload.id);
+                if (user) {
+                    user.isDeleting = true;
+                    setTimeout(() => {
+                        localSharedUsers.value = localSharedUsers.value.filter(u => u.id !== payload.id);
+                    }, 400);
+                }
+            }
+        });
+
+        const mockSharedUser = ref<CalendarAccess>({
             id: -1,
             name: "سارا",
             lastName: "احمدی",
@@ -59,6 +98,7 @@ export default defineComponent({
             birthDate: new Date(),
             phoneNumber: "09123456789",
             nationalCode: "0012345678",
+            userType: ['user'],
             accessType: "editor",
         });
 
@@ -108,18 +148,21 @@ export default defineComponent({
         const isUserProcessing = (userId: number) => !!calendarStore.processingIds[userId];
 
         watch(selectedUsers, async (newVal) => {
-            if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) return;
-            const selectedId = Array.isArray(newVal) ? newVal[newVal.length - 1] : newVal;
-            const contact = profileStore.familyMembers.find(m => m.id === selectedId);
+            if (!newVal || newVal.length === 0) return;
+            const contact = profileStore.familyMembers.find(m => m.id === (Array.isArray(newVal) ? newVal[newVal.length - 1] : newVal));
 
             if (contact && !localSharedUsers.value.some(u => u.id === contact.id)) {
                 selectedUsers.value = [];
-
-                // Optimistic Add: Pushing with 'viewer' so it renders immediately
-                const newUser = { ...contact, accessType: 'viewer' as ShareTypes };
-                localSharedUsers.value.push(newUser);
-
-                await calendarStore.addSharedUser(contact, 'viewer');
+                if (mode.value === 'calendar') {
+                    await calendarStore.addSharedUser(contact, 'viewer');
+                } else {
+                    const newAccessRecord = { id: Math.random(), user: contact, accessType: 'viewer' as ShareTypes };
+                    await calendarStore.addEventAccess(activeEvent.value?.id,)
+                    // Tell CalendarPage to push this record into the event's accesss array
+                    bus.emit({ type: 'add-event-access-master', eventId: activeEvent.value?.id, record: newAccessRecord });
+                    bus.emit({ type: 'add-event-access', eventId: activeEvent.value?.id, user: contact });
+                    localSharedUsers.value.push({ ...contact, accessType: 'viewer' });
+                }
             }
         }, { deep: true });
 
@@ -128,6 +171,7 @@ export default defineComponent({
 
 
         watch(() => calendarStore.sharedUsers, (newStoreList) => {
+            if (mode.value !== 'calendar') return;
             if (!calendarStore.hasLoadedShared) {
                 localSharedUsers.value = [...newStoreList];
                 return;
@@ -195,6 +239,9 @@ export default defineComponent({
             sharedUsers,
             localSharedUsers,
             isLoadingSharedUsers,
+            transitionName,
+            mode,
+            activeEvent,
             userSelectPlaceholder,
             inputIcon,
             canAdd,
@@ -205,6 +252,12 @@ export default defineComponent({
 })
 </script>
 <style scoped>
+.none-move,
+.none-enter-active,
+.none-leave-active {
+    transition: none !important;
+}
+
 /* ADDED: list-item-move for smooth sliding of remaining items */
 .list-item-move,
 .list-item-enter-active,

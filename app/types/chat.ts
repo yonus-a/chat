@@ -36,7 +36,7 @@ export interface Contact {
   birthDate: Date;
   lastMessage?: Message;
   unreadCount?: number;
-  serviceType: "video-call" | "voice-call" | "chat";
+  serviceType?: "video-call" | "voice-call" | "chat";
   userType: UserRoleKey[];
 }
 

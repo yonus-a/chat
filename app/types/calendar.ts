@@ -1,9 +1,25 @@
 import type { ServiceRequest } from "./chat";
 import type { Contact } from "./chat";
 
+export type ShareTypes = "viewer" | "owner" | "editor";
 export type EventCategory = "task" | "medicine" | "event" | "service";
 export type RepetitionCycleType = "day" | "hour" | "custom";
 export type RepetitionEndType = "date" | "times";
+
+export type CalendarBusPayload =
+  | { type: "delete"; id: number }
+  | { type: "edit-event"; event: CalendarEventPayload }
+  | { type: "share-event"; event: CalendarEventPayload }
+  | { type: "share-calendar" }
+  | {
+      type: "update-event-access-master";
+      eventId: number;
+      userId: number;
+      newAccess: any;
+    }
+  | { type: "remove-event-access-master"; eventId: number; userId: number }
+  | { type: "add-event-access-master"; eventId: number; record: any }
+  | { type: "remove-event-user-ui"; id: number };
 
 export interface EventChecklistItem {
   id?: number;
@@ -49,4 +65,15 @@ export interface CalendarEventPayload {
   endDate?: Date;
   duration?: number;
   service?: ServiceRequest;
+  accesss?: EventAccess[];
+}
+
+export interface EventAccess {
+  id: number;
+  user: Contact;
+  accessType: ShareTypes;
+}
+
+export interface CalendarAccess extends Contact {
+  accessType: ShareTypes;
 }
