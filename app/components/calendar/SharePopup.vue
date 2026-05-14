@@ -155,9 +155,9 @@ export default defineComponent({
                 selectedUsers.value = [];
                 if (mode.value === 'calendar') {
                     await calendarStore.addSharedUser(contact, 'viewer');
-                } else {
+                } else if (activeEvent.value) {
                     const newAccessRecord = { id: Math.random(), user: contact, accessType: 'viewer' as ShareTypes };
-                    await calendarStore.addEventAccess(activeEvent.value?.id,)
+                    await calendarStore.addEventAccess(activeEvent.value?.id, contact, 'viewer')
                     // Tell CalendarPage to push this record into the event's accesss array
                     bus.emit({ type: 'add-event-access-master', eventId: activeEvent.value?.id, record: newAccessRecord });
                     bus.emit({ type: 'add-event-access', eventId: activeEvent.value?.id, user: contact });
