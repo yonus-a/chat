@@ -32,6 +32,5 @@ useHead({
 onMounted(() => {
   chatStore.fetchConversations('', 1)
   toastRef.value = toastComponent.value;
-  calendarStore.fetchHolidays()
 });
 </script>
