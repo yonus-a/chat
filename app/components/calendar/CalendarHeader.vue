@@ -41,11 +41,11 @@
         <div class=" hidden md:flex items-center gap-x-2">
             <BButton @click="handleOption(option.key)" v-for="option in optionButtons" :key="option.key"
                 :icon="option.icon" :disabled="option.disabled && option.disabled === true" color="secondary" />
-            <BMenu>
+            <BMenu ref="settingsMenu">
                 <template #trigger>
                     <BButton icon="PhGear" color="secondary" />
                 </template>
-                <CalendarSettings />
+                <CalendarSettings @close="closeMenu" />
             </BMenu>
             <BButton @click="handleOption('add')" :text="t('calendar.addEvent')" color="primary" right-icon="PhPlus" />
         </div>
@@ -78,7 +78,7 @@
         </div>
     </Teleport>
     <BPopup ref="popup">
-        <CalendarSettings />
+        <CalendarSettings @close="closeSettings" />
     </BPopup>
 </template>
 <script lang="ts">
@@ -88,6 +88,7 @@ import { useCalendarDate } from '~/composables/calendar/useCalendarDate';
 import { useEventBus } from '@vueuse/core';
 import type { Popup } from '~/types/components/popup';
 import CalendarSettings from './CalendarSettings.vue';
+import type { Menu } from '~/types/components/menu';
 export interface CalendarHeaderExposed {
     setTab: (tab: string, targetDate?: Date) => void;
 }
@@ -106,6 +107,7 @@ export default defineComponent({
         const isMobile = computed(() => width.value < 768)
         const bus = useEventBus<any>('calendar-actions');
         const popup = useTemplateRef<Popup>('popup')
+        const settingsMenu = useTemplateRef<Menu>('settingsMenu')
 
         // Source of truth. Start at today.
         const currentDate = ref(new Date())
@@ -187,9 +189,16 @@ export default defineComponent({
             popup.value?.close()
         }
 
-        watch([currentDate, currentDisplayMode], ([newDate, newMode], [oldDate, oldMode]) => {
+        watch([
+            currentDate,
+            currentDisplayMode,
+            () => calendarStore.settings.calendar,
+            () => calendarStore.settings.startOfWeek
+        ], ([newDate, newMode], [oldDate, oldMode]) => {
+
             // 1. Only emit mode update when the index actually changes
-            if (newMode !== oldMode) {
+            // Added undefined check to prevent firing on initial mount if not needed
+            if (newMode !== oldMode && oldMode !== undefined) {
                 const modeMap: Record<number, 'daily' | 'weekly' | 'monthly'> = {
                     0: 'daily',
                     1: 'weekly',
@@ -198,7 +207,7 @@ export default defineComponent({
                 emit('update:mode', modeMap[newMode]);
             }
 
-            // 2. Range calculation logic (remains the same)
+            // 2. Range calculation logic
             const mode = newMode;
             let start: Date, end: Date;
 
@@ -207,8 +216,14 @@ export default defineComponent({
                 end = new Date(new Date(currentDate.value).setHours(23, 59, 59, 999));
             } else if (mode === 1) { // Weekly
                 const day = currentDate.value.getDay();
-                const lang = String(locale.value).split('-')[0];
-                const weekStart = (lang === 'fa' || lang === 'ar') ? 6 : 0;
+
+                // Map string from settings to JS day
+                const weekStartMap: Record<string, number> = {
+                    sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
+                    thursday: 4, friday: 5, saturday: 6
+                };
+                const weekStart = weekStartMap[calendarStore.settings.startOfWeek] ?? 0;
+
                 const diff = (day < weekStart ? 7 : 0) + day - weekStart;
 
                 start = new Date(currentDate.value);
@@ -224,6 +239,7 @@ export default defineComponent({
                 end = bounds.end;
             }
 
+            // 3. Emit the newly calculated range to the parent (CalendarPage)
             emit('update:range', { start, end });
         }, { immediate: true });
 
@@ -300,6 +316,9 @@ export default defineComponent({
             setTab
         } as CalendarHeaderExposed);
 
+        const closeMenu = () => {
+            settingsMenu.value?.close()
+        }
 
         return {
             t,
@@ -315,7 +334,9 @@ export default defineComponent({
             nextStep,
             selectedYearText,
             selectedMonthText,
+            closeMenu,
             popup,
+            settingsMenu,
             currentDisplayMode,
             optionButtons,
             displayModes,

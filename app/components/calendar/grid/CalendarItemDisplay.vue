@@ -59,15 +59,12 @@ export default defineComponent({
         const profileStore = useProfileStore();
 
         const displayedContact = computed<Contact | null>(() => {
-            if (!props.event.selectedUsers || props.event.selectedUsers.length === 0) return null
-            // Priority 1: Event type is service -> use first provider
             if (props.event.eventType === 'service' && props.event.service?.provider?.length) {
-                return props.event.service.provider || null; // <--- ADDED
+                return props.event.service.provider;
             }
 
-            if (props.event.eventType !== 'service' && props.event.selectedUsers?.length) {
-                const members = profileStore.getFamilyMembersByIds([props.event.selectedUsers[0]]);
-                return members && members.length > 0 ? members : null; // <--- ADDED
+            if (props.event.eventType !== 'service' && props.event.accesss?.length) {
+                return props.event.accesss[0]?.user;
             }
 
             return null;
@@ -90,9 +87,13 @@ export default defineComponent({
                 };
             }
 
-            const dayIndex = props.headers.findIndex(h =>
-                new Date(h.date).toDateString() === new Date(props.event.date).toDateString()
-            );
+            const dayIndex = props.headers.findIndex(h => {
+                const hDate = new Date(h.date);
+                const eDate = new Date(props.event.date);
+                return hDate.getFullYear() === eDate.getFullYear() &&
+                    hDate.getMonth() === eDate.getMonth() &&
+                    hDate.getDate() === eDate.getDate();
+            });
 
             if (dayIndex === -1) return { display: 'none' };
 

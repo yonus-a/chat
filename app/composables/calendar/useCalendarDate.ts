@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { useLocale } from "#imports";
+import { useLocale, useCalendarStore } from "#imports";
 import type { Option } from "~/components/global/BMenu.vue";
 
 export const useCalendarDate = () => {
@@ -13,9 +13,28 @@ export const useCalendarDate = () => {
 
   // Helper to get the 2-letter language code safely
   const getActiveCalendar = computed(() => {
-    const lang = String(locale.value).split("-")[0];
-    return calendarMap[lang as keyof typeof calendarMap] || "gregory";
+    const cal = settings.value.calendar;
+    if (cal === "jalaali") return "persian";
+    if (cal === "islamic") return "islamic-uma";
+    return "gregory"; // Default for georgian
   });
+
+  const calendarStore = useCalendarStore(); // ADDED
+  const settings = computed(() => calendarStore.settings); // ADDED
+
+  // ADDED: Helper to map 'saturday' -> 6, 'sunday' -> 0, etc.
+  const dayToNumber = (dayName: string): number => {
+    const map: Record<string, number> = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+    };
+    return map[dayName.toLowerCase()] ?? 0;
+  };
 
   const getYears = computed((): Option[] => {
     const calendar = getActiveCalendar.value;
@@ -215,17 +234,20 @@ export const useCalendarDate = () => {
     const ghamari = getDayNum("islamic-civil", ghamariDate);
 
     // Mapping based on locale requirements
+    const activeCalSetting = settings.value.calendar;
+
+    // Mapping based on Store Settings
     let primary, secondary, tertiary;
-    if (lang === "fa") {
+    if (activeCalSetting === "jalaali") {
       primary = jalaali;
       secondary = gregorian;
       tertiary = ghamari;
-    } else if (lang === "ar") {
+    } else if (activeCalSetting === "islamic") {
       primary = ghamari;
       secondary = gregorian;
       tertiary = jalaali;
     } else {
-      // 'en' default
+      // 'georgian' default
       primary = gregorian;
       secondary = jalaali;
       tertiary = ghamari;
@@ -240,10 +262,11 @@ export const useCalendarDate = () => {
 
     // Checking if weekend (Friday for FA/AR, Sunday & Saturday for EN)
     const dayOfWeek = date.getDay();
-    const isWeekend =
-      lang === "fa" || lang === "ar"
-        ? dayOfWeek === 5
-        : dayOfWeek === 0 || dayOfWeek === 6;
+    const isWeekend = settings.value.showHolidays
+      ? activeCalSetting === "jalaali" || activeCalSetting === "islamic"
+        ? dayOfWeek === 5 // Friday
+        : dayOfWeek === 0 || dayOfWeek === 6 // Sunday/Saturday
+      : false;
 
     // Localized names
     const activeCal = getActiveCalendar.value;
@@ -271,14 +294,13 @@ export const useCalendarDate = () => {
   };
 
   const getStartOfWeek = (date: Date): Date => {
-    const lang = String(locale.value).split("-")[0];
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
 
     const day = d.getDay(); // 0 (Sun) to 6 (Sat)
 
-    // Saturday (6) is the start for Persian/Arabic, Sunday (0) for English/Others
-    const weekStartDay = lang === "fa" || lang === "ar" ? 6 : 0;
+    // Use the setting from the store
+    const weekStartDay = dayToNumber(settings.value.startOfWeek);
 
     const diff = (day < weekStartDay ? 7 : 0) + day - weekStartDay;
     d.setDate(d.getDate() - diff);
@@ -323,14 +345,13 @@ export const useCalendarDate = () => {
   };
 
   const getWeekDayNames = computed(() => {
-    // FIX: Added here so lang is a string, not an array
     const lang = String(locale.value).split("-");
     const calendar = getActiveCalendar.value;
 
-    const lc = locale.value;
-    const weekStartDay = lc === "fa" || lc === "ar" ? 6 : 0;
+    const weekStartDay = dayToNumber(settings.value.startOfWeek);
 
-    const start = new Date(2025, 0, weekStartDay === 6 ? 11 : 12);
+    // Jan 12, 2025 is a known Sunday. Add the weekStartDay to shift it correctly.
+    const start = new Date(2025, 0, 12 + weekStartDay);
 
     const narrowFormatter = new Intl.DateTimeFormat(
       `${lang}-u-ca-${calendar}`,

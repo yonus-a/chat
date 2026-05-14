@@ -1,16 +1,66 @@
 import { defineStore } from "pinia";
-import type { CalendarAccess, ShareTypes } from "~/types/calendar";
+import type {
+  CalendarAccess,
+  ShareTypes,
+  CalendarSettingsPayload,
+} from "~/types/calendar";
 import type { Contact } from "~/types/chat";
 import { useAppToast, useI18n } from "#imports";
+import { useCookie } from "#imports";
 
 export const useCalendarStore = defineStore("calendar", () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { openToast } = useAppToast();
 
   const isLoadingShared = ref(true);
   const hasLoadedShared = ref(false);
   const errorLoadingShared = ref(false);
   const isSending = ref(false);
+
+  const getDefaultSettings = (): CalendarSettingsPayload => {
+    const currentLocale = locale.value;
+
+    let defaultCalendar: "jalaali" | "georgian" | "islamic" = "georgian";
+    let defaultStartOfWeek = "monday";
+
+    if (currentLocale === "fa") {
+      defaultCalendar = "jalaali";
+      defaultStartOfWeek = "saturday";
+    } else if (currentLocale === "ar") {
+      defaultCalendar = "islamic";
+      defaultStartOfWeek = "sunday"; // Standard start for Arabic/Islamic calendars
+    }
+
+    return {
+      calendar: defaultCalendar,
+      startOfWeek: defaultStartOfWeek,
+      // Natively detects the user's actual browser time zone! (e.g. 'Asia/Tehran')
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      showHolidays: true,
+      showAi: true,
+      showMedicine: true,
+      showServices: true,
+      showTasks: true,
+    };
+  };
+
+  // --- 2. Update your cookie initialization to use the function ---
+  const settingsCookie = useCookie<CalendarSettingsPayload>(
+    "calendar_settings",
+    {
+      default: () => getDefaultSettings(),
+      watch: true,
+    },
+  );
+
+  const settings = ref<CalendarSettingsPayload>(settingsCookie.value);
+
+  // 2. Action to update settings
+  const updateSettings = (newSettings: CalendarSettingsPayload) => {
+    settings.value = { ...newSettings };
+    settingsCookie.value = { ...newSettings };
+    //  openToast(t("general.success"), "success"); // Optional feedback
+  };
 
   const processingIds = ref<Record<number, boolean>>({});
   const sharedUsers = ref<CalendarAccess[]>([]);
@@ -219,5 +269,7 @@ export const useCalendarStore = defineStore("calendar", () => {
     isLoadingCalendar,
     refreshData,
     removeSharedUser,
+    updateSettings,
+    settings,
   };
 });

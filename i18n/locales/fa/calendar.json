@@ -116,6 +116,15 @@
         "islamic": "قمری"
       },
       "startOfWeek": "شروع هفته",
+      "startOfWeekOptions": {
+        "saturday": "شنبه",
+        "sunday": "یکشنبه",
+        "monday": "دوشنبه",
+        "tuesday": "سه شنبه",
+        "wednesday": "چهارشنبه",
+        "thursday": "پنجشنبه",
+        "friday": "جمعه"
+      },
       "timeZone": "منطقه زمانی",
       "displaySettings": {
         "title": "تنظیمات نمایش",
@@ -124,8 +133,8 @@
         "services": "خدمات",
         "task": "وظیفه"
       },
-      "apply":"اعمال",
-      "showHolidays":"نمایش تعطیلات"
+      "apply": "اعمال",
+      "showHolidays": "نمایش تعطیلات"
     }
   }
 }

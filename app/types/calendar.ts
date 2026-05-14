@@ -77,3 +77,14 @@ export interface EventAccess {
 export interface CalendarAccess extends Contact {
   accessType: ShareTypes;
 }
+
+export interface CalendarSettingsPayload {
+  calendar: "jalaali" | "georgian" | "islamic";
+  startOfWeek: string;
+  timeZone: string;
+  showHolidays: boolean;
+  showAi: boolean;
+  showMedicine: boolean;
+  showServices: boolean;
+  showTasks: boolean;
+}
