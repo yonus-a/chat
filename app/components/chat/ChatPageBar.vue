@@ -63,11 +63,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, type PropType } from 'vue';
+import { defineComponent, ref, computed, type PropType, useTemplateRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCallStore, useChatActionStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
+import type { Popup } from '~/types/components/popup';
 import ContactAvatar from './contact/ContactAvatar.vue';
 import type { MenuOption } from '~/types/components/menu-options';
 import MedicSelector from './medic-features/MedicSelector.vue';
@@ -149,8 +150,13 @@ export default defineComponent({
                     referBus.emit();
                     break;
                 case 'prescribe-meds':
+
                     if (currentConversationId.value) {
-                        chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                        if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) {
+
+                        } else {
+                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                        }
                     }
                     break;
             }
@@ -191,7 +197,11 @@ export default defineComponent({
             } else {
                 switch (key) {
                     case 'prescribe-meds':
-                        chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                        if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) {
+                            chatActionStore.triggerPrescription(props.contact.id);
+                        } else {
+                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                        }
                         break;
                 }
                 menuRef.value?.close();

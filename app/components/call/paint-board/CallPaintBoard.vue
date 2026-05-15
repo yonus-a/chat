@@ -7,7 +7,7 @@
             </div>
 
             <!-- CANVAS WRAPPER -->
-            <div 
+            <div
                 class="flex-1 shrink-0 min-h-117 w-full border-2 rounded-2xl border-primary mt-4 relative overflow-hidden bg-white">
                 <canvas ref="canvasRef" class="w-full h-full absolute top-0 left-0 touch-none"></canvas>
             </div>
@@ -28,13 +28,29 @@
                                 <BIcon icon="PhFiles" class=" fill-on-surface w-6 h-6" />
                             </div>
                         </template>
+
                     </BMenu>
-                    <div @click="handleAction('color')"
-                        class="aspect-square w-11 rounded-full flex items-center justify-center cursor-pointer bg-surface-variant relative overflow-hidden">
-                        <div class="rounded-full aspect-square w-6 h-6 pointer-events-none"
-                            :style="{ backgroundColor: selectedColor }">
+                    <BMenu :align="'top'" ref="colorPickerMenu">
+                        <template #trigger>
+                            <div @click.stop="handleAction('color')"
+                                class="aspect-square w-11 rounded-full flex items-center justify-center cursor-pointer bg-surface-variant relative overflow-hidden">
+                                <div class="rounded-full aspect-square w-6 h-6 pointer-events-none"
+                                    :style="{ backgroundColor: selectedColor }">
+                                </div>
+                            </div>
+                        </template>
+                        <div class=" p-3 flex flex-col gap-y-4">
+                            <div class=" text-on-surface select-none  text-label-md">{{ t('chat.board.selectColor') }}
+                            </div>
+                            <div class=" w-50 hidden md:grid grid-cols-5 gap-1">
+                                <div @click="setColor(color)"
+                                    :class="[selectedColor === color ? 'border-primary' : 'border-primary/0']"
+                                    class=" cursor-pointer transition-all duration-200 ease-in-out border w-8 aspect-square rounded-lg"
+                                    v-for="(color, index) in colors" :style="{ backgroundColor: color }">
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </BMenu>
                     <div @click="handleAction('erase')"
                         class="aspect-square w-11 rounded-full flex items-center justify-center cursor-pointer bg-surface-variant">
                         <BIcon icon="PhEraser" class="w-6 h-6 fill-on-surface" />
@@ -64,16 +80,18 @@
                 </div>
             </div>
         </div>
-        <BoardColorPicker ref="boardColorPicker" v-model="selectedColor" />
+        <BoardColorPicker :colors="colors" v-show="isMobile" ref="boardColorPicker" class=" md:hidden"
+            v-model="selectedColor" />
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useI18n, useCallStore, useAppToast } from '#imports';
+import { useI18n, useCallStore, useAppToast, useWindowSize } from '#imports';
 import BrushSizeSlider from './BrushSizeSlider.vue';
 import BoardColorPicker from './BoardColorPicker.vue';
 import type { BoardColorPickerExposed } from './BoardColorPicker.vue';
+import type { Menu } from '~/types/components/menu';
 import { storeToRefs } from 'pinia';
 export default defineComponent({
     name: 'CallPaintBoard',
@@ -92,7 +110,21 @@ export default defineComponent({
         const { t } = useI18n();
         const callStore = useCallStore();
         const { openToast } = useAppToast()
+        const { width } = useWindowSize()
+        const isMobile = computed(() => width.value < 768)
         const boardColorPicker = useTemplateRef<BoardColorPickerExposed>('boardColorPicker');
+        const colorPickerMenu = useTemplateRef<Menu>('colorPickerMenu')
+
+        const colors = ref([
+            '#2C2727', '#F49AA6', '#F897F6', '#CF40F3', '#555CEE',
+            '#40F3E4', '#8CE25E', '#E9EF37', '#F37040', '#F34040'
+        ])
+
+        const setColor = (color: string) => {
+            selectedColor.value = color
+            colorPickerMenu.value?.close()
+        }
+
         const {
             boardPages: pages,
             boardSelectedPage: selectedPage,
@@ -193,7 +225,7 @@ export default defineComponent({
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            openToast(t('chat.board.savedSuccessfully'),'success')
+            openToast(t('chat.board.savedSuccessfully'), 'success')
         };
 
         const handleAction = (action: string) => {
@@ -208,7 +240,11 @@ export default defineComponent({
                     redoHistory.value = [];
                     break;
                 case 'color':
-                    boardColorPicker.value?.open()
+                    if (isMobile.value) {
+                        boardColorPicker.value?.open()
+                    } else {
+                        colorPickerMenu.value?.open()
+                    }
                     break;
                 case 'add-page':
                     pages.value[selectedPage.value] = {
@@ -323,14 +359,18 @@ export default defineComponent({
             canvasRef,
             saveToFiles,
             selectedColor,
+            setColor,
             brushSize,
             boardColorPicker,
             handleAction,
             pages,
             selectedPage,
             pageOptions,
+            colorPickerMenu,
             handlePageSelect,
             switchPage,
+            colors,
+            isMobile,
         };
     }
 })

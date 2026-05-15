@@ -190,6 +190,7 @@
     },
     "board": {
       "title": "تخته",
+      "selectColor":"انتخاب رنگ",
       "page": "صفحه {page}",
       "addPage": "صفحه جدید",
       "confirm": "تایید",

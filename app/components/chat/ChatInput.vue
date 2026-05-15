@@ -95,7 +95,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary  cursor-pointer px-4  z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                        }}</span>
+                    }}</span>
                 </div>
 
                 <div class=" left-6 flex items-center  gap-x-2 shrink-0 z-10">
@@ -105,7 +105,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                    }}</span>
+                        }}</span>
                 </div>
             </div>
         </div>
@@ -349,7 +349,10 @@ export default defineComponent({
             if (event.key === 'Escape') {
                 if (textMode.value !== 'normal') {
                     cancelAction();
-                } else {
+                } else if (chatActionStore.selectedArray.length > 0) {
+                    cancelAction()
+                }
+                else {
                     handleEscapeNavigation()
                 }
             }

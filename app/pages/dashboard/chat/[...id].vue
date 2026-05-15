@@ -17,6 +17,7 @@
         <CallPageOverlay v-show="isCallMode && selectedChat" :contact="selectedChat" />
         <PatientReferral ref="patientRefferal" :contact="selectedChat" />
         <PermissionPopup />
+        <PrescribtionDisplay />
     </div>
 </template>
 <script lang="ts">
@@ -34,6 +35,7 @@ import PatientReferral from '~/components/chat/PatientReferral.vue';
 import type { PatientRefferalExposed } from '~/components/chat/PatientReferral.vue';
 import CallPageOverlay from '~/components/call/CallPageOverlay.vue';
 import PermissionPopup from '~/components/chat/chat-input/PermissionPopup.vue';
+import PrescribtionDisplay from '~/components/chat/medic-features/PrescribtionDisplay.vue';
 definePageMeta({
     layout: 'dashboard',
     hideBottomNav: true,
@@ -53,6 +55,7 @@ export default defineComponent({
         ChatProfileOverview,
         ChatMessages,
         PermissionPopup,
+        PrescribtionDisplay,
         PatientReferral,
     },
     setup() {

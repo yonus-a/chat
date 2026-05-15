@@ -42,10 +42,15 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const sendBus = useEventBus<Message[]>("chat-send");
   const editBus = useEventBus<ExtendedMessage>("edit-message");
   const personalInfoBus = useEventBus<number>("personal-info-request");
+  const prescriptionBus = useEventBus<number>("prescription");
 
   // 2. Trigger Action (Emits to ChatMessages.vue to open the modal)
   const triggerPersonalInfoRequest = (conversationId: number) => {
     personalInfoBus.emit(conversationId);
+  };
+
+  const triggerPrescription = (conversationId: number) => {
+    prescriptionBus.emit(conversationId);
   };
   // NEW: A unified bus to patch existing messages (handling ID swaps, isSent toggles, etc.)
   const updateBus = useEventBus<{ id: number; updates: Partial<Message> }>(
@@ -417,7 +422,9 @@ export const useChatActionStore = defineStore("chatAction", () => {
     uploadProgress,
     triggerPersonalInfoRequest,
     sendServiceRequest,
+    prescriptionBus,
     sendPersonalInfoRequest,
+    triggerPrescription,
     personalInfoBus,
     processingActions,
     isActionBusy,

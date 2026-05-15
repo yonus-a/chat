@@ -19,7 +19,7 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted } from 'vue';
+import { defineComponent, onMounted, onUnmounted, type PropType } from 'vue';
 import { useI18n } from '#imports';
 export interface BoardColorPickerExposed {
     open: () => void;
@@ -33,6 +33,10 @@ export default defineComponent({
             type: String,
             default: "#000000"
         },
+        colors: {
+            type: Array as PropType<String[]>,
+            default: () => [],
+        }
     },
     emits: ['update:modelValue'],
     setup(props, { emit, expose }) {
@@ -42,13 +46,13 @@ export default defineComponent({
         const isTransitioning = ref(true)
         const colorPickerWrapper = ref<HTMLElement | null>(null)
         const previousSelectedColor = ref(0)
+        const colors = computed(() => props.colors)
 
 
-
-        const colors = ref([
-            '#2C2727', '#F49AA6', '#F897F6', '#CF40F3', '#555CEE',
-            '#40F3E4', '#8CE25E', '#E9EF37', '#F37040', '#F34040'
-        ])
+        // const colors = ref([
+        //     '#2C2727', '#F49AA6', '#F897F6', '#CF40F3', '#555CEE',
+        //     '#40F3E4', '#8CE25E', '#E9EF37', '#F37040', '#F34040'
+        // ])
 
         const handleGlobalKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
