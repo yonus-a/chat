@@ -198,6 +198,7 @@
     },
     "prescription": {
       "title": "نسخه نویسی",
+      "medicine": "داروها",
       "initialDetection": "تشخیص اولیه",
       "medicationName": "نام دارو",
       "brands": "برند",
@@ -208,8 +209,10 @@
       "addMedications": "افزودن دارو",
       "warning": "خطا",
       "repeat": "تکرار",
+      "usage": "هر {time} {count}",
       "period": "دوره",
       "timePeriod": "مدت زمان",
+      "descriptions": "توضیحات",
       "submit": "ثبت",
       "back": "بازگشت",
       "continue": "ادامه",
