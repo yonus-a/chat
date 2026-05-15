@@ -95,7 +95,7 @@
                     <span v-if="!isLocked">{{ t('chat.swipeToCancel') }}</span>
                     <span v-else class="text-primary  cursor-pointer px-4  z-20" @click="cancelRecording">{{
                         t('chat.cancel')
-                    }}</span>
+                        }}</span>
                 </div>
 
                 <div class=" left-6 flex items-center  gap-x-2 shrink-0 z-10">
@@ -105,7 +105,7 @@
                     </div>
                     <span class="text-body-md min-w-12 text-center text-on-surface tabular-nums mt-0.5" dir="ltr">{{
                         formattedTime
-                        }}</span>
+                    }}</span>
                 </div>
             </div>
         </div>
@@ -141,6 +141,7 @@ export default defineComponent({
         const profileStore = useProfileStore()
         const route = useRoute()
         const savedRange = ref<Range | null>(null);
+        const isSelectingEmoji = ref(false);
 
         const textMode = ref<'normal' | 'edit' | 'reply'>('normal');
         const inputWidth = computed(() => rootElements.value?.clientWidth);
@@ -417,7 +418,7 @@ export default defineComponent({
         };
 
         const onInputFocus = () => {
-            // When user taps the input field, keyboard pops up, so hide the emoji picker
+            if (isSelectingEmoji.value) return;
             showMobileEmojiPicker.value = false;
         };
 
@@ -430,6 +431,7 @@ export default defineComponent({
         };
 
         const handleEmojiSelect = (emoji: string) => {
+            isSelectingEmoji.value = true;
             if (!inputRef.value) return;
 
             // Force focus on the div
@@ -489,6 +491,7 @@ export default defineComponent({
                 }
                 adjustHeight();
             });
+            isSelectingEmoji.value = false;
         };
 
         const handleEnterKey = (e: KeyboardEvent) => {
