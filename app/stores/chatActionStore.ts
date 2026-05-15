@@ -17,6 +17,7 @@ export const useChatActionStore = defineStore("chatAction", () => {
   const { openToast } = useAppToast();
   const { formatDateShort, formatTime } = useDate();
   const chatStore = useChatStore();
+
   const uploadProgress = ref<
     Map<number, { progress: number; uploaded: number; total: number }>
   >(new Map());

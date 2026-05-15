@@ -11,7 +11,8 @@
         </div>
         <div dir="rtl" id="list" ref="scrollContainer"
             class="h-full w-full max-w-dvw overflow-x-hidden overflow-y-auto pb-4 hide-scrollbar flip-vertical  bg-surface-variant/30"
-            :class="[!showOptionsBar ? 'pt-16' : 'pt-4']" @scroll="handleScroll" @wheel.prevent="handleWheel">
+            :class="[!showOptionsBar ? 'pt-16' : 'pt-4', lockScroll ? 'overflow-hidden' : '']" @scroll="handleScroll"
+            @wheel.prevent="handleWheel">
 
             <div class=" w-full max-w-dvw overflow-x-hidden" v-show="messages.length">
                 <div :style="{ height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative' }">
@@ -354,8 +355,10 @@ export default defineComponent({
         let animationFrame: number | null = null;
         const showOptionsBar = ref(false);
         let lastScrollTop = 0;
+        const lockScroll = computed(() => chatActionStore.isMenuOpen)
 
         const handleScroll = () => {
+            if (lockScroll.value) return
             const el = scrollContainer.value;
             if (!el) return;
 
@@ -403,6 +406,7 @@ export default defineComponent({
         const canScroll = computed(() => scrollOffset.value > 100);
 
         const handleWheel = (e: WheelEvent) => {
+            if (lockScroll.value) return
             if (!scrollContainer.value || messages.value.length === 0) return;
             if (targetScroll.value === 0) targetScroll.value = scrollContainer.value.scrollTop;
             targetScroll.value -= e.deltaY;
@@ -576,6 +580,7 @@ export default defineComponent({
             animatingIds, handleDeleteMessages, modal, deleteMessages, deletingIds,
             canScroll, resetScroll, showOptionsBar, mappedOptions, closeMenu,
             menuRef, handleModalConfirm, handleOption, hasCall,
+            lockScroll,
         };
     }
 });

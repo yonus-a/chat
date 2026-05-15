@@ -3,7 +3,7 @@
         <div :style="{ position: 'fixed', top: `${position.y}px`, left: `${position.x}px`, zIndex: 99999, pointerEvents: 'none' }"
             dir="rtl">
 
-            <BMenu @select="handleOption" :options="options" ref="menuRef" @closed="onMenuClosed">
+            <BMenu @select="handleOption" :options="options" ref="menuRef" @close="onMenuClosed">
                 <template #trigger>
                     <div style="width: 1px; height: 1px;"></div>
                 </template>
@@ -116,9 +116,6 @@ export default defineComponent({
             }, 300);
         };
 
-        const copyMessageText = () => {
-            chatActionStore.copyMessageText()
-        };
 
         return {
             t, options, position, menuRef,

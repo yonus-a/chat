@@ -5,6 +5,7 @@ import { useWindowSize } from "~/composables/useWindowSize";
 
 export const useChatStore = defineStore("chat", () => {
   const { height: windowHeight } = useWindowSize();
+  
 
   // Dynamic Calculation based on screen height
   const chatsPerPage = computed(() => {
