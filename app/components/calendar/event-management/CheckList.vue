@@ -25,7 +25,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, useTemplateRef, nextTick, onMounted, type PropType } from 'vue';
-import type { EventCheckList } from '~/types/calendar';
+import type { EventChecklistItem } from '~/types/calendar';
 import { useI18n } from '#imports';
 import ErrorDisplay from '~/components/general/ErrorDisplay.vue';
 export interface CheckListExposed {
@@ -36,7 +36,7 @@ export default defineComponent({
     name: 'CheckList',
     props: {
         modelValue: {
-            type: Array as PropType<EventCheckList[]>,
+            type: Array as PropType<EventChecklistItem[]>,
             default: () => []
         },
     },
@@ -49,7 +49,7 @@ export default defineComponent({
         const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer');
         const inputRefs = useTemplateRef<HTMLInputElement[]>('checkInputs');
 
-        const localCheckList = ref<EventCheckList[]>([]);
+        const localCheckList = ref<EventChecklistItem[]>([]);
         const localError = ref('');
 
 
@@ -73,7 +73,12 @@ export default defineComponent({
         };
 
         // 4. Updated Expose
-
+        const resetList = () => {
+            localCheckList.value = [
+                createDefaultItem(t('calendar.form.taskTitle')),
+                createDefaultItem('')
+            ];
+        };
 
         // Initial defaults helper
         const createDefaultItem = (text = '') => ({
@@ -98,23 +103,17 @@ export default defineComponent({
 
         // Sync incoming props
         watch(() => props.modelValue, (newVal) => {
-            // If the parent provides data (e.g., coming back from Step 2), 
-            // we must take it even if we've already initialized defaults.
             if (newVal && newVal.length > 0) {
-                // Only update if it's actually a different list to avoid infinite loops
-                const isDifferent = JSON.stringify(newVal) !== JSON.stringify(localCheckList.value);
-                if (isDifferent) {
-                    localCheckList.value = [...newVal];
-                }
-            } else if (newVal && newVal.length === 0 && localCheckList.value.length > 0) {
-                // If the parent explicitly clears the list
+                localCheckList.value = newVal.map(item => ({ ...item }));
+            }
+            else if ((!newVal || newVal.length === 0) && localCheckList.value.length === 0) {
                 resetList();
             }
         }, { immediate: true, deep: true });
 
         const syncUpdate = () => {
             if (localError.value) localError.value = '';
-            emit('update:modelValue', [...localCheckList.value]);
+            emit('update:modelValue', JSON.parse(JSON.stringify(localCheckList.value)));
         };
 
         const handleAction = (index: number) => {
@@ -153,13 +152,6 @@ export default defineComponent({
             syncUpdate();
         };
 
-        const resetList = () => {
-            localCheckList.value = [
-                createDefaultItem(t('calendar.form.taskTitle')),
-                createDefaultItem('')
-            ];
-            syncUpdate();
-        };
 
         expose({
             clear: resetList,

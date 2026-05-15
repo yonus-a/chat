@@ -248,6 +248,12 @@ export default defineComponent({
             }
         }
 
+        watch(() => props.event?.checkList, () => {
+            if (props.event?.checkList && props.event.eventType === 'task') {
+                checkList.value = props.event?.checkList
+            }
+        })
+
         return {
             actions,
             initCall,

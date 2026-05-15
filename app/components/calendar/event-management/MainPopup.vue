@@ -10,10 +10,10 @@
                     <CreateEvent v-show="mode === 'create' && step === 1" :key="`step1-${sessionKey}`"
                         :initial-data="eventData" @close="close" @submit="handleStep1Submit" />
 
-                    <EventTiming v-show="mode === 'timing'" :key="`step2-${sessionKey}`" :initial-data="timingData"
-                        @back="handleTimingBack" @submit="handleTimingSubmit" />
+                    <EventTiming :sending="isSending" v-show="mode === 'timing'" :key="`step2-${sessionKey}`"
+                        :initial-data="timingData" @back="handleTimingBack" @submit="handleTimingSubmit" />
 
-                    <EventRepetition v-show="mode === 'repetition'" :key="`step3-${sessionKey}`"
+                    <EventRepetition :sending="isSending" v-show="mode === 'repetition'" :key="`step3-${sessionKey}`"
                         :initial-data="repetitionData" @back="handleRepetitionBack" @submit="handleRepetitionSubmit" />
 
                     <div v-if="mode === 'create' && step === 2" class="w-full max-w-99 px-6 py-4 bg-surface rounded-xl">
@@ -22,7 +22,6 @@
                         <div class="text-body-sm text-on-surface/70 mb-6">
                             Event Type Selected: <strong>{{ eventData?.eventType }}</strong>
                         </div>
-
                         <div class="flex gap-x-3">
                             <BButton type="outline" text="Back" @click="step = 1" class="flex-1" />
                             <BButton color="primary" text="Final Submit" @click="finalSubmit" class="flex-1" />
@@ -38,7 +37,7 @@
 import { defineComponent, ref } from 'vue';
 import type { Popup } from '~/types/components/popup';
 import CreateEvent from './CreateEvent.vue';
-import { useI18n } from '#imports';
+import { useI18n, useAppToast } from '#imports';
 import EventTiming from './EventTiming.vue';
 import EventRepetition from './EventRepetition.vue';
 import { useEventBus } from '@vueuse/core';
@@ -52,11 +51,13 @@ export default defineComponent({
     emits: ['submit', 'edit'],
     setup(_, { expose, emit }) {
         const { t } = useI18n();
+        const { openToast } = useAppToast()
         const popup = ref<Popup | null>(null);
         const isEditting = ref(false)
         const currentEditId = ref<number | null>(null);
         const mode = ref<EventPopupModes>('create');
         const popupTitle = computed(() => isEditting.value ? t('calendar.form.editEvent') : t('calendar.form.addEvent'))
+        const isSending = ref(false)
 
 
         const bus = useEventBus<any>('calendar-actions');
@@ -188,30 +189,43 @@ export default defineComponent({
             repetitionData.value = payload;
             finalSubmit();
         };
+        const finalSubmit = async () => {
+            if (isSending.value) return; // Prevent double submission
 
-        const finalSubmit = () => {
             const finalPayload: Record<string, any> = {
                 ...(submittedEventData.value || eventData.value),
                 ...(submittedTimingData.value || timingData.value),
             };
 
-            if (submittedTimingData.value?.hasRepetition && repetitionData.value) {
-                const { hasRepetition, mode, ...pureRepetitionData } = repetitionData.value;
+            if ((submittedTimingData.value?.hasRepetition || timingData.value?.hasRepetition) && repetitionData.value) {
+                const { hasRepetition, mode: repMode, ...pureRepetitionData } = repetitionData.value;
                 finalPayload.repetition = pureRepetitionData;
             }
-
             delete finalPayload.isEditing;
+            isSending.value = true;
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-            if (isEditting.value && currentEditId.value) {
-                finalPayload.id = currentEditId.value;
-                emit('edit', finalPayload);
-            } else {
-                emit('submit', finalPayload);
+                if (isEditting.value && currentEditId.value) {
+                    finalPayload.id = currentEditId.value;
+                    emit('edit', finalPayload);
+                    openToast(t('calendar.api.edittedSuccess', { title: t(`calendar.form.type.${finalPayload.eventType}`) }), 'success')
+
+                    console.log('Event Edited Successfully');
+                } else {
+                    emit('submit', finalPayload);
+                    openToast(t('calendar.api.createdSuccess', { title: t(`calendar.form.type.${finalPayload.eventType}`) }), 'success')
+                    console.log('Event Created Successfully');
+                }
+                close();
+            } catch (error) {
+                openToast(t('calendar.api.error', { title: t(`calendar.form.type.${finalPayload.eventType}`) }), 'error')
+                console.error("Submission failed", error);
+            } finally {
+                isSending.value = false;
             }
-            close();
         };
 
-        // 5. Update onClosed to clear the new state:
         const onClosed = () => {
             if (isTransitioning.value) return;
             mode.value = 'create';
@@ -234,6 +248,7 @@ export default defineComponent({
             mode,
             step,
             handleTimingSubmit,
+            isSending,
             eventData,
             timingData,
             handleTimingBack,

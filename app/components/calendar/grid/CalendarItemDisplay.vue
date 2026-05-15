@@ -3,14 +3,19 @@
         <div :class="[
             'flex relative items-center min-h-4 rounded-lg md:rounded-md cursor-pointer transition-transform text-[11px] leading-[1.2]',
             mode === 'monthly' ? 'px-2 mb-1 h-6 w-full shrink-0 whitespace-nowrap text-ellipsis' : 'px-4 w-full h-full',
-            (mode === 'daily' || mode === 'weekly') ? 'shadow-sm border border-white/20' : ''
+            (mode === 'daily' || mode === 'weekly') ? '' : ''
         ]" :style="contentStyle" @click="handleOpen">
 
-            <div class="w-full relative z-50 hidden md:flex items-center gap-x-1">
-                <div v-if="displayedContact" class="w-5 h-5 shrink-0">
+            <div class="w-full relative z-50 hidden md:flex items-center gap-x-1"
+                :class="[event.color === 'white' ? ' text-black' : ' text-white']">
+                <div v-if="displayedContact && !event.repetition && event.eventType !== 'medicine'"
+                    class="w-5 h-5 shrink-0">
                     <ContactAvatar :contact="displayedContact" :show-online="false" class="w-full h-full" />
                 </div>
-                <div class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none text-on-primary">
+                <BIcon v-else-if="event.repetition && event.eventType !== 'medicine'" icon="PhPill"
+                    class=" w-5 h-5" />
+                <BIcon v-else-if="event.eventType === 'medicine'" icon="PhArrowsClockwise" class=" w-5 h-5" />
+                <div class="text-label-md line-clamp-1 overflow-hidden text-ellipsis select-none ">
                     {{ event.title }}
                 </div>
             </div>
@@ -23,7 +28,7 @@
 import { defineComponent, computed, type PropType, useTemplateRef } from 'vue';
 import type { CalendarMode, CalendarTimeRange, CalendarDay } from '~/types/components/calendar';
 import type { CalendarEventPayload } from '~/types/calendar';
-import { useWindowSize, useProfileStore, useI18n } from '#imports';
+import { useWindowSize, useProfileStore, useI18n, useCalendarStore } from '#imports';
 import type { Contact } from '~/types/chat';
 import { useEventBus } from '@vueuse/core';
 import ContactAvatar from '~/components/chat/contact/ContactAvatar.vue';
@@ -49,6 +54,7 @@ export default defineComponent({
     setup(props) {
         const { t } = useI18n()
         const { width } = useWindowSize()
+        const calendarStore = useCalendarStore()
 
         const isMobile = computed(() => width.value < 768)
         const menuRef = useTemplateRef<Menu>('menuRef')
@@ -112,16 +118,28 @@ export default defineComponent({
                 zIndex: currentZIndex // <--- BULLETPROOF FIX
             };
         });
+
+
+        const resolvedColor = computed(() => {
+            const colorObj = calendarStore.colors.find(c => c.value === props.event.color);
+            return colorObj ? colorObj.color : 'var(--color-surface-variant)';
+        });
+
         const contentStyle = computed(() => {
+            const cssBackground = resolvedColor.value;
+
             if (props.mode === 'monthly') {
                 return {
-                    backgroundColor: props.event.color + '20',
-                    borderLeft: `3px solid ${props.event.color}`,
-                    color: props.event.color
+                    background: cssBackground,
+                    opacity: 0.7,
+                    borderLeft: `4px solid ${cssBackground}`,
+                    color: 'var(--color-on-surface)',
+                    overflow: 'hidden'
                 };
             }
+
             return {
-                backgroundColor: props.event.color,
+                background: cssBackground,
                 color: '#fff'
             };
         });

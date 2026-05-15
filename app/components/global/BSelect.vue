@@ -29,8 +29,9 @@
                     </template>
                     <BImage class=" max-w-6 max-h-6 min-w-6 min-h-6 w-6 h-6 rounded-full overflow-hidden"
                         v-if="!multiple && selectedItem?.image && selectedItem" :src="selectedItem.image" />
-                    <div v-if="!multiple && selectedItem?.color && selectedItem" class=" w-6 aspect-square rounded-full"
-                        :style="{ backgroundColor: selectedItem.color }"></div>
+                    <div v-if="!multiple && selectedItem?.color && selectedItem"
+                        class="w-6 aspect-square rounded-full shrink-0" :style="{ background: selectedItem.color }">
+                    </div>
                     <span v-if="!multiple && selectedItem && (!searchable || !isOpen)"
                         class="text-sm font-medium select-none truncate text-on-surface opacity-100 shrink-0">
                         {{ selectedItem.label }}
@@ -104,8 +105,9 @@
                                         :src="filteredOptions[virtualRow.index].image"
                                         class="w-6 max-w-6 max-h-6 min-h-6 min-w-6 rounded-sm h-6 shrink-0 object-cover" />
                                     <div v-else-if="filteredOptions[virtualRow.index]?.color"
-                                        class=" rounded-full overflow-hidden w-6 aspect-square"
-                                        :style="{ backgroundColor: filteredOptions[virtualRow.index]?.color }"></div>
+                                        class="rounded-full overflow-hidden w-6 aspect-square shrink-0"
+                                        :style="{ background: filteredOptions[virtualRow.index]?.color }">
+                                    </div>
                                     <BIcon v-else-if="filteredOptions[virtualRow.index].icon"
                                         :icon="filteredOptions[virtualRow.index].icon" class="w-6 h-6 shrink-0"
                                         :class="isSelected(filteredOptions[virtualRow.index]) ? 'fill-primary' : 'fill-on-surface'" />

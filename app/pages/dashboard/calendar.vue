@@ -82,7 +82,7 @@ export default defineComponent({
         });
 
         const events = ref<CalendarEventPayload[]>([]);
-        
+
         const openEventDetails = () => {
             eventPopup.value?.open()
         }
@@ -98,7 +98,7 @@ export default defineComponent({
             const endTime = currentRange.value.end.getTime();
 
             const categories: EventCategory[] = ["task", "medicine", "event", "service"];
-            const colors = ["red", "orange", "yellow", "green", "blueLight", "blue", "purple", "pink", "darkPink", "black"];
+            const colors = ["red", "green", "black", "gray", "yellow", "white"];
             const eventCount = currentMode.value === "daily" ? 6 : currentMode.value === "weekly" ? 15 : 45;
 
             // Define mock full contacts for the family (matching IDs used in logic)

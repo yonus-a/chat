@@ -46,8 +46,8 @@
             </div>
             <div class=" flex w-full items-center gap-x-3">
                 <div v-for="button in buttonsProps" :key="button.key" class=" basis-1/2">
-                    <BButton :disabled="button.disabled" :text="button.text" class=" min-w-full " :color="button.color"
-                        :icon="button.icon" @click="handleButtonAction(button.key)" />
+                    <BButton :loading="isSending" :disabled="button.disabled" :text="button.text" class=" min-w-full "
+                        :color="button.color" :icon="button.icon" @click="handleButtonAction(button.key)" />
                 </div>
             </div>
         </div>
@@ -68,6 +68,10 @@ export default defineComponent({
         initialData: {
             type: Object as PropType<Record<string, any> | null>,
             default: null
+        },
+        sending: {
+            type: Boolean,
+            default: false
         }
     },
     setup(props, { emit }) {
@@ -83,6 +87,8 @@ export default defineComponent({
         const repeatitionEnd = ref({ value: 'date', color: 'primary', message: '' })
         const repetitionAmount = ref({ value: '', color: 'primary', message: '' })
         const selectedReminder = ref({ value: '15', color: 'primary', message: '' });
+        const isSending = computed(() => props.sending)
+
 
         const mode = ref<RepetitionMode>('create')
         const hasErrors = ref(false)
@@ -317,6 +323,7 @@ export default defineComponent({
         }
 
         const validateFields = () => {
+            if (isSending.value) return
             hasErrors.value = false;
             let isValid = true;
 
@@ -450,6 +457,7 @@ export default defineComponent({
             addSelection,
             mode,
             repeatitionEnd,
+            isSending,
             selectOption,
             getWeekDayNames,
         }

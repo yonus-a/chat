@@ -251,24 +251,36 @@ export const useCalendarStore = defineStore("calendar", () => {
   const refreshData = () => {};
 
   const colors = computed(() => [
-    { label: t("general.colors.red"), value: "red", color: "#F34040" },
-    { label: t("general.colors.orange"), value: "orange", color: "#F37040" },
-    { label: t("general.colors.yellow"), value: "yellow", color: "#E9EF37" },
-    { value: "green", label: t("general.colors.green"), color: "#8CE25E" },
     {
-      value: "blueLight",
-      label: t("general.colors.blueLight"),
-      color: "#40F3E4",
+      label: t("general.colors.red"),
+      value: "red",
+      color: "var(--background-image-diamond-error)",
     },
-    { value: "blue", label: t("general.colors.blue"), color: "#555CEE" },
-    { value: "purple", label: t("general.colors.purple"), color: "#CF40F3" },
-    { value: "pink", label: t("general.colors.pink"), color: "#F897F6" },
     {
-      value: "darkPink",
-      label: t("general.colors.darkPink"),
-      color: "#F49AA6",
+      label: t("general.colors.green"),
+      value: "green",
+      color: "var(--background-image-diamond-primary-secondary)",
     },
-    { value: "black", label: t("general.colors.black"), color: "#2C2727" },
+    {
+      label: t("general.colors.yellow"),
+      value: "yellow",
+      color: "var(--background-image-diamond-warning)",
+    },
+    {
+      label: t("general.colors.black"),
+      value: "black",
+      color: "var(--background-image-diamond-black)",
+    },
+    {
+      label: t("general.colors.gray"),
+      value: "gray",
+      color: "var(--background-image-diamond-gray)",
+    },
+    {
+      label: t("general.colors.white"),
+      value: "white",
+      color: "#F8F8FA",
+    },
   ]);
 
   const addEventAccess = async (

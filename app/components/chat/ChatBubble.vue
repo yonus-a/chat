@@ -47,9 +47,9 @@
                                     <VoiceDisplay v-else-if="message.voiceUrl && messageType === 'voice'"
                                         :url="message.voiceUrl" :message-id="message.id" :is-sent="message.isSent" />
                                 </div>
-                                <div v-else-if="message.imageUrl && messageType === 'image'"
+                                <div v-else-if="message.imageUrl && messageType === 'image'" @click.stop="previewImage(0)"
                                     class="relative cursor-pointer overflow-hidden rounded-xl max-w-4/5 md:max-w-85 w-85 h-40.5">
-                                    <BImage @click.stop="previewImage(0)" fit="cover" :src="message.imageUrl[0]"
+                                    <BImage  fit="cover" :src="message.imageUrl[0]"
                                         class="w-full rounded-xl overflow-hidden h-full max-w-full max-h-full min-w-full min-h-full" />
 
                                     <div v-if="!message.isSent && uploadData"
@@ -69,14 +69,14 @@
 
                                 <div v-else-if="message.imageUrl && messageType === 'multiImage'"
                                     class="max-w-75 flex items-center gap-x-3 h-16">
-                                    <div @click.stop="previewImage(3)" v-if="message.imageUrl.length > 3"
-                                        class=" h-full rounded-xl overflow-hidden aspect-square flex items-center justify-center bg-surface-variant-2">
+                                    <div @click="previewImage(3)" v-if="message.imageUrl.length > 3"
+                                        class=" h-full rounded-xl cursor-pointer overflow-hidden aspect-square flex items-center justify-center bg-surface-variant-2">
                                         <div class="text-on-surface select-none text-label-md">+{{
                                             message.imageUrl.length - 3 }}</div>
                                     </div>
-                                    <div v-for="(image, index) in displayedImages" :key="index"
-                                        class="relative h-full rounded-xl overflow-hidden aspect-square">
-                                        <BImage :src="image" @click.stop="previewImage(index)"
+                                    <div v-for="(image, index) in displayedImages" :key="index" @click.stop="previewImage(index)"
+                                        class="relative h-full rounded-xl cursor-pointer overflow-hidden aspect-square">
+                                        <BImage :src="image" 
                                             class="cursor-pointer min-w-full min-h-full max-w-full max-h-full h-full w-full" />
 
 
@@ -118,7 +118,7 @@
                         </div>
                     </div>
                 </div>
-                <ImageGroupDisplay v-if="message.imageUrl && message.imageUrl.length > 0" ref="imageDisplayRef"
+                <ImageGroupDisplay v-show="message.imageUrl && message.imageUrl.length > 0" ref="imageDisplayRef"
                     :images="message.imageUrl" />
 
                 <BubbleOptions :message="message" ref="bubbleOptionsRef" />
@@ -246,6 +246,7 @@ export default defineComponent({
         });
 
         const previewImage = (index: number) => {
+            console.log(imageDisplayRef.value)
             imageDisplayRef.value?.open(index)
         }
 

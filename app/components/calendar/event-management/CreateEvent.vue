@@ -65,7 +65,11 @@ export default defineComponent({
         const checkListRef = useTemplateRef<CheckListExposed>('checkList');
         const hasErrors = ref(false)
         const colors = computed(() => calendarStore.colors)
-        const chosenColor = ref({ value: colors.value[0]?.value, message: '', color: 'primary' })
+        const chosenColor = ref({
+            value: colors.value[0]?.value,
+            message: '',
+            color: 'primary'
+        });
         const eventType = ref({ value: 'task', message: '', color: 'primary' })
         const eventTitle = ref({ value: '', message: '', color: 'primary' })
         const description = ref({ value: '', message: '', color: 'primary' })
@@ -96,7 +100,7 @@ export default defineComponent({
                     attachement.value.value = attUrl;
 
                     // FIX: colors.value is an array, must use
-                    chosenColor.value.value = newData.color || colors.value?.value;
+                    chosenColor.value.value = newData.color || colors.value[0]?.value;
                 }
 
                 if (newData.eventType === 'task' && newData.checkList) {
@@ -110,7 +114,7 @@ export default defineComponent({
                 attachement.value.value = '';
                 checkListData.value = [];
                 const randomIdx = Math.floor(Math.random() * colors.value.length);
-                chosenColor.value.value = colors.value[randomIdx]?.value || 'primary';
+                chosenColor.value.value = colors.value[randomIdx]?.value || 'red';
 
                 hasErrors.value = false;
                 eventTitle.value.color = 'primary';

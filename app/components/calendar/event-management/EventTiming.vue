@@ -20,7 +20,8 @@
                     class=" w-full min-w-full" />
             </div>
             <div class=" basis-1/2">
-                <BButton @click="goBack" color="secondary" :text="t('calendar.form.back')" class=" w-full min-w-full" />
+                <BButton :loading="isSending" @click="goBack" color="secondary" :text="t('calendar.form.back')"
+                    class=" w-full min-w-full" />
             </div>
         </div>
     </div>
@@ -36,6 +37,10 @@ export default defineComponent({
         initialData: {
             type: Object as PropType<Record<string, any> | null>,
             default: null
+        },
+        sending: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['back', 'submit'],
@@ -48,6 +53,7 @@ export default defineComponent({
         const timeError = ref('')
         const hasRepetition = ref(false)
         const isFullDay = ref(false)
+        const isSending = computed(() => props.sending)
         const isEditing = computed(() => props.initialData?.isEditing === true);
         watch(() => props.initialData, (newData) => {
             if (newData) {
@@ -91,6 +97,7 @@ export default defineComponent({
         watch(() => chosenTime.value.value, () => { clearField(chosenTime); clearField(chosenDate) })
 
         const validateFields = () => {
+            if (isSending.value) return
             const rawDate = chosenDate.value.value;
             const timeStr = chosenTime.value.value || '00:00';
             if (!rawDate || !timeStr) {
@@ -141,6 +148,7 @@ export default defineComponent({
             timeError,
             isEditing,
             goBack,
+            isSending,
             hasRepetition,
             chosenDate,
             hasErrors,
