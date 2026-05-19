@@ -1,8 +1,9 @@
 <template>
     <div v-loading="isLoading"
-        class=" cursor-pointer select-none text-on-surface  bg-surface-variant py-2 px-3 flex flex-col gap-y-1 rounded-xl">
+        class="  select-none text-on-surface  bg-surface-variant py-2 px-3 flex flex-col gap-y-1 rounded-xl"
+        :class="[!hasValue ? 'cursor-pointer' : '']">
         <div class="  text-body-sm opacity-50">{{ field.title }}</div>
-        <div v-if="field && field.value?.trim().length > 0" class=" text-label-md">{{ field.value }}</div>
+        <div v-if="hasValue" class=" text-label-md">{{ field.value }}</div>
         <div v-else-if="field" class=" text-label-md text-primary flex items-center gap-x-2">
             <BIcon icon="PhPlus" class=" w-5 h-5" />
             <div>{{ t('profile.profile.enterPlaceholder', { field: field.title }) }}</div>
@@ -32,11 +33,16 @@ export default defineComponent({
     setup(props) {
         const { t } = useI18n()
         const isLoading = computed(() => props.loading)
+        const hasValue = computed(() => {
+            if (!props.field || !props.field.value) return false
+            return props.field.value?.trim().length > 0
+        })
 
 
         return {
             t,
             isLoading,
+            hasValue,
         }
     }
 })
