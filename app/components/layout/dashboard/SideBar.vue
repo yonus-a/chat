@@ -1,5 +1,5 @@
 <template>
-    <div class=" shadow-floating relative z-10 h-full shrink-0 flex ">
+    <div class=" shadow-floating relative z-50 h-full shrink-0 flex ">
         <div class=" relative h-full transition-all duration-200 shadow-floating ease-in-out w-18 flex flex-col">
             <div class=" shrink-0 w-full aspect-square flex items-center justify-center">
                 <div class=" w-10 h-10">
@@ -28,7 +28,9 @@
                             <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" icon="PhGear" />
                         </NuxtLinkLocale>
                     </div>
-                    <SidebarLocaleSwitch />
+                    <div class=" w-10 aspect-square shrink-0 relative z-10">
+                        <SidebarLocaleSwitch />
+                    </div>
                 </div>
             </div>
         </div>
@@ -69,8 +71,8 @@ export default defineComponent({
         const route = useRoute()
         const router = useRouter()
         const isOpen = ref(true)
-        const {dir} = useLocale()
-        const tooltipDir = computed(()=> dir.value==='rtl' ? 'left' : 'right')
+        const { dir } = useLocale()
+        const tooltipDir = computed(() => dir.value === 'rtl' ? 'left' : 'right')
         const { getCategories, getRoutesByCategory, secondaryRoutes } = useNavigation()
         const activeCategory = ref('')
         const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')
