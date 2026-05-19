@@ -66,14 +66,14 @@
                         <BIcon icon="PhMagnifyingGlass" class=" fill-on-surface/50 w-5 h-5" />
                     </div>
                     <div class=" w-10 aspect-square hidden md:flex justify-center items-center">
-                        <BMenu>
+                        <BMenu ref="profileMenu">
                             <template #trigger>
                                 <div class=" cursor-pointer w-5 h-5 rounded-full overflow-hidden">
                                     <BImage class=" w-full h-full min-w-full min-h-full max-w-full max-h-full"
                                         :src="profileStore.userData.imageUrl" />
                                 </div>
                             </template>
-                            <ProfileDetails />
+                            <ProfileDetails @close="closeProfileDetailsMenu" />
                         </BMenu>
                     </div>
                 </div>
@@ -94,12 +94,13 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue'; // Added ref
+import { defineComponent, computed, ref, useTemplateRef } from 'vue'; // Added ref
 import { useProfileStore, useChatStore, useStoriesStore, useI18n, useRoute } from '#imports';
 import DashboardGreetings from '~/components/dashboard/DashboardGreetings.vue';
 import DashboardNotifications from './header/DashboardNotifications.vue';
 import StoryDisplay from './story/StoryDisplay.vue';
 import ProfileDetails from './header/ProfileDetails.vue';
+import type { Menu } from '~/types/components/menu';
 export default defineComponent({
     name: 'DashboardHeader',
     components: {
@@ -113,6 +114,7 @@ export default defineComponent({
         const profileStore = useProfileStore()
         const storiesStore = useStoriesStore()
         const chatStore = useChatStore()
+        const profileMenu = useTemplateRef<Menu>('profileMenu')
 
         const stories = computed(() => storiesStore.stories)
         const { t } = useI18n()
@@ -160,6 +162,10 @@ export default defineComponent({
         });
 
 
+        const closeProfileDetailsMenu = () => {
+            profileMenu.value?.close()
+        }
+
 
         return {
             t,
@@ -169,6 +175,7 @@ export default defineComponent({
             routeTitle,
             profileStore,
             hasCustomActions,
+            closeProfileDetailsMenu,
             unreadMessages,
             openSearch,
             canShowGreetings,

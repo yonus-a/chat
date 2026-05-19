@@ -1,6 +1,7 @@
 <template>
-    <div class=" w-60 flex flex-col gap-y-2 p-3">
-        <NuxtLinkLocale to="/dashboard/profile" class="  cursor-pointer flex w-full items-center gap-x-2">
+    <div class=" w-60 hidden md:flex flex-col gap-y-2 p-3 ">
+        <NuxtLinkLocale @click="closeMenu" to="/dashboard/profile"
+            class="  cursor-pointer flex w-full items-center gap-x-2">
             <div class=" rounded-full overflow-hidden w-10 shrink-0 aspect-square">
                 <BImage :src="profileStore.userData.imageUrl" />
             </div>
@@ -26,7 +27,8 @@ import { useI18n, useLocalePath, useProfileStore, useAuthStore } from '#imports'
 import { useRouter } from 'vue-router';
 export default defineComponent({
     name: 'ProfileDetails',
-    setup() {
+    emits: ['close'],
+    setup(_, { emit }) {
         const { t } = useI18n()
         const profileStore = useProfileStore()
         const router = useRouter()
@@ -70,6 +72,7 @@ export default defineComponent({
 
         const handleRouteClick = (key: string) => {
             let targetRouteItem = routes.value.find((route) => route.key === key)
+            closeMenu()
             if (!targetRouteItem?.path || targetRouteItem.path.trim().length == 0) {
                 switch (key) {
                     case 'logout':
@@ -81,12 +84,16 @@ export default defineComponent({
             }
         }
 
+        const closeMenu = () => {
+            emit('close')
+        }
 
         return {
             handleRouteClick,
             routes,
             isLoading,
             profileStore,
+            closeMenu,
         }
     }
 })
