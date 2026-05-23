@@ -1,6 +1,6 @@
 <template>
     <div @click="toggleTheme" :dir="dir"
-        class="cursor-pointer h-10 p-1 border-outline-variant border-2 -outline-offset-1 flex items-center rounded-xl overflow-hidden relative transition-all duration-300">
+        class="cursor-pointer h-10 p-1 bg-surface border-outline-variant border-2 -outline-offset-1 flex items-center rounded-xl overflow-hidden relative transition-all duration-300">
         
         <TransitionGroup name="switch" tag="div" class="flex items-center h-full w-full">
             <div v-for="item in layoutItems" :key="item" class="flex transition-all duration-500 ease-in-out items-center h-full">
