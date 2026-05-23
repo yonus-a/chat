@@ -24,7 +24,7 @@
         </div>
     </div> 
     <BPopup ref="popup">
-        بعععععع
+        
     </BPopup>
 </template>
 <script lang="ts">

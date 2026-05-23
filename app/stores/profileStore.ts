@@ -4,6 +4,7 @@ import { useI18n, useCookie } from "#imports";
 import blankProfile from "/images/dashboard/blank-profile.webp";
 import type { UserRoleKey, Profile, RoleDetail } from "~/types/profile";
 import type { Contact } from "~/types/chat";
+import type { Address } from "~/types/address";
 
 export const useProfileStore = defineStore("profile", () => {
   const { t } = useI18n();
@@ -24,6 +25,9 @@ export const useProfileStore = defineStore("profile", () => {
   const charityCoverage = ref(300000);
   const totalDiscounts = ref(300000);
 
+  const isLoadingAddresses = ref(false);
+  const addresses = ref<Address[]>([]);
+  const isAddressesLoaded = ref(false);
   // 2. Sync state with Cookie on initialization
   const chosenRole = ref<UserRoleKey>(chosenRoleCookie.value || "employee");
 
@@ -149,7 +153,7 @@ export const useProfileStore = defineStore("profile", () => {
         nationalId: "1234567890",
         gender: "male",
         imageUrl: "",
-        phoneNumber:"09133877121",
+        phoneNumber: "09133877121",
         birthDate: new Date("1999-11-25T00:00:00Z"),
         balance: 1000000,
         referral: {
@@ -180,6 +184,68 @@ export const useProfileStore = defineStore("profile", () => {
     }
   };
 
+  const loadAddresses = async () => {
+    if (isAddressesLoaded.value) return;
+    isLoadingAddresses.value = true;
+    try {
+      // Fetch the comprehensive data from your public folder
+      const iranData = await $fetch<{
+        provinces: { id: number | string; name: string }[];
+        cities: {
+          id: number | string;
+          name: string;
+          province_id: number | string;
+          lat: number;
+          long: number;
+          postal_code?: string;
+        }[];
+      }>("/data/iran-cities.json");
+
+      // Simulate network delay (1.5 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Generate 5 mock addresses
+      const mockAddresses: Address[] = [];
+      for (let i = 0; i < 3; i++) {
+        // Pick a random province
+        const randomProvince =
+          iranData.provinces[
+            Math.floor(Math.random() * iranData.provinces.length)
+          ];
+        // Find all cities in that province
+        const citiesInProvince = iranData.cities.filter(
+          (city) => String(city.province_id) === String(randomProvince.id),
+        );
+
+        if (citiesInProvince.length > 0) {
+          const randomCity =
+            citiesInProvince[
+              Math.floor(Math.random() * citiesInProvince.length)
+            ];
+
+          mockAddresses.push({
+            id: i + 1,
+            date: new Date().toISOString(),
+            longitude: String(randomCity.long),
+            latitude: String(randomCity.lat),
+            title: randomCity.name,
+            path: `انتهای بلوار جهاد - خیابان یاسین - کوچه ۱۰ - هفت خانه مانده به آخر کوچه دست چپ - درب برقی سفید`,
+            postalCode: "1234567890",
+            cityId: Number(randomCity.id),
+            provinceId: Number(randomProvince.id),
+          });
+        }
+      }
+
+      addresses.value = mockAddresses;
+      isAddressesLoaded.value = true;
+    } catch (error) {
+      console.error("Failed to load addresses:", error);
+    } finally {
+      isLoadingAddresses.value = false;
+    }
+  };
+
   const getFamilyMembersByIds = (ids?: number[]) => {
     if (!ids || ids.length === 0) return [];
     return familyMembers.value.filter((member) => ids.includes(member.id));
@@ -193,14 +259,18 @@ export const useProfileStore = defineStore("profile", () => {
     isLoading,
     charityCoverage,
     totalDiscounts,
+    isLoadingAddresses,
     insuranceCoverage,
     isLoaded,
     availableRoles,
     isLoadingFamilyMembers,
     currentRole,
     otherRoles,
+    isAddressesLoaded,
     familyMembers,
     loadUserProfile,
     switchRole,
+    loadAddresses,
+    addresses,
   };
 });

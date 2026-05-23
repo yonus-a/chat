@@ -27,6 +27,24 @@
         "nationality": "ملیت"
       }
     },
+    "address": {
+      "title": "آدرس ها",
+      "noAddress": "هیچ آدرسی ثبت نشده",
+      "options": {
+        "edit": "ویرایش",
+        "delete": "حذف",
+        "add": "افزودن آدرس",
+        "selectAsMain":"انتخاب بعنوان آدرس اصلی"
+      },
+      "postalCode": "کد پستی",
+      "form": {
+        "addressTitle": "عنوان آدرس",
+        "province": "استان",
+        "city": "شهر",
+        "postalCode": "کد پستی",
+        "address": "آدرس"
+      }
+    },
     "logout": {
       "modal": {
         "title": "خروج از حساب",

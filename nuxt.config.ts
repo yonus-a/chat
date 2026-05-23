@@ -51,13 +51,7 @@ export default defineNuxtConfig({
       mapTileServerPath: "https://osm.wenex.tech/tile/{z}/{x}/{y}.png",
     },
   },
-  modules: [
-    "@nuxt/image",
-    "@nuxtjs/i18n",
-    "@pinia/nuxt",
-    "@nuxtjs/color-mode",
-    "@primevue/nuxt-module",
-  ],
+  modules: ["@nuxt/image", "@nuxtjs/i18n", "@pinia/nuxt", "@nuxtjs/color-mode", "@primevue/nuxt-module", "nuxt-maplibre"],
   components: [
     {
       path: "~/components/global",
