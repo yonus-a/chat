@@ -14,7 +14,7 @@
                 <div @click="openImagePicker" v-loading="isLoading" class=" text-primary cursor-pointer text-label-md">
                     {{ t('profile.profile.image.edit') }}</div>
             </div>
-            <div class=" text-label-md " v-loading="isLoading">{{ profileStore.userData.phoneNumber }}</div>
+            <div class=" text-label-md  text-on-surface" v-loading="isLoading">{{ profileStore.userData.phoneNumber }}</div>
         </div>
         <div class=" w-full grid sm:grid-cols-2 grid-cols-1 lg:grid-cols-3 gap-3">
             <DetailsInput v-for="(field, index) in fields" :key="index" :field="field" :loading="isLoading" />
