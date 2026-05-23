@@ -7,7 +7,8 @@
                 {{ t('chat.prescription.medicine') }}
             </div>
             <div class="w-full flex flex-col flex-1 gap-y-1 lg:gap-y-2 pb-3 overflow-y-auto hide-scrollbar">
-                <MedicineDisplay v-for="medicine in medications" :key="medicine.id" :medicine="medicine" :mode="mode" />
+                <MedicineDisplay @delete="deleteMedicine(index)" v-for="(medicine, index) in medications"
+                    :key="medicine.id" :medicine="medicine" :mode="mode" />
             </div>
         </div>
     </div>
@@ -26,9 +27,15 @@ export default defineComponent({
         medications: { type: Array as PropType<PrescribedMedication[]>, default: () => [] },
         mode: { type: String as PropType<'responsive' | 'full'>, default: 'responsive' }
     },
-    setup() {
+    emits: ['delete'],
+    setup(_, { emit }) {
         const { t } = useI18n();
-        return { t };
+
+        const deleteMedicine = (index: number) => {
+            emit('delete', index)
+        }
+
+        return { t, deleteMedicine };
     }
 });
 </script>

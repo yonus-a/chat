@@ -26,7 +26,7 @@
                     </Transition>
                     <div v-if="isMobile && selectedPeriod.value === 'prescription' && prescribedMeds.length > 0"
                         class="mt-4 ">
-                        <MedicationsList :medications="prescribedMeds" mode="responsive" />
+                        <MedicationsList @delete="deleteMedicine" :medications="prescribedMeds" mode="responsive" />
                     </div>
                     <div class=" lg:hidden transition-all duration-200 ease-in-out "
                         :class="[prescribedMeds.length === 0 || selectedPeriod.value !== 'prescription' ? ' h-0' : 'h-15']">
@@ -45,8 +45,8 @@
                 <div v-show="(!isMobile || step === 2) && selectedPeriod.value === 'prescription' && prescribedMeds.length > 0"
                     class="lg:w-102 w-full flex flex-col  lg:h-160 max-h-[75vh] h-auto">
 
-                    <MedicationsList class="flex-1 min-h-0 overflow-y-auto" :medications="prescribedMeds"
-                        :mode="isMobile ? 'full' : 'responsive'" />
+                    <MedicationsList @delete="deleteMedicine" class="flex-1 min-h-0 overflow-y-auto"
+                        :medications="prescribedMeds" :mode="isMobile ? 'full' : 'responsive'" />
 
                     <div class="w-full flex gap-x-3 justify-end items-center mt-4 shrink-0">
                         <BButton v-if="isMobile && step === 2" color="secondary" :disabled="isSending"
@@ -190,11 +190,15 @@ export default defineComponent({
             popup.value?.close();
         };
 
+        const deleteMedicine = (index: number) => {
+            prescribedMeds.value.splice(index, 1);
+        };
+
         return {
             t, periodOptions, popup, hospForm, prescDetails,
             selectedPeriod, prescribedMeds, step, isMobile, isSending,
             addMedication, goToStep, handleHospitalization, handlePrescription,
-            closePopup, onClosed, popupContent,
+            closePopup, onClosed, popupContent, deleteMedicine,
         };
     }
 });

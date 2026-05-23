@@ -2,7 +2,11 @@
     <div :class="[mode === 'full' ? 'block' : 'lg:block hidden']"
         class="w-full bg-surface border select-none border-outline-variant rounded-xl p-3">
         <div class="flex justify-between w-full items-center text-on-surface">
-            <div class="text-label-md" :class="[medicine.warning ? 'text-error' : '']">{{ medicine.medication.title }}
+            <div class=" flex items-center gap-x-3">
+                <BIcon icon="PhTrash" class=" cursor-pointer fill-on-surface/50 w-5 h-5" @click="deleteMedicine" />
+                <div class="text-label-md" :class="[medicine.warning ? 'text-error' : '']">{{ medicine.medication.title
+                    }}
+                </div>
             </div>
             <div class="text-body-md opacity-50" v-if="locale !== 'en'">{{ medicine.medication.englishTitle }}</div>
         </div>
@@ -63,12 +67,16 @@ export default defineComponent({
         medicine: { type: Object as PropType<PrescribedMedication>, required: true },
         mode: { type: String as PropType<'responsive' | 'full'>, default: 'responsive' }
     },
-    setup() {
+    emits: ['delete'],
+    setup(_, { emit }) {
         const { t, locale } = useI18n();
 
 
+        const deleteMedicine = () => {
+            emit('delete')
+        }
 
-        return { locale, t };
+        return { locale, t, deleteMedicine };
     }
 });
 </script>
