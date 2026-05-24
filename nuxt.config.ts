@@ -17,7 +17,11 @@ const loadLocaleFiles = (lang: string) => {
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  css: ["~/assets/css/main.css", "~/assets/css/components.css"],
+  css: [
+    "~/assets/css/main.css",
+    "~/assets/css/components.css",
+    "maplibre-gl/dist/maplibre-gl.css",
+  ],
   vite: {
     optimizeDeps: {
       include: ["@vue/devtools-core", "@vue/devtools-kit"],
@@ -29,12 +33,13 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      siteUrl: 'https://behayand.ir',
+      siteUrl: "https://behayand.ir",
       apiBaseUrl: "https://api.behayand.ir",
       platformApiBaseUrl: "https://api.behayand.ir",
       domainName: "behayand.ir",
       vapidPublicKey:
         "BJl8mccIGmLam84dZoOSuXGAq884ip2hOjdF5OnyVE-P0Yu5NJZnHbbhHyG2NUSL5vJ7ju3oiCl359hIkNKZOp0",
+      maptilerKey: "2ng2wxgc2Nm19zQvLgg4",
       altchaChallengeUrl: "https://api.behayand.ir/challenge",
       mqttWsUrl: "wss://emqx.wenex.tech/mqtt",
       sentryDsn: "",
@@ -51,7 +56,14 @@ export default defineNuxtConfig({
       mapTileServerPath: "https://osm.wenex.tech/tile/{z}/{x}/{y}.png",
     },
   },
-  modules: ["@nuxt/image", "@nuxtjs/i18n", "@pinia/nuxt", "@nuxtjs/color-mode", "@primevue/nuxt-module", "nuxt-maplibre"],
+  modules: [
+    "@nuxt/image",
+    "@nuxtjs/i18n",
+    "@pinia/nuxt",
+    "@nuxtjs/color-mode",
+    "@primevue/nuxt-module",
+    "nuxt-maplibre",
+  ],
   components: [
     {
       path: "~/components/global",

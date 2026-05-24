@@ -150,3 +150,8 @@ html[lang="ar"] button {
 .font-latin button {
   font-family: "IranYekan", "AppleColorEmoji", sans-serif !important;
 }
+
+.maplibregl-map {
+  font-family:
+    "IranYekanFaNum", "IranYekan", "AppleColorEmoji", sans-serif !important;
+}

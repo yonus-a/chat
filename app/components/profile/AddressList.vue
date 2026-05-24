@@ -72,7 +72,7 @@ export default defineComponent({
         })
 
         const addAddress = () => {
-            openPopup('location')
+            openPopup('form')
         }
 
         const openPopup = (mode: PopupModes) => {
