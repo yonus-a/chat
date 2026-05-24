@@ -13,7 +13,8 @@
         </div>
         <BPopup ref="popup" no-padding>
             <LocationPermission @allowed="openPopup('form')" v-show="popupMode === 'location'" @close="closePopup" />
-            <AddressForm v-show="popupMode === 'form'" />
+            <AddressForm @close="closePopup" @request-permission="openPopup('location')"
+                v-show="popupMode === 'form'" />
         </BPopup>
     </div>
 </template>

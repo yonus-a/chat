@@ -20,7 +20,6 @@ export default defineNuxtConfig({
   css: [
     "~/assets/css/main.css",
     "~/assets/css/components.css",
-    "maplibre-gl/dist/maplibre-gl.css",
   ],
   vite: {
     optimizeDeps: {
@@ -62,7 +61,6 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxtjs/color-mode",
     "@primevue/nuxt-module",
-    "nuxt-maplibre",
   ],
   components: [
     {
