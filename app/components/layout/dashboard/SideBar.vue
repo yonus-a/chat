@@ -23,11 +23,6 @@
                         <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" :icon="themeButtonIcon"
                             @click="toggleTheme" />
                     </div>
-                    <div class=" w-10 h-10 flex justify-center items-center">
-                        <NuxtLinkLocale to="/dashboard/profile/settings">
-                            <BIcon class=" w-5 h-5 fill-on-surface cursor-pointer" weight="bold" icon="PhGear" />
-                        </NuxtLinkLocale>
-                    </div>
                     <div class=" w-10 aspect-square shrink-0 relative z-10">
                         <SidebarLocaleSwitch />
                     </div>
@@ -38,10 +33,6 @@
             :class="[showChildList ? ' w-auto' : 'w-0']">
             <div class=" w-64 bg-surface-variant flex flex-col justify-between h-full">
                 <RouteList :routes="routeList" />
-                <div class=" p-2.5 flex flex-col gap-y-1.5 w-full">
-                    <RouteItem v-for="(route, index) in secondaryRoutes" :key="index" :item="route" />
-                    <ContactCard />
-                </div>
             </div>
 
         </div>
@@ -56,7 +47,6 @@ import { useRoute, useRouter } from 'vue-router';
 import SidebarLocaleSwitch from './sidebar/SidebarLocaleSwitch.vue';
 import type { NavItem } from '~/types/components/nav-item';
 import RouteList from './sidebar/RouteList.vue';
-import ContactCard from './sidebar/ContactCard.vue';
 export default defineComponent({
     name: 'Sidebar',
     components: {
@@ -64,7 +54,6 @@ export default defineComponent({
         RouteItem,
         SidebarLocaleSwitch,
         RouteList,
-        ContactCard,
     },
     setup() {
         const { toggleTheme, colorMode } = useTheme()
@@ -73,7 +62,7 @@ export default defineComponent({
         const isOpen = ref(true)
         const { dir } = useLocale()
         const tooltipDir = computed(() => dir.value === 'rtl' ? 'left' : 'right')
-        const { getCategories, getRoutesByCategory, secondaryRoutes } = useNavigation()
+        const { getCategories, getRoutesByCategory } = useNavigation()
         const activeCategory = ref('')
         const themeButtonIcon = computed(() => colorMode.value === 'light' ? 'PhMoon' : 'PhSun')
 
@@ -131,7 +120,6 @@ export default defineComponent({
             routeList,
             getCategories,
             tooltipDir,
-            secondaryRoutes,
             themeButtonIcon,
         }
     }
