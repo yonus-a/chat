@@ -5,7 +5,6 @@ import { useWindowSize } from "~/composables/useWindowSize";
 
 export const useChatStore = defineStore("chat", () => {
   const { height: windowHeight } = useWindowSize();
-  
 
   // Dynamic Calculation based on screen height
   const chatsPerPage = computed(() => {
@@ -36,6 +35,7 @@ export const useChatStore = defineStore("chat", () => {
 
   // --- STATE ---
   const activeConversationId = ref<number | null>(null);
+  const isProfileOpen = ref(false);
   const messagesMap = ref<Record<number, Message[]>>({});
 
   const conversationStates = ref<
@@ -289,6 +289,22 @@ export const useChatStore = defineStore("chat", () => {
     }
   };
 
+  const setActiveConversation = (conversationId: number | null) => {
+    activeConversationId.value = conversationId;
+    if (conversationId) {
+      markAsRead(conversationId);
+    }
+  };
+
+  const openProfile = () => {
+    if (!activeConversationId.value) return;
+    isProfileOpen.value = true;
+  };
+
+  const closeProfile = () => {
+    isProfileOpen.value = false;
+  };
+
   // 2. Overwrite the last message (used when sending a new message)
   const updateLastMessage = (conversationId: number, message: Message) => {
     for (const key in conversationStates.value) {
@@ -344,6 +360,7 @@ export const useChatStore = defineStore("chat", () => {
   return {
     conversationStates,
     activeConversationId,
+    isProfileOpen,
     fetchConversations,
     loadNextPage,
     getDisplayedContacts,
@@ -352,6 +369,9 @@ export const useChatStore = defineStore("chat", () => {
     getContactById,
     messagesMap,
     markAsRead,
+    setActiveConversation,
+    openProfile,
+    closeProfile,
     updateLastMessage,
     patchLastMessage,
   };

@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { CallMember } from "~/types/call";
+import type { Contact } from "~/types/chat";
 import { useProfileStore, useAppPermissions } from "#imports";
-import { useRouter } from "vue-router";
 
 export const useCallStore = defineStore("call", () => {
   const profileStore = useProfileStore();
-  const router = useRouter();
   const { checkMediaStatus, requestWithPopup } = useAppPermissions();
 
   //props for the painting board
@@ -31,12 +30,12 @@ export const useCallStore = defineStore("call", () => {
   const isSharingScreen = ref(false);
   const screenStream = ref<MediaStream | null>(null);
 
-  const chatContact = ref<CallMember | null>();
+  const chatContact = ref<CallMember | Contact | null>();
 
   // Timer State
   const startTime = ref<number | null>(null);
   const elapsedTime = ref(0);
-  const timerInterval = ref<NodeJS.Timeout | null>(null);
+  const timerInterval = ref<ReturnType<typeof setInterval> | null>(null);
 
   //settings :
   const isMicMuted = ref(false);
@@ -131,6 +130,7 @@ export const useCallStore = defineStore("call", () => {
       unreadCount: 2,
       serviceType: "chat",
       birthDate: new Date(),
+      userType: ["user"],
       // CallMember Extensions
       stream: null,
       isScreenSharing: false,
@@ -148,6 +148,7 @@ export const useCallStore = defineStore("call", () => {
       unreadCount: 0,
       serviceType: "chat",
       birthDate: profileStore.userData.birthDate || new Date(),
+      userType: [profileStore.chosenRole],
 
       // Reactive mapping from Store State
       stream: isSharingScreen.value ? screenStream.value : localStream.value,
@@ -269,14 +270,14 @@ export const useCallStore = defineStore("call", () => {
   };
 
   const startCall = async (
-    contact: CallMember,
+    contact: CallMember | Contact,
     serviceType: "voice-call" | "video-call",
   ) => {
     chatContact.value = contact;
     isActive.value = true;
+    isPiP.value = false;
     startTimer();
     await syncMediaSettings(serviceType);
-    await router.push(`/dashboard/chat/${contact.id}/call`);
   };
 
   const setScreenStream = (stream: MediaStream) => {

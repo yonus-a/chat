@@ -1,5 +1,11 @@
 import { computed } from "vue";
-import { useI18n, useRoute, useProfileStore } from "#imports";
+import {
+  useI18n,
+  useRoute,
+  useProfileStore,
+  useChatStore,
+  useCallStore,
+} from "#imports";
 import type { NavItem } from "~/types/components/nav-item";
 import type { NavSubItem } from "~/types/components/nav-sub-item";
 
@@ -7,6 +13,8 @@ export const useNavigation = () => {
   const { t } = useI18n();
   const route = useRoute();
   const profileStore = useProfileStore();
+  const chatStore = useChatStore();
+  const callStore = useCallStore();
 
   const prefix = (path: string) => {
     if (path === "#" || path.startsWith("http")) return path;
@@ -83,7 +91,7 @@ export const useNavigation = () => {
 
   const shouldShowBottomNav = computed(() => {
     if (route.path.startsWith("/dashboard/chat")) {
-      return !route.params.id;
+      return !chatStore.activeConversationId && !callStore.isActive;
     }
     const leafMeta = route.matched[route.matched.length - 1]?.meta;
     return leafMeta?.hideBottomNav !== true;
