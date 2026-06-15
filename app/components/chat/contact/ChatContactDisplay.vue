@@ -45,8 +45,7 @@
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useRoute, useRouter } from 'vue-router';
-import { useLocalePath, useI18n, useDate, useProfileStore } from '#imports';
+import { useI18n, useDate, useProfileStore } from '#imports';
 import ContactAvatar from './ContactAvatar.vue';
 import SafeEmojiText from '~/components/general/SafeEmojiText.vue';
 
@@ -60,26 +59,27 @@ export default defineComponent({
         loading: {
             type: Boolean,
             default: false,
-        }
+        },
+        active: {
+            type: Boolean,
+            default: false,
+        },
     },
+    emits: ['select'],
     components: {
         SafeEmojiText,
         ContactAvatar,
     },
-    setup(props) {
+    setup(props, { emit }) {
         const { t } = useI18n();
-        const route = useRoute();
-        const router = useRouter();
-        const localePath = useLocalePath();
         const { formatRelativeDate } = useDate();
         const profileStore = useProfileStore();
 
-        const myId = 99; // Replace with profileStore.userData.id if dynamic
-        const isActive = computed(() => parseInt(route.params.id as string) === props.contact.id);
+        const isActive = computed(() => props.active);
 
         const openChat = () => {
-            router.push(localePath(`/dashboard/chat/${props.contact.id}`));
-        }
+            emit('select', props.contact.id);
+        };
 
         const isFromMe = computed(() => props.contact.lastMessage?.senderId === profileStore.userData.id);
 
@@ -112,12 +112,10 @@ export default defineComponent({
             return null;
         });
 
-        // 3. Logic for name prefix and attachment translation
         const lastMessageText = computed(() => {
             const msg = props.contact.lastMessage;
             if (!msg) return '';
 
-            // Handle content (Text or Attachment Title)
             let content = msg.text;
             if (!content && msg.request) {
                 content = t('chat.attachementTypes.request')
@@ -126,7 +124,6 @@ export default defineComponent({
                 content = t(`chat.attachementTypes.${msg.type}`);
             }
 
-            // Handle Name Prefix
             if (!isFromMe.value) {
                 return `${props.contact.name}: ${content}`;
             }
@@ -134,15 +131,12 @@ export default defineComponent({
             return content;
         });
 
-        // 2. Logic for text color
         const lastMessageColor = computed(() => {
             const msg = props.contact.lastMessage;
             if (!msg) return 'text-on-surface/50';
 
-            // If it's a pure attachment without text caption
             if (!msg.text && msg.type !== 'text' || msg.request) return 'text-primary font-medium';
 
-            // If there are unread messages
             if (props.contact.unreadCount > 0) return 'text-on-surface font-medium';
 
             return 'text-on-surface/50';
