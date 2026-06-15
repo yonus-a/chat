@@ -36,6 +36,21 @@ export const useChatStore = defineStore("chat", () => {
 
   // --- STATE ---
   const activeConversationId = ref<number | null>(null);
+
+  const isProfileOpen = ref<boolean>(false);
+
+  const selectChat = (id: number | null) => {
+    activeConversationId.value = id;
+  };
+
+  const openProfile = () => {
+    isProfileOpen.value = true;
+  };
+
+  const closeProfile = () => {
+    isProfileOpen.value = false;
+  };
+
   const messagesMap = ref<Record<number, Message[]>>({});
 
   const conversationStates = ref<
@@ -344,6 +359,10 @@ export const useChatStore = defineStore("chat", () => {
   return {
     conversationStates,
     activeConversationId,
+    isProfileOpen,
+    selectChat,
+    openProfile,
+    closeProfile,
     fetchConversations,
     loadNextPage,
     getDisplayedContacts,
