@@ -118,7 +118,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
-import { useI18n, useChatActionStore, useProfileStore, useChatStore } from '#imports';
+import { useI18n, useChatActionStore, useProfileStore, useChatStore, useCallStore } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
@@ -138,6 +138,7 @@ export default defineComponent({
         const { requestWithPopup, checkMediaStatus } = useAppPermissions();
         const chatActionStore = useChatActionStore();
         const chatStore = useChatStore();
+        const callStore = useCallStore();
         const profileStore = useProfileStore()
         const route = useRoute()
         const savedRange = ref<Range | null>(null);
@@ -360,6 +361,7 @@ export default defineComponent({
         };
 
         const handleEscapeNavigation = () => {
+            if (callStore.isActive) return;
             if (chatStore.isProfileOpen) {
                 chatStore.closeProfile();
             } else {
