@@ -65,7 +65,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, type PropType, useTemplateRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useCallStore, useChatActionStore, useI18n, useDate } from '#imports';
+import { useCallStore, useChatActionStore, useChatStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
 import type { Popup } from '~/types/components/popup';
@@ -99,6 +99,7 @@ export default defineComponent({
         const router = useRouter()
         const { t } = useI18n();
         const callStore = useCallStore()
+        const chatStore = useChatStore()
 
         const referBus = useEventBus('open-referral');
 
@@ -229,7 +230,9 @@ export default defineComponent({
         const isInCall = computed(() => callStore.isActive)
 
         const backToCall = () => {
-            router.push(`/dashboard/chat/${callStore.chatContact?.id}/call`);
+            if (callStore.chatContact?.id) {
+                chatStore.selectChat(callStore.chatContact.id);
+            }
         }
 
         return {
