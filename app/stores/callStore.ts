@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { CallMember } from "~/types/call";
-import { useProfileStore, useAppPermissions } from "#imports";
+import { useProfileStore, useAppPermissions, useChatStore } from "#imports";
 import { useRouter } from "vue-router";
 
 export const useCallStore = defineStore("call", () => {
@@ -272,11 +272,12 @@ export const useCallStore = defineStore("call", () => {
     contact: CallMember,
     serviceType: "voice-call" | "video-call",
   ) => {
+    const chatStore = useChatStore();
     chatContact.value = contact;
     isActive.value = true;
     startTimer();
     await syncMediaSettings(serviceType);
-    await router.push(`/dashboard/chat/${contact.id}/call`);
+    chatStore.selectChat(contact.id);
   };
 
   const setScreenStream = (stream: MediaStream) => {
