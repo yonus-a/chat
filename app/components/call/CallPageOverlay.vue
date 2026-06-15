@@ -66,7 +66,7 @@
 <script lang="ts">
 import { type PropType, defineComponent, onBeforeMount, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useI18n, useCallStore, useAppToast, useWindowSize, useAppPermissions, useDevice } from '#imports';
+import { useI18n, useCallStore, useChatStore, useAppToast, useWindowSize, useAppPermissions, useDevice } from '#imports';
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
@@ -93,6 +93,7 @@ export default defineComponent({
         const isReady = ref(false)
         const { openToast } = useAppToast()
         const callStore = useCallStore()
+        const chatStore = useChatStore()
         const { width } = useWindowSize()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
         const chatId = computed(() => Number(route.params.id))
@@ -293,9 +294,9 @@ export default defineComponent({
                 const rawId = route.params.id;
                 const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
 
-                const fallbackId = actualId || chatContact.value?.id || '';
+                const fallbackId = Number(actualId) || chatContact.value?.id || null;
 
-                router.push(`/dashboard/chat/${fallbackId}`);
+                chatStore.selectChat(fallbackId);
                 return;
             }
             isReady.value = true;
@@ -332,8 +333,10 @@ export default defineComponent({
                 // If user clicks "Not Now" or denies it, kick them back safely
                 if (!granted) {
                     callStore.isActive = false;
-                    const safeId = route.params.id || callStore.chatContact?.id || '';
-                    router.push(`/dashboard/chat/${safeId}`);
+                    const rawId = route.params.id;
+                    const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
+                    const safeId = Number(actualId) || callStore.chatContact?.id || null;
+                    chatStore.selectChat(safeId);
                     return; // Stop execution
                 }
             }
@@ -355,7 +358,9 @@ export default defineComponent({
             switch (key) {
                 case 'minimize-call':
                     callStore.isPiP = true;
-                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
+                    if (chatContact.value?.id) {
+                        chatStore.selectChat(chatContact.value.id);
+                    }
                     break;
                 case 'share-screen':
                     if (callStore.isSharingScreen) {
@@ -382,7 +387,9 @@ export default defineComponent({
                     break;
                 case 'leave-call':
                     callStore.stopCall();
-                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
+                    if (chatContact.value?.id) {
+                        chatStore.selectChat(chatContact.value.id);
+                    }
                     break;
                 case 'flip-camera':
                     if (isMobile.value) {
