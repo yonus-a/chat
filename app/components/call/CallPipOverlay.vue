@@ -34,12 +34,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useDraggable, useWindowSize } from '@vueuse/core';
-import { useRouter } from 'vue-router';
 import ContactAvatar from '../chat/contact/ContactAvatar.vue';
 
 const profileStore = useProfileStore();
 const callStore = useCallStore();
-const router = useRouter();
+const chatStore = useChatStore();
 
 const pipContainer = ref<HTMLElement | null>(null);
 const pipVideo = ref<HTMLVideoElement | null>(null);
@@ -98,7 +97,9 @@ const maximizeCall = async () => {
     if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
     }
-    router.push(`/dashboard/chat/${callStore.chatContact?.id}/call`);
+    if (callStore.chatContact?.id) {
+        chatStore.selectChat(callStore.chatContact.id);
+    }
 };
 
 // --- NATIVE OS PIP FALLBACK ---
