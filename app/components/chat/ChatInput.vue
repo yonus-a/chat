@@ -118,12 +118,12 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
-import { useI18n, useChatActionStore, useProfileStore } from '#imports';
+import { useI18n, useChatActionStore, useProfileStore, useChatStore } from '#imports';
 import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import type { ExtendedMessage, Message } from '~/types/chat';
 import SafeEmojiText from '../general/SafeEmojiText.vue';
 import { parseEmojiArray } from '~/utils/emojiParser';
@@ -135,9 +135,9 @@ export default defineComponent({
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
-        const router = useRouter()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions();
         const chatActionStore = useChatActionStore();
+        const chatStore = useChatStore();
         const profileStore = useProfileStore()
         const route = useRoute()
         const savedRange = ref<Range | null>(null);
@@ -360,19 +360,10 @@ export default defineComponent({
         };
 
         const handleEscapeNavigation = () => {
-            const params = route.params.id;
-            const baseId = Array.isArray(params) ? params[0] : params;
-
-            // Check if we are in a sub-state (Call or Profile View)
-            const isCallMode = Array.isArray(params) && params.includes('call');
-            const isProfileView = !!route.query.view;
-
-            if (isCallMode || isProfileView) {
-                // If in a sub-state, go back to the base chat page
-                router.push(`/dashboard/chat/${baseId}`);
+            if (chatStore.isProfileOpen) {
+                chatStore.closeProfile();
             } else {
-                // If already on the base chat page, go back to the chat list
-                router.push('/dashboard/chat');
+                chatStore.selectChat(null);
             }
         };
 
