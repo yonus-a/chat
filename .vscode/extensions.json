@@ -1,0 +1,29 @@
+{
+  // Point Tailwind v4 extension directly to your main CSS file
+  "tailwindCSS.experimental.configFile": "app/assets/css/main.css",
+
+  // Trigger class autocompletion instantly when writing style strings
+  "editor.quickSuggestions": {
+    "strings": true,
+    "other": true,
+    "comments": false
+  },
+
+  // Prevent VS Code's default CSS validator from choking on Tailwind directives
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+
+  // Force Vue Official extension to run alongside TypeScript smoothly
+  "vue.server.hybridMode": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  // Enforce UNIX line endings dynamically on Windows machine files
+  "files.eol": "\n",
+
+  // Automatic formatting synchronization on file save
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}
