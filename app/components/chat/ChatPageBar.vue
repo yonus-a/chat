@@ -64,8 +64,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, type PropType, useTemplateRef } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useCallStore, useChatActionStore, useI18n, useDate } from '#imports';
+import { useCallStore, useChatActionStore, useChatStore, useI18n, useDate } from '#imports';
 import type { Menu } from '~/types/components/menu';
 import type { Contact } from '~/types/chat';
 import type { Popup } from '~/types/components/popup';
@@ -95,15 +94,14 @@ export default defineComponent({
     setup(props, { emit }) {
         const chatActionStore = useChatActionStore()
         const { formatRelativeDate } = useDate();
-        const route = useRoute();
-        const router = useRouter()
         const { t } = useI18n();
         const callStore = useCallStore()
+        const chatStore = useChatStore()
 
         const referBus = useEventBus('open-referral');
 
 
-        const currentConversationId = computed(() => parseInt(route.params.id as string))
+        const currentConversationId = computed(() => chatStore.activeConversationId)
         const menuRef = ref<Menu | null>(null)
         const selectedChat = computed(() => props.contact)
         const menuMode = ref<'medic' | 'options'>('options')
@@ -155,7 +153,7 @@ export default defineComponent({
                         if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) {
 
                         } else {
-                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value ?? 0);
                         }
                     }
                     break;
@@ -169,7 +167,7 @@ export default defineComponent({
         }
 
         const goBack = () => {
-            router.go(-1)
+            chatStore.setSelectedChat(null)
         }
 
         const copy = () => {
@@ -200,7 +198,7 @@ export default defineComponent({
                         if (props.contact?.nationalCode && props.contact.nationalCode.trim().length > 0) {
                             chatActionStore.triggerPrescription(props.contact.id);
                         } else {
-                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value);
+                            chatActionStore.triggerPersonalInfoRequest(currentConversationId.value ?? 0);
                         }
                         break;
                 }
@@ -229,7 +227,7 @@ export default defineComponent({
         const isInCall = computed(() => callStore.isActive)
 
         const backToCall = () => {
-            router.push(`/dashboard/chat/${callStore.chatContact?.id}/call`);
+            callStore.maximize()
         }
 
         return {

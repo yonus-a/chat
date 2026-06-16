@@ -123,7 +123,7 @@ import { type Menu } from '~/types/components/menu';
 import InputAttachement from './chat-input/InputAttachement.vue';
 import { useAppPermissions } from '~/composables/useAppPermissions';
 import { useChatRecording } from '~/composables/chat/useChatRecording';
-import { useRoute, useRouter } from 'vue-router';
+import { useCallStore } from '#imports';
 import type { ExtendedMessage, Message } from '~/types/chat';
 import SafeEmojiText from '../general/SafeEmojiText.vue';
 import { parseEmojiArray } from '~/utils/emojiParser';
@@ -135,11 +135,10 @@ export default defineComponent({
     emits: ['send', 'edit'],
     setup(props, { expose, emit }) {
         const { t } = useI18n();
-        const router = useRouter()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions();
         const chatActionStore = useChatActionStore();
         const chatStore = useChatStore()
-        const route = useRoute()
+        const callStore = useCallStore()
         const savedRange = ref<Range | null>(null);
         const isSelectingEmoji = ref(false);
 
@@ -275,7 +274,7 @@ export default defineComponent({
         const createBaseMessage = (): Message => {
             return {
                 id: Date.now() + Math.floor(Math.random() * 1000), // Temporary fake ID
-                conversationId: Number(route.params.id) || 101,
+                conversationId: chatStore.activeConversationId ?? 101,
                 date: new Date(),
                 type: 'text', // default
                 isEdited: false,
@@ -360,19 +359,15 @@ export default defineComponent({
         };
 
         const handleEscapeNavigation = () => {
-            const params = route.params.id;
-            const baseId = Array.isArray(params) ? params[0] : params;
+            const isCallMode = callStore.isActive && !callStore.isPiP;
+            const isProfileView = chatStore.profileViewOpen;
 
-            // Check if we are in a sub-state (Call or Profile View)
-            const isCallMode = Array.isArray(params) && params.includes('call');
-            const isProfileView = !!route.query.view;
-
-            if (isCallMode || isProfileView) {
-                // If in a sub-state, go back to the base chat page
-                router.push(`/dashboard/chat/${baseId}`);
+            if (isCallMode) {
+                callStore.minimize();
+            } else if (isProfileView) {
+                chatStore.closeProfile();
             } else {
-                // If already on the base chat page, go back to the chat list
-                router.push('/dashboard/chat');
+                chatStore.setSelectedChat(null);
             }
         };
 

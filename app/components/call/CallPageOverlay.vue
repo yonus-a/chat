@@ -67,7 +67,6 @@
 import { type PropType, defineComponent, onBeforeMount, onMounted, computed } from 'vue';
 import type { Contact } from '~/types/chat';
 import { useI18n, useCallStore, useAppToast, useWindowSize, useAppPermissions, useDevice } from '#imports';
-import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import CallMemberDisplay from './CallMemberDisplay.vue';
 import { formatDuration } from '@/utils/format'
 import CallBoard from './CallBoard.vue';
@@ -87,15 +86,12 @@ export default defineComponent({
         MedicSelector,
     },
     setup(props) {
-        const router = useRouter()
-        const route = useRoute()
         const { t } = useI18n()
         const isReady = ref(false)
         const { openToast } = useAppToast()
         const callStore = useCallStore()
         const { width } = useWindowSize()
         const { requestWithPopup, checkMediaStatus } = useAppPermissions()
-        const chatId = computed(() => Number(route.params.id))
         const { hardware } = useDevice();
         const isFlashOn = ref(false);
         const isBoardOpen = ref(false)
@@ -234,22 +230,8 @@ export default defineComponent({
             },
         ]);
         const goBack = () => {
-            router.go(-1)
+            callStore.minimize()
         }
-
-
-
-        onBeforeRouteLeave((to, from) => {
-            if (callStore.isActive) {
-                callStore.isPiP = true;
-            }
-        });
-
-        watch(() => route.path, () => {
-            if (!route.path.endsWith('/call') && callStore.isActive) {
-                callStore.isPiP = true;
-            }
-        })
 
         watch(() => chatContact.value, () => {
             if (chatContact.value) {
@@ -286,19 +268,8 @@ export default defineComponent({
 
 
         onBeforeMount(() => {
-            callStore.isPiP = false;
-            const isInitializing = route.query.initCall === 'true';
-            if (isInitializing) return
-            if (!callStore.isActive) {
-                const rawId = route.params.id;
-                const actualId = Array.isArray(rawId) ? rawId[0] : rawId;
-
-                const fallbackId = actualId || chatContact.value?.id || '';
-
-                router.push(`/dashboard/chat/${fallbackId}`);
-                return;
-            }
-            isReady.value = true;
+            callStore.maximize();
+            isReady.value = callStore.isActive;
         })
 
         onMounted(async () => {
@@ -332,8 +303,6 @@ export default defineComponent({
                 // If user clicks "Not Now" or denies it, kick them back safely
                 if (!granted) {
                     callStore.isActive = false;
-                    const safeId = route.params.id || callStore.chatContact?.id || '';
-                    router.push(`/dashboard/chat/${safeId}`);
                     return; // Stop execution
                 }
             }
@@ -354,8 +323,7 @@ export default defineComponent({
             if (button?.hasErrors) return;
             switch (key) {
                 case 'minimize-call':
-                    callStore.isPiP = true;
-                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
+                    callStore.minimize();
                     break;
                 case 'share-screen':
                     if (callStore.isSharingScreen) {
@@ -382,7 +350,6 @@ export default defineComponent({
                     break;
                 case 'leave-call':
                     callStore.stopCall();
-                    router.push(`/dashboard/chat/${chatContact.value?.id}`);
                     break;
                 case 'flip-camera':
                     if (isMobile.value) {

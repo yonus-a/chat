@@ -61,7 +61,6 @@ import type { Message, Contact } from '~/types/chat';
 import { useI18n, useChatStore, useChatActionStore, useAppToast } from '#imports';
 import ContactAvatar from '../contact/ContactAvatar.vue';
 import type { Modal } from '~/types/components/modal';
-import { useRoute } from 'vue-router';
 import ProviderDisplay from './request-card/ProviderDisplay.vue';
 export default defineComponent({
     name: 'RequestCard',
@@ -80,7 +79,6 @@ export default defineComponent({
         ProviderDisplay,
     },
     setup(props) {
-        const route = useRoute()
         const { t } = useI18n()
         const { openToast } = useAppToast()
         const modal = ref<Modal | null>(null)
@@ -160,7 +158,7 @@ export default defineComponent({
 
 
         const messageId = computed(() => props.message.id)
-        const chatId = computed(() => parseInt(route.params.id as string))
+        const chatId = computed(() => chatStore.activeConversationId)
 
 
         const requestButtonProps = computed(() => {

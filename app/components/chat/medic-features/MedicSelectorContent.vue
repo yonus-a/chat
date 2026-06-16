@@ -47,9 +47,8 @@
 </template>
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
-import { useServiceStore, useI18n, useChatActionStore, useAppToast } from '#imports';
+import { useServiceStore, useI18n, useChatActionStore, useAppToast, useChatStore } from '#imports';
 import MedicDisplay from './MedicDisplay.vue';
-import { useRoute } from 'vue-router';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoProviderImage from '/images/chat/no-provider-found.webp';
 import type { Provider } from '~/types/service';
@@ -63,7 +62,7 @@ export default defineComponent({
     },
     setup(_, { emit }) {
         const { t } = useI18n()
-        const route = useRoute()
+        const chatStore = useChatStore()
         const serviceStore = useServiceStore()
         const chatActionStore = useChatActionStore()
         const activeFilter = ref('')
@@ -72,7 +71,7 @@ export default defineComponent({
 
         const { openToast } = useAppToast()
 
-        const currentConversationId = computed(() => Number(route.params.id) || 0);
+        const currentConversationId = computed(() => chatStore.activeConversationId ?? 0);
 
         const field = computed({
             get: () => serviceStore.selectedServiceId,

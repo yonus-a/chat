@@ -39,43 +39,27 @@
     <PrescribtionDisplay />
   </div>
 </template>
+
 <script lang="ts">
-import { defineComponent, computed, useTemplateRef } from "vue";
-import {
-  useI18n,
-  useSeoMeta,
-  useWindowSize,
-  useChatStore,
-  useCallStore,
-} from "#imports";
+import { defineComponent, computed, ref, nextTick, watch, useTemplateRef } from "vue";
+import { useI18n, useWindowSize, useChatStore, useCallStore } from "#imports";
 import ChatPageBar from "~/components/chat/ChatPageBar.vue";
-import { useRoute, useRouter } from "vue-router";
 import ChatInput from "~/components/chat/ChatInput.vue";
 import { type ChatTextField } from "~/types/components/chat-input";
 import ChatProfileOverview from "~/components/chat/ChatProfileOverview.vue";
 import ChatMessages from "~/components/chat/ChatMessages.vue";
-import ChatList from "~/components/chat/contact/ChatList.vue";
 import { type MenuOption } from "~/types/components/menu-options";
 import PatientReferral from "~/components/chat/PatientReferral.vue";
 import type { PatientRefferalExposed } from "~/components/chat/PatientReferral.vue";
 import CallPageOverlay from "~/components/call/CallPageOverlay.vue";
 import PermissionPopup from "~/components/chat/chat-input/PermissionPopup.vue";
 import PrescribtionDisplay from "~/components/chat/medic-features/PrescribtionDisplay.vue";
-definePageMeta({
-  layout: "chat",
-  hideBottomNav: true,
-  key: (route) => {
-    const id = route.params.id;
-    return Array.isArray(id) ? id[0] : id;
-  },
-});
 
 export default defineComponent({
-  name: "ChatPage",
+  name: "ChatView",
   components: {
     ChatPageBar,
     CallPageOverlay,
-    ChatList,
     ChatInput,
     ChatProfileOverview,
     ChatMessages,
@@ -86,32 +70,14 @@ export default defineComponent({
   setup() {
     const chatStore = useChatStore();
     const callStore = useCallStore();
-    const route = useRoute();
-    const router = useRouter();
     const { t } = useI18n();
     const chatInput = ref<ChatTextField | null>(null);
     const { width } = useWindowSize();
     const isMobile = computed(() => width.value < 768);
 
-    const isCallMode = computed(() => {
-      const params = route.params.id;
-      return Array.isArray(params) && params.includes("call");
-    });
-
-    const chatId = computed(() => {
-      const params = route.params.id;
-      const id = Array.isArray(params) ? params[0] : params;
-      return id ? parseInt(id as string) : null;
-    });
-
-    const isProfile = computed(() => route.query.view === "profile");
-    const isChatMode = computed(() => {
-      if (isMobile.value) {
-        return !isProfile.value;
-      } else {
-        return canShowMessagingSection.value;
-      }
-    });
+    const chatId = computed(() => chatStore.activeConversationId);
+    const isProfile = computed(() => chatStore.profileViewOpen);
+    const isCallMode = computed(() => callStore.isActive && !callStore.isPiP);
 
     const selectedChat = computed(() => {
       if (!chatId.value) return null;
@@ -124,14 +90,19 @@ export default defineComponent({
 
     const canShowMessagingSection = computed(() => {
       if (isCallMode.value) return false;
-      if (isMobile.value) {
-        return !route.query.view;
-      }
+      if (isMobile.value) return !isProfile.value;
       return true;
     });
 
+    const isChatMode = computed(() => {
+      if (isMobile.value) {
+        return !isProfile.value;
+      }
+      return canShowMessagingSection.value;
+    });
+
     watch(
-      () => route.params.id,
+      () => chatStore.activeConversationId,
       () => {
         if (chatId.value && selectedChat.value?.isActive) {
           nextTick(() => {
@@ -141,26 +112,17 @@ export default defineComponent({
       },
     );
 
-    useSeoMeta({
-      title: () => t("seo.dashboard.chat.title"),
-      description: () => t("seo.dashboard.chat.description"),
-      ogTitle: () => `${t("seo.siteName")} - ${t("seo.dashboard.chat.title")}`,
-    });
-
     const openProfile = () => {
-      router.push({ query: { ...route.query, view: "profile" } });
+      chatStore.openProfile();
     };
 
     const handleNewMessages = (newMsgs: any[]) => {
-      // Replace any with Message type if imported
       if (!newMsgs || newMsgs.length === 0) return;
-
-      // Pass the messages down to the child component
       chatMessagesRef.value?.addMessages(newMsgs);
     };
 
-    const handleEditMessage = (payload: { id: number; text: string }) => {
-      //        chatMessagesRef.value?.editMessage(payload.id, payload.text);
+    const handleEditMessage = (_payload: { id: number; text: string }) => {
+      // hook for future use
     };
 
     const medicOptions = computed<MenuOption[]>(() => [

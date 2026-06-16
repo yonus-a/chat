@@ -113,7 +113,6 @@
 <script lang="ts">
 import { defineComponent, type PropType, ref, watch, onMounted } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useRoute, useRouter } from 'vue-router';
 import { useDate, useI18n, useCallStore, useChatStore } from '#imports';
 import profileBackground from '/images/chat/profile-background.webp'
 import ContactAvatar from './contact/ContactAvatar.vue';
@@ -142,8 +141,6 @@ export default defineComponent({
     setup(props) {
         const { getYearsPassed } = useDate()
         const callStore = useCallStore()
-        const router = useRouter()
-        const route = useRoute()
         const { t } = useI18n()
         const chatStore = useChatStore()
         const imageList = ref<HTMLElement | null>(null)
@@ -234,9 +231,9 @@ export default defineComponent({
             },
         ])
 
-        // Watch the route query to open/close
-        watch(() => route.query.view, (newView) => {
-            if (newView === 'profile') {
+        // Watch the store to open/close the profile sidebar
+        watch(() => chatStore.profileViewOpen, (isProfileOpen) => {
+            if (isProfileOpen) {
                 // FIX: Populate local data immediately when opening 
                 // This prevents the blank screen when reopening the same profile
                 if (props.profile) {
@@ -266,7 +263,7 @@ export default defineComponent({
 
 
         const closeSidebar = () => {
-            router.back()
+            chatStore.closeProfile()
         }
 
 

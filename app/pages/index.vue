@@ -1,7 +1,7 @@
 <template>
     <div class="flex w-full h-full max-h-full overflow-hidden">
         <div v-if="showMessagingSection" class="h-full flex-1 relative">
-            <NuxtPage v-if="isInChat" />
+            <ChatView v-if="isInChat" />
             <div v-else class=" w-full h-full flex items-center justify-center ">
                 <NoDataDisplay :image-path="NoChatSelected" :title="t('chat.noConversationSelected')" />
             </div>
@@ -14,36 +14,33 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { useI18n, useSeoMeta, useChatStore } from '#imports';
-import { useRoute } from 'vue-router';
 import { useWindowSize } from '#imports';
 import NoDataDisplay from '~/components/general/NoDataDisplay.vue';
 import NoChatSelected from '/images/chat/no-chat-selected.webp';
 import ChatList from '~/components/chat/contact/ChatList.vue';
+import ChatView from '~/components/chat/ChatView.vue';
 
 definePageMeta({
-    layout: 'chat' // Keeps your Sidebar perfectly intact
+    layout: 'chat',
+    hideBottomNav: true,
 })
 
 export default defineComponent({
-    name: 'ChatWrapper',
+    name: 'DashboardChat',
     components: {
         ChatList,
+        ChatView,
         NoDataDisplay,
     },
     setup() {
         const { width } = useWindowSize()
         const { t } = useI18n()
-        const route = useRoute()
-
-
+        const chatStore = useChatStore()
 
         const isMobile = computed(() => width.value < 768)
-        const isInChat = computed(() => {
-            const id = route.params.id;
-            return id ? true : false;
-        });
+        const isInChat = computed(() => chatStore.activeConversationId !== null)
 
         const showContactList = computed(() => {
             if (isMobile.value) {
@@ -59,9 +56,6 @@ export default defineComponent({
             }
             return true
         })
-
-
-
 
         useSeoMeta({
             title: () => t('seo.dashboard.chat.title'),

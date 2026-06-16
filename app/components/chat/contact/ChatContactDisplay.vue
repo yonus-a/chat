@@ -45,8 +45,7 @@
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue';
 import type { Contact } from '~/types/chat';
-import { useRoute, useRouter } from 'vue-router';
-import { useLocalePath, useI18n, useDate, useChatStore } from '#imports';
+import { useI18n, useDate, useChatStore } from '#imports';
 import ContactAvatar from './ContactAvatar.vue';
 import SafeEmojiText from '~/components/general/SafeEmojiText.vue';
 
@@ -68,15 +67,12 @@ export default defineComponent({
     },
     setup(props) {
         const { t } = useI18n();
-        const route = useRoute();
-        const router = useRouter();
-        const localePath = useLocalePath();
         const { formatRelativeDate } = useDate();
         const chatStore = useChatStore();
-        const isActive = computed(() => parseInt(route.params.id as string) === props.contact.id);
+        const isActive = computed(() => chatStore.activeConversationId === props.contact.id);
 
         const openChat = () => {
-            router.push(localePath(`/dashboard/chat/${props.contact.id}`));
+            chatStore.setSelectedChat(props.contact.id);
         }
 
         const isFromMe = computed(() => props.contact.lastMessage?.senderId === chatStore.currentUserId);

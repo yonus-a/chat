@@ -114,7 +114,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount, watch, type PropType, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { useI18n, useChatActionStore, useChatStore, useCallStore, useDate } from '#imports';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import ChatBubble from './ChatBubble.vue';
@@ -144,14 +143,12 @@ export default defineComponent({
     setup(props) {
         const menuRef = ref<Menu | null>(null)
         const modal = ref<Modal | null>(null);
-        const route = useRoute();
-        const router = useRouter()
         const chatStore = useChatStore();
         const callStore = useCallStore()
         const { t } = useI18n();
         const chatActionStore = useChatActionStore();
         const { formatDateShort } = useDate();
-        const chatId = computed(() => parseInt(route.params.id as string))
+        const chatId = computed(() => chatStore.activeConversationId)
         const hasCall = computed(() => callStore.isActive)
 
 
@@ -304,7 +301,7 @@ export default defineComponent({
 
                     repliedTo = {
                         id: repliedId,
-                        conversationId: Number(route.params.id) || 101,
+                        conversationId: chatStore.activeConversationId ?? 101,
                         date: new Date(messageDate.getTime() - 15 * 60 * 1000),
                         type: 'text',
                         text: `This is the original message ${repliedId} that got replied to.`,
@@ -317,7 +314,7 @@ export default defineComponent({
 
                 return {
                     id,
-                    conversationId: Number(route.params.id) || 101,
+                    conversationId: chatStore.activeConversationId ?? 101,
                     date: messageDate,
                     type: (scenario === 'multiImage' ? 'image' : scenario) as MessageType,
                     text: scenario === "text" ? `Message ${id}: ${isMe ? 'Sent by me.' : 'Received from them.'}` : undefined,

@@ -2,11 +2,9 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { CallMember } from "~/types/call";
 import { useChatStore, useAppPermissions } from "#imports";
-import { useRouter } from "vue-router";
 
 export const useCallStore = defineStore("call", () => {
   const chatStore = useChatStore();
-  const router = useRouter();
   const { checkMediaStatus, requestWithPopup } = useAppPermissions();
 
   //props for the painting board
@@ -280,9 +278,18 @@ export const useCallStore = defineStore("call", () => {
   ) => {
     chatContact.value = contact;
     isActive.value = true;
+    isPiP.value = false;
+    chatStore.setSelectedChat(contact.id);
     startTimer();
     await syncMediaSettings(serviceType);
-    await router.push(`/dashboard/chat/${contact.id}/call`);
+  };
+
+  const maximize = () => {
+    isPiP.value = false;
+  };
+
+  const minimize = () => {
+    isPiP.value = true;
   };
 
   const setScreenStream = (stream: MediaStream) => {
@@ -306,6 +313,8 @@ export const useCallStore = defineStore("call", () => {
     isCamDisabled,
     isSoundMuted,
     isPiP,
+    maximize,
+    minimize,
     toggleMic,
     toggleCam,
     toggleSound,
