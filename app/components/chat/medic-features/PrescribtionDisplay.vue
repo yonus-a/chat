@@ -205,9 +205,9 @@ export default defineComponent({
             }
 
             addMedication({
-                id: Date.now(),
+                id: String(Date.now()),
                 medication: {
-                    id: Date.now(),
+                    id: String(Date.now()),
                     title: name,
                     englishTitle: name,
                     brands: [],

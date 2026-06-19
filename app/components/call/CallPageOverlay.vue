@@ -110,9 +110,9 @@ export default defineComponent({
 
         const isMobile = computed(() => width.value < 768);
 
-        const fullScreenId = ref<number | null>(null);
+        const fullScreenId = ref<string | null>(null);
 
-        const toggleFullScreen = (id: number) => {
+        const toggleFullScreen = (id: string) => {
             fullScreenId.value = fullScreenId.value === id ? null : id;
         };
 

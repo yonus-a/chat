@@ -71,7 +71,7 @@ export default defineComponent({
 
         const { openToast } = useAppToast()
 
-        const currentConversationId = computed(() => chatStore.activeConversationId ?? 0);
+        const currentConversationId = computed(() => chatStore.activeConversationId ?? "");
 
         const field = computed({
             get: () => serviceStore.selectedServiceId,

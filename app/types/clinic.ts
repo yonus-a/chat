@@ -1,5 +1,5 @@
 export interface Clinic {
-  id: number;
+  id: string;
   title: number;
   latitude: number;
   longitude: number;

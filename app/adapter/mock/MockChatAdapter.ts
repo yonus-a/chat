@@ -28,7 +28,7 @@ export const createMockChatAdapter = (
       return seedMessages({ ...params, currentUserId });
     },
 
-    async markRead(_conversationId: number): Promise<void> {
+    async markRead(_conversationId: string): Promise<void> {
       // no-op
     },
   };

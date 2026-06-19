@@ -68,7 +68,7 @@ export default defineComponent({
             default: null
         },
         messageId: {
-            type: Number,
+            type: String,
             required: false
         },
         isSent: {

@@ -273,8 +273,8 @@ export default defineComponent({
 
         const createBaseMessage = (): Message => {
             return {
-                id: Date.now() + Math.floor(Math.random() * 1000), // Temporary fake ID
-                conversationId: chatStore.activeConversationId ?? 101,
+                id: String(Date.now() + Math.floor(Math.random() * 1000)), // Temporary fake ID
+                conversationId: chatStore.activeConversationId ?? "",
                 date: new Date(),
                 type: 'text', // default
                 isEdited: false,
