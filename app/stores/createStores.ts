@@ -236,15 +236,15 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
     const isLoadingServices = ref(false);
     const currentResultPage = ref(1);
     const searchText = ref("");
-    const selectedServiceId = ref(-1);
+    const selectedServiceId = ref<string | null>(null);
     const providersPerPage = ref(10);
     const hasProviderNextPage = ref(true);
 
     const services = ref<Service[]>([]);
 
-    const createSkeletonProvider = (): Provider =>
+    const createSkeletonProvider = (i: number = 0): Provider =>
       ({
-        id: -1,
+        id: `skeleton-provider-${i}`,
         name: "...",
         lastName: "...",
         isOnline: false,
@@ -263,11 +263,11 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
       }) as Provider;
 
     const providers = ref<Provider[]>(
-      new Array(10).fill(null).map(createSkeletonProvider),
+      new Array(10).fill(null).map((_, i) => createSkeletonProvider(i)),
     );
 
     const resetProviderData = () => {
-      providers.value = new Array(10).fill(null).map(createSkeletonProvider);
+      providers.value = new Array(10).fill(null).map((_, i) => createSkeletonProvider(i));
       currentResultPage.value = 1;
       hasProviderNextPage.value = true;
     };
@@ -283,7 +283,7 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
 
     const fetchProviders = async (
       isLoadMore = false,
-      serviceId?: number,
+      serviceId?: string,
       searchString?: string,
     ) => {
       if (isLoading.value || (!hasProviderNextPage.value && isLoadMore)) return;
@@ -292,7 +292,7 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
       if (!isLoadMore) resetProviderData();
       try {
         const result = await adapter.service.fetchProviders({
-          serviceId: effectiveServiceId,
+          serviceId: effectiveServiceId || "",
           page: currentResultPage.value,
           pageSize: providersPerPage.value,
           search: searchString,
@@ -836,7 +836,7 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
 
     const participants = ref<CallMember[]>(
       Array.from({ length: 4 }, (_, i) => ({
-        id: i + 2,
+        id: String(i + 2),
         name: "امیر",
         lastName: "سعیدی",
         isOnline: true,
