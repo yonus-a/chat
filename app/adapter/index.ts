@@ -17,3 +17,4 @@ export type {
   ProvidersPage,
 } from "./ports/ServiceAdapter";
 export type { MedicationAdapter } from "./ports/MedicationAdapter";
+export type { CallAdapter, CallSignalEvent, CallKind } from "./ports/CallAdapter";

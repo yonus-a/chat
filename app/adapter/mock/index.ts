@@ -8,3 +8,4 @@ export type { MockChatAdapterOptions } from "./MockChatAdapter";
 export type { MockChatActionAdapterOptions } from "./MockChatActionAdapter";
 export type { MockServiceAdapterOptions } from "./MockServiceAdapter";
 export type { MockMedicationAdapterOptions } from "./MockMedicationAdapter";
+export { MockCallAdapter } from "./MockCallAdapter";

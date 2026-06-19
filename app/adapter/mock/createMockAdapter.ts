@@ -15,6 +15,7 @@ import {
   createMockMedicationAdapter,
   type MockMedicationAdapterOptions,
 } from "./MockMedicationAdapter";
+import { MockCallAdapter } from "./MockCallAdapter";
 
 export interface MockAdapterOptions {
   chat?: MockChatAdapterOptions;
@@ -30,4 +31,5 @@ export const createMockAdapter = (
   chatAction: createMockChatActionAdapter(opts.chatAction),
   service: createMockServiceAdapter(opts.service),
   medication: createMockMedicationAdapter(opts.medication),
+  call: new MockCallAdapter(),
 });

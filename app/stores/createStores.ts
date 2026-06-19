@@ -16,6 +16,7 @@ import type { Medication } from "~/types/medication";
 import type { CallMember } from "~/types/call";
 import type { DropdownOption } from "~/types/components/select";
 import type { HostAdapter } from "~/adapter";
+import type { CallKind } from "~/adapter";
 import { useDate, useI18n, useAppToast, useAppPermissions } from "~/nuxt-shims";
 import { useWindowSize } from "~/composables/useWindowSize";
 
@@ -834,25 +835,33 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
       }
     };
 
+    const isMockAdapter = "isMockCall" in adapter.call && (adapter.call as any).isMockCall === true;
+
+    let pc: RTCPeerConnection | null = null;
+    let activeCallId: string | null = null;
+    let unsubscribeSignals: (() => void) | null = null;
+
     const participants = ref<CallMember[]>(
-      Array.from({ length: 4 }, (_, i) => ({
-        id: String(i + 2),
-        name: "امیر",
-        lastName: "سعیدی",
-        isOnline: true,
-        lastSeen: new Date(),
-        imageUrl: `https://i.pravatar.cc/150?u=${i + 2}`,
-        isActive: false,
-        unreadCount: 2,
-        serviceType: "chat",
-        userType: ["user"],
-        birthDate: new Date(),
-        stream: null,
-        isScreenSharing: false,
-        isCameraOn: false,
-        isSpeaking: false,
-        isMuted: false,
-      })),
+      isMockAdapter
+        ? Array.from({ length: 4 }, (_, i) => ({
+            id: String(i + 2),
+            name: "امیر",
+            lastName: "سعیدی",
+            isOnline: true,
+            lastSeen: new Date(),
+            imageUrl: `https://i.pravatar.cc/150?u=${i + 2}`,
+            isActive: false,
+            unreadCount: 2,
+            serviceType: "chat",
+            userType: ["user"],
+            birthDate: new Date(),
+            stream: null,
+            isScreenSharing: false,
+            isCameraOn: false,
+            isSpeaking: false,
+            isMuted: false,
+          }))
+        : [],
     );
 
     const callMembers = computed<CallMember[]>(() => {
@@ -920,6 +929,9 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
       localStream.value = null;
 
       stopScreenShare();
+      if (pc) { pc.close(); pc = null; }
+      if (unsubscribeSignals) { unsubscribeSignals(); unsubscribeSignals = null; }
+      if (activeCallId) { void adapter.call.end(activeCallId); activeCallId = null; }
       isPiP.value = false;
       isActive.value = false;
       elapsedTime.value = 0;
@@ -973,14 +985,47 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
     const startCall = async (
       contact: CallMember,
       conversationId: string,
-      serviceType: "voice-call" | "video-call",
+      serviceType: CallKind,
     ) => {
       chatContact.value = contact;
+      chatStore.setSelectedChat(conversationId);
+      await syncMediaSettings(serviceType);
+      await initCall(serviceType === "video-call");          // populates localStream
+
+      const { callId } = await adapter.call.initiate(conversationId, serviceType);
+      activeCallId = callId;
+
+      pc = new RTCPeerConnection();
+      for (const track of localStream.value!.getTracks()) pc.addTrack(track, localStream.value!);
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate) void adapter.call.sendIce(callId, ev.candidate.toJSON());
+      };
+      pc.ontrack = (ev) => { remoteStream.value = ev.streams[0] ?? null; };
+
+      unsubscribeSignals = adapter.call.onSignal(async (e) => {
+        if (!pc || e.callId !== callId) return;
+        if (e.type === "offer") {
+          await pc.setRemoteDescription(e.sdp);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          await adapter.call.sendAnswer(callId, answer);
+        } else if (e.type === "answer") {
+          await pc.setRemoteDescription(e.sdp);
+        } else if (e.type === "ice") {
+          await pc.addIceCandidate(e.candidate);
+        } else if (e.type === "end") {
+          stopCall();
+        }
+      });
+
+      // Caller side: emit the initial offer.
+      const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: serviceType === "video-call" });
+      await pc.setLocalDescription(offer);
+      await adapter.call.sendOffer(callId, offer);
+
       isActive.value = true;
       isPiP.value = false;
-      chatStore.setSelectedChat(conversationId);
       startTimer();
-      await syncMediaSettings(serviceType);
     };
 
     const maximize = () => {
