@@ -434,9 +434,9 @@ export default defineComponent({
         };
 
         // --- ACTIONS & ANIMATIONS ---
-        const animatingIds = ref<Set<number>>(new Set());
-        const deletingIds = ref<Set<number>>(new Set());
-        let selectedToDelete = ref<number[]>([]);
+        const animatingIds = ref<Set<string>>(new Set());
+        const deletingIds = ref<Set<string>>(new Set());
+        let selectedToDelete = ref<string[]>([]);
 
         const addMessages = (newMsgs: Message[]) => {
             if (!newMsgs || newMsgs.length === 0) return;
