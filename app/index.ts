@@ -22,3 +22,10 @@ export type {
 } from "./adapter";
 
 export { createMockAdapter } from "./adapter/mock";
+
+export { useChatPushPort } from "./adapter/PushPort";
+export type { ChatPushPort } from "./adapter/PushPort";
+
+export type { CallAdapter, CallSignalEvent, CallKind } from "./adapter";
+
+export { useChatStore } from "./stores/chatStore";

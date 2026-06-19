@@ -43,6 +43,7 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
     const activeConversationId = ref<string | null>(null);
     const profileViewOpen = ref(false);
     const messagesMap = ref<Record<string, Message[]>>({});
+    const typingByConversation = ref<Record<string, string | null>>({});
 
     const conversationStates = ref<
       Record<
@@ -217,6 +218,7 @@ export const createStores = ({ adapter }: CreateStoresOptions) => {
       activeConversationId,
       profileViewOpen,
       messagesMap,
+      typingByConversation,
       chatsPerPage,
       unreadCount,
       setSelectedChat,
