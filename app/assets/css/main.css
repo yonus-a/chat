@@ -2,7 +2,7 @@
 @import "./components.css";
 
 /* --- Base Styles (scoped to .behayand-chat-scope to avoid host-page leak) --- */
-.behayand-chat-scope [class*="backdrop-blur"] {
+[class*="backdrop-blur"] {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-perspective: 1000;
@@ -16,122 +16,6 @@
   scrollbar-width: none;
 }
 
-.behayand-chat-scope ::-webkit-scrollbar,
-.behayand-chat-scope::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
-}
-
-.behayand-chat-scope ::-webkit-scrollbar-thumb,
-.behayand-chat-scope::-webkit-scrollbar-thumb {
-  background: var(--background-image-gradient-primary-secondary);
-  border-radius: 10px;
-}
-
-/* --- Standard IranYekan (Latin Numbers) --- */
-@font-face {
-  font-family: "IranYekan";
-  src: url("../fonts/iran-yekan-regular.woff") format("woff");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekan";
-  src: url("../fonts/iran-yekan-medium.woff") format("woff");
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekan";
-  src: url("../fonts/iran-yekan-bold.woff") format("woff");
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekan";
-  src: url("../fonts/iran-yekan-extrabold.woff") format("woff");
-  font-weight: 800;
-  font-display: swap;
-}
-
-/* --- IranYekan FaNum (Persian Numbers) --- */
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebthinfanum.woff") format("woff");
-  font-weight: 100;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanweblightfanum.woff") format("woff");
-  font-weight: 300;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebregularfanum.woff") format("woff");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebmediumfanum.woff") format("woff");
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebboldfanum.woff") format("woff");
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebextraboldfanum.woff") format("woff");
-  font-weight: 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IranYekanFaNum";
-  src: url("../fonts/iranyekanwebblackfanum.woff") format("woff");
-  font-weight: 900;
-  font-display: swap;
-}
-
-/* --- Scoped Font Logic ---
-   Was globally applied with !important on html/body/input/textarea/button —
-   that leaked the library font onto every host-app page. Now confined to
-   .behayand-chat-scope and its descendants. */
-.behayand-chat-scope {
-  interpolate-size: allow-keywords;
-}
-.behayand-chat-scope,
-.behayand-chat-scope input,
-.behayand-chat-scope textarea,
-.behayand-chat-scope button,
-.behayand-chat-scope .chat-bubble,
-.behayand-chat-scope .contact-name {
-  font-family:
-    "IranYekanFaNum", "IranYekan", "AppleColorEmoji", sans-serif !important;
-}
-/* Persian/Arabic font (Force Persian Numbers) — :lang() reads inherited html[lang]. */
-.behayand-chat-scope:lang(fa),
-.behayand-chat-scope:lang(ar) {
-  font-family:
-    "IranYekanFaNum", "AppleColorEmoji", sans-serif;
-}
-
-/* Force font on stubborn form elements inside the scope. */
-.behayand-chat-scope:lang(fa) input,
-.behayand-chat-scope:lang(fa) textarea,
-.behayand-chat-scope:lang(fa) button,
-.behayand-chat-scope:lang(ar) input,
-.behayand-chat-scope:lang(ar) textarea,
-.behayand-chat-scope:lang(ar) button {
-  font-family:
-    "IranYekanFaNum", "AppleColorEmoji", sans-serif;
-}
-
 .border-diamond {
   border-color: transparent !important;
   background-image:
@@ -139,20 +23,4 @@
     var(--background-image-diamond-primary-secondary) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-}
-
-.font-latin {
-  font-family: "IranYekan", "AppleColorEmoji", sans-serif !important;
-}
-
-/* Ensure it forces the font on children like inputs or buttons if applied to a parent */
-.font-latin input,
-.font-latin textarea,
-.font-latin button {
-  font-family: "IranYekan", "AppleColorEmoji", sans-serif !important;
-}
-
-.behayand-chat-scope .maplibregl-map {
-  font-family:
-    "IranYekanFaNum", "IranYekan", "AppleColorEmoji", sans-serif !important;
 }
