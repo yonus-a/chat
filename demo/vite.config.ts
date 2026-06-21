@@ -1,14 +1,12 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   plugins: [
     vue(),
-    tailwindcss(),
     AutoImport({
       imports: [
         "vue",
@@ -24,6 +22,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "~": fileURLToPath(new URL("../app", import.meta.url)),
+      "@behayand/chat/style.css": fileURLToPath(
+        new URL("../app/assets/css/main.css", import.meta.url),
+      ),
       "@behayand/chat": fileURLToPath(
         new URL("../app/index.ts", import.meta.url),
       ),

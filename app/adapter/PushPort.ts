@@ -1,6 +1,5 @@
 import type { Message } from "~/types/chat";
-import { useNuxtApp } from "~/nuxt-shims";
-import type { AppStores } from "~/install";
+import { injectAppStores } from "~/nuxt-shims";
 
 export interface ChatPushPort {
   appendMessage(message: Message): void;
@@ -11,8 +10,7 @@ export interface ChatPushPort {
 }
 
 export function useChatPushPort(): ChatPushPort {
-  const { $appStores } = useNuxtApp() as unknown as { $appStores: AppStores };
-  const chat = $appStores.useChatStore();
+  const chat = injectAppStores().useChatStore();
 
   return {
     appendMessage(message) {

@@ -4,9 +4,19 @@
  * Vue 3 + Vite library build. Every former `from '#imports'` /
  * `from '#app'` is rewritten to point here.
  */
-import { ref, type Ref, inject, getCurrentInstance } from "vue";
+import { ref, type Ref, type WritableComputedRef, type InjectionKey, inject } from "vue";
+import { useI18n as _useI18n } from "vue-i18n";
+import type { AppStores } from "./install";
 
-export { useI18n } from "vue-i18n";
+export type I18nT = (key: string, ...args: unknown[]) => string;
+export interface I18nNarrow {
+  t: I18nT;
+  locale: WritableComputedRef<string>;
+}
+
+export function useI18n(): I18nNarrow {
+  return _useI18n() as unknown as I18nNarrow;
+}
 export { useWindowSize, useEventBus } from "@vueuse/core";
 
 export { useClickOutside } from "./composables/useClickOutside";
@@ -26,14 +36,28 @@ export { useMedicationStore } from "./stores/medicationsStore";
 
 export { formatBytes, formatCurrency } from "./utils/format";
 
-export const APP_STORES_KEY = Symbol("behayand:appStores");
+export const APP_STORES_KEY: InjectionKey<AppStores> = Symbol("behayand:appStores");
 
-export const useNuxtApp = () => {
-  const instance = getCurrentInstance();
-  const appStores =
-    (instance && inject<any>(APP_STORES_KEY, null)) || null;
-  return { $appStores: appStores };
-};
+/**
+ * Resolve the app stores from the current Vue injection context. Call this
+ * either inside a component `setup()` or inside `app.runWithContext(...)`
+ * AFTER `app.use(BehayandChat, { adapter })` has installed the plugin.
+ *
+ * Throws if no provider is reachable — keeps the failure mode loud and
+ * located, instead of a downstream null-deref.
+ */
+export function injectAppStores(): AppStores {
+  const stores = inject(APP_STORES_KEY, null);
+  if (!stores) {
+    throw new Error(
+      "[@behayand/chat] App stores not provided. Make sure " +
+        "`app.use(BehayandChat, { adapter })` has run before any store " +
+        "composable is called, and that the call happens inside a " +
+        "component setup() or inside `app.runWithContext(...)`.",
+    );
+  }
+  return stores;
+}
 
 const stateMap = new Map<string, Ref<unknown>>();
 export function useState<T>(key: string, init?: () => T): Ref<T> {

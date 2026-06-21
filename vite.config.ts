@@ -2,14 +2,12 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
 import AutoImport from "unplugin-auto-import/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 import { resolve } from "node:path";
 
 export default defineConfig({
   plugins: [
     vue(),
-    tailwindcss(),
     AutoImport({
       imports: [
         "vue",

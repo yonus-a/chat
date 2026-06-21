@@ -1,9 +1,3 @@
-import { useNuxtApp } from "~/nuxt-shims";
-import type { AppStores } from "./createStores";
+import { injectAppStores } from "~/nuxt-shims";
 
-export const useServiceStore = () => {
-  const { $appStores } = useNuxtApp() as unknown as {
-    $appStores: AppStores;
-  };
-  return $appStores.useServiceStore();
-};
+export const useServiceStore = () => injectAppStores().useServiceStore();
