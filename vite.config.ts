@@ -52,7 +52,6 @@ export default defineConfig({
         "vue-i18n",
         "pinia",
         "@vueuse/core",
-        "primevue",
         "@primevue/themes",
         "@phosphor-icons/vue",
         "chart.js",
